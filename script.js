@@ -5,18 +5,18 @@
   const SUPABASE_URL = 'https://qkujxjidngqwvibkqbre.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_v7DldiFXJPfbb0J95PKW_Q_Pmf0YR-a';
   const cloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const FOLDER_COLORS = ['#5ac8fa','#0071e3','#34c759','#ff9f0a','#ff375f','#af52de','#8e8e93','#ff3b30'];
+  const FOLDER_COLORS = ['#5ac8fa', '#0071e3', '#34c759', '#ff9f0a', '#ff375f', '#af52de', '#8e8e93', '#ff3b30'];
 
   /* ---------------- Data layer ---------------- */
-  function loadData(){
-    try{
+  function loadData() {
+    try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if(raw) return JSON.parse(raw);
-    }catch(e){ console.warn('Could not read storage', e); }
+      if (raw) return JSON.parse(raw);
+    } catch (e) { console.warn('Could not read storage', e); }
     return seedData();
   }
 
-  function seedData(){
+  function seedData() {
     const now = Date.now();
     const f1 = uid(), f2 = uid();
     return {
@@ -39,7 +39,7 @@
     };
   }
 
-  function saveData(){
+  function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     scheduleCloudSave();
   }
@@ -48,28 +48,28 @@
   let cloudSaveTimer = null;
   let pullingCloudData = false;
 
-  function setSyncStatus(message, type = ''){
+  function setSyncStatus(message, type = '') {
     const el = document.querySelector('#syncStatus');
-    if(!el) return;
+    if (!el) return;
     el.textContent = message;
     el.className = 'sync-status' + (type ? ` ${type}` : '');
   }
 
-  function scheduleCloudSave(){
-    if(!currentUser || pullingCloudData) return;
+  function scheduleCloudSave() {
+    if (!currentUser || pullingCloudData) return;
     clearTimeout(cloudSaveTimer);
     setSyncStatus('저장 중…', 'syncing');
     cloudSaveTimer = setTimeout(pushCloudData, 450);
   }
 
-  async function pushCloudData(){
-    if(!currentUser) return;
+  async function pushCloudData() {
+    if (!currentUser) return;
     const { error } = await cloud.from('archive_data').upsert({
       user_id: currentUser.id,
       data: state,
       updated_at: new Date().toISOString()
     }, { onConflict: 'user_id' });
-    if(error){
+    if (error) {
       console.error('Cloud save failed', error);
       setSyncStatus('동기화 실패', 'error');
       return;
@@ -77,20 +77,20 @@
     setSyncStatus('모든 기기에 저장됨');
   }
 
-  async function pullCloudData(){
-    if(!currentUser) return;
+  async function pullCloudData() {
+    if (!currentUser) return;
     setSyncStatus('동기화 중…', 'syncing');
     const { data, error } = await cloud
       .from('archive_data')
       .select('data')
       .eq('user_id', currentUser.id)
       .maybeSingle();
-    if(error){
+    if (error) {
       console.error('Cloud load failed', error);
       setSyncStatus('DB 설정 필요', 'error');
       return;
     }
-    if(data?.data){
+    if (data?.data) {
       pullingCloudData = true;
       state = data.data;
       localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
@@ -103,7 +103,7 @@
     }
   }
 
-  function uid(){
+  function uid() {
     return Math.random().toString(36).slice(2, 10) + Date.now().toString(36);
   }
 
@@ -120,6 +120,14 @@
   let currentProfile = null;
   let messageSubscription = null;
   const renderedMessageIds = new Set();
+
+  let calendarCursor = new Date();
+  calendarCursor.setDate(1);
+
+  let calendarEntries = new Map();
+  let selectedCalendarDate = null;
+  let selectedCalendarFile = null;
+  let selectedCalendarEntry = null;
 
   /* ---------------- DOM refs ---------------- */
   const $ = sel => document.querySelector(sel);
@@ -167,34 +175,62 @@
   const profileModal = $('#profileModal');
   const userSearchInput = $('#userSearchInput');
   const userSearchResults = $('#userSearchResults');
+  const calendarView = $('#calendarView');
+  const calendarGrid = $('#calendarGrid');
+  const calendarMonthTitle = $('#calendarMonthTitle');
+
+  const calendarEntryModal = $('#calendarEntryModal');
+  const calendarEntryDate = $('#calendarEntryDate');
+  const calendarEntryNote = $('#calendarEntryNote');
+  const calendarPhotoInput = $('#calendarPhotoInput');
+  const calendarPhotoEmpty = $('#calendarPhotoEmpty');
+  const calendarPhotoPreview = $('#calendarPhotoPreview');
+  const calendarEntryMessage = $('#calendarEntryMessage');
   let authMode = 'signin';
 
   /* ---------------- Rendering ---------------- */
-  function render(){
+  function render() {
     renderSidebarFolders();
     renderCounts();
-    if(currentView === 'chat'){
+
+    if (currentView === 'chat') {
       folderGridView.hidden = true;
       editorView.hidden = true;
+      calendarView.hidden = true;
       chatView.hidden = false;
+
       breadcrumb.textContent = '채팅';
+
       renderChatRooms();
       return;
     }
+
+    if (currentView === 'calendar') {
+      folderGridView.hidden = true;
+      editorView.hidden = true;
+      chatView.hidden = true;
+      calendarView.hidden = false;
+
+      breadcrumb.textContent = '캘린더';
+
+      renderCalendar();
+      return;
+    }
+
     chatView.hidden = true;
-    if(!editorView.hidden){
-      // editor already showing; nothing else to do
-    } else {
+    calendarView.hidden = true;
+
+    if (editorView.hidden) {
       renderFolderGridView();
     }
   }
 
-  function renderCounts(){
+  function renderCounts() {
     countAll.textContent = state.notes.length;
     countStarred.textContent = state.notes.filter(n => n.starred).length;
   }
 
-  function renderSidebarFolders(){
+  function renderSidebarFolders() {
     folderList.innerHTML = '';
     state.folders.forEach(folder => {
       const count = state.notes.filter(n => n.folderId === folder.id).length;
@@ -209,7 +245,7 @@
         </button>
       `;
       li.addEventListener('click', (e) => {
-        if(e.target.closest('.folder-del')) return;
+        if (e.target.closest('.folder-del')) return;
         setView(folder.id);
       });
       li.querySelector('.folder-del').addEventListener('click', (e) => {
@@ -220,49 +256,78 @@
     });
   }
 
-  function setView(view){
+  function setView(view) {
     currentView = view;
     closeEditor(false);
-    document.querySelectorAll('.nav-item').forEach(el => {
-      el.classList.toggle('active', el.dataset.view === view);
-    });
+
+    document
+      .querySelectorAll('.nav-item')
+      .forEach(element => {
+        element.classList.toggle(
+          'active',
+          element.dataset.view === view
+        );
+      });
+
     renderSidebarFolders();
-    if(view === 'chat'){
+
+    if (view === 'chat') {
       folderGridView.hidden = true;
+      calendarView.hidden = true;
       chatView.hidden = false;
+
       breadcrumb.textContent = '채팅';
+
       renderChatRooms();
-      if(currentUser) loadChatRooms();
+
+      if (currentUser) {
+        loadChatRooms();
+      }
+    } else if (view === 'calendar') {
+      folderGridView.hidden = true;
+      chatView.hidden = true;
+      calendarView.hidden = false;
+
+      breadcrumb.textContent = '캘린더';
+
+      renderCalendar();
+
+      if (currentUser) {
+        loadCalendarEntries();
+      }
     } else {
       chatView.hidden = true;
+      calendarView.hidden = true;
       folderGridView.hidden = false;
+
       renderFolderGridView();
     }
+
     closeSidebarMobile();
   }
 
-  function currentBreadcrumb(){
-    if(currentView === 'all') return '전체 자료';
-    if(currentView === 'starred') return '즐겨찾기';
+  function currentBreadcrumb() {
+    if (currentView === 'all') return '전체 자료';
+    if (currentView === 'starred') return '즐겨찾기';
     const f = state.folders.find(f => f.id === currentView);
     return f ? f.name : '전체 자료';
   }
 
-  function getFilteredNotes(){
+  function getFilteredNotes() {
     let notes = state.notes.slice();
-    if(currentView === 'starred') notes = notes.filter(n => n.starred);
-    else if(currentView !== 'all') notes = notes.filter(n => n.folderId === currentView);
+    if (currentView === 'starred') notes = notes.filter(n => n.starred);
+    else if (currentView !== 'all') notes = notes.filter(n => n.folderId === currentView);
 
-    if(searchTerm.trim()){
+    if (searchTerm.trim()) {
       const t = searchTerm.trim().toLowerCase();
       notes = notes.filter(n =>
         n.title.toLowerCase().includes(t) || n.content.toLowerCase().includes(t)
       );
     }
-    return notes.sort((a,b) => b.updatedAt - a.updatedAt);
+    return notes.sort((a, b) => b.updatedAt - a.updatedAt);
   }
 
-  function renderFolderGridView(){
+  function renderFolderGridView() {
     breadcrumb.textContent = currentBreadcrumb();
 
     // Folder cards only shown on the "all" home view with no active search
@@ -271,7 +336,7 @@
     notesDividerWrap.style.display = showFolders && state.folders.length ? 'flex' : 'none';
 
     folderGrid.innerHTML = '';
-    if(showFolders){
+    if (showFolders) {
       state.folders.forEach(folder => {
         const count = state.notes.filter(n => n.folderId === folder.id).length;
         const card = document.createElement('div');
@@ -286,7 +351,7 @@
           <div class="folder-card-count">${count}개 자료</div>
         `;
         card.addEventListener('click', (e) => {
-          if(e.target.closest('.folder-card-del')) return;
+          if (e.target.closest('.folder-card-del')) return;
           setView(folder.id);
         });
         card.querySelector('.folder-card-del').addEventListener('click', (e) => {
@@ -322,7 +387,7 @@
     });
   }
 
-  function formatDate(ts){
+  function formatDate(ts) {
     const d = new Date(ts);
     const now = new Date();
     const sameYear = d.getFullYear() === now.getFullYear();
@@ -332,17 +397,17 @@
     });
   }
 
-  function escapeHtml(str){
+  function escapeHtml(str) {
     return String(str).replace(/[&<>"']/g, m => ({
-      '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[m]));
   }
 
   /* ---------------- Editor ---------------- */
-  function openEditor(noteId){
+  function openEditor(noteId) {
     currentNoteId = noteId;
     const note = state.notes.find(n => n.id === noteId);
-    if(!note) return;
+    if (!note) return;
 
     noteTitle.value = note.title;
     noteContent.value = note.content;
@@ -355,43 +420,56 @@
     noteTitle.focus();
   }
 
-  function updateEditorMeta(note){
+  function updateEditorMeta(note) {
     noteMeta.textContent = `마지막 수정: ${formatDate(note.updatedAt)}`;
   }
 
-  function populateFolderSelect(selectedId){
+  function populateFolderSelect(selectedId) {
     folderSelect.innerHTML = `<option value="">폴더 없음</option>` +
-      state.folders.map(f => `<option value="${f.id}" ${f.id===selectedId?'selected':''}>${escapeHtml(f.name)}</option>`).join('');
+      state.folders.map(f => `<option value="${f.id}" ${f.id === selectedId ? 'selected' : ''}>${escapeHtml(f.name)}</option>`).join('');
   }
 
-  function closeEditor(rerender = true){
-    if(currentNoteId){
+  function closeEditor(rerender = true) {
+    if (currentNoteId) {
       persistCurrentNote();
     }
     currentNoteId = null;
     editorView.hidden = true;
     folderGridView.hidden = false;
-    if(rerender) renderFolderGridView();
+    if (rerender) renderFolderGridView();
     renderSidebarFolders();
     renderCounts();
   }
 
-  function persistCurrentNote(){
+  function persistCurrentNote() {
     const note = state.notes.find(n => n.id === currentNoteId);
-    if(!note) return;
+    if (!note) return;
     const changed = note.title !== noteTitle.value || note.content !== noteContent.value;
     note.title = noteTitle.value;
     note.content = noteContent.value;
-    if(changed){
+    if (changed) {
       note.updatedAt = Date.now();
       updateEditorMeta(note);
     }
     saveData();
   }
 
-  function createNote(){
-    if(currentView === 'chat') setView('all');
-    const folderId = (!['all','starred','chat'].includes(currentView)) ? currentView : (state.folders[0]?.id || '');
+  function createNote() {
+    if (
+      currentView === 'chat'
+      || currentView === 'calendar'
+    ) {
+      setView('all');
+    }
+    const folderId =
+      ![
+        'all',
+        'starred',
+        'chat',
+        'calendar'
+      ].includes(currentView)
+        ? currentView
+        : state.folders[0]?.id || '';
     const note = {
       id: uid(), title: '', content: '',
       folderId: folderId || '',
@@ -404,8 +482,8 @@
     openEditor(note.id);
   }
 
-  function deleteCurrentNote(){
-    if(!currentNoteId) return;
+  function deleteCurrentNote() {
+    if (!currentNoteId) return;
     state.notes = state.notes.filter(n => n.id !== currentNoteId);
     saveData();
     currentNoteId = null;
@@ -415,27 +493,27 @@
   }
 
   /* ---------------- Folders ---------------- */
-  function deleteFolder(folderId){
+  function deleteFolder(folderId) {
     const folder = state.folders.find(f => f.id === folderId);
-    if(!folder) return;
+    if (!folder) return;
     const count = state.notes.filter(n => n.folderId === folderId).length;
     const msg = count > 0
       ? `"${folder.name}" 폴더를 삭제할까요? 안의 자료 ${count}개는 "폴더 없음"으로 이동합니다.`
       : `"${folder.name}" 폴더를 삭제할까요?`;
-    if(!confirm(msg)) return;
+    if (!confirm(msg)) return;
 
     state.folders = state.folders.filter(f => f.id !== folderId);
-    state.notes.forEach(n => { if(n.folderId === folderId) n.folderId = ''; });
-    if(currentView === folderId) currentView = 'all';
+    state.notes.forEach(n => { if (n.folderId === folderId) n.folderId = ''; });
+    if (currentView === folderId) currentView = 'all';
     saveData();
     render();
   }
 
-  function openFolderModal(){
+  function openFolderModal() {
     folderNameInput.value = '';
     pendingFolderColor = FOLDER_COLORS[0];
-    colorSwatches.innerHTML = FOLDER_COLORS.map((c,i) => `
-      <div class="color-swatch ${i===0?'selected':''}" data-color="${c}" style="background:${c}"></div>
+    colorSwatches.innerHTML = FOLDER_COLORS.map((c, i) => `
+      <div class="color-swatch ${i === 0 ? 'selected' : ''}" data-color="${c}" style="background:${c}"></div>
     `).join('');
     colorSwatches.querySelectorAll('.color-swatch').forEach(sw => {
       sw.addEventListener('click', () => {
@@ -449,15 +527,15 @@
     setTimeout(() => folderNameInput.focus(), 50);
   }
 
-  function closeFolderModal(){
+  function closeFolderModal() {
     folderModal.hidden = true;
     scrim.classList.remove('visible');
   }
 
   /* ---------------- Account & cloud sync ---------------- */
-  function openAuthModal(){
-    if(currentUser){
-      if(confirm(`${currentUser.email} 계정에서 로그아웃할까요?`)) cloud.auth.signOut();
+  function openAuthModal() {
+    if (currentUser) {
+      if (confirm(`${currentUser.email} 계정에서 로그아웃할까요?`)) cloud.auth.signOut();
       return;
     }
     authMessage.textContent = '';
@@ -466,12 +544,12 @@
     setTimeout(() => authEmail.focus(), 50);
   }
 
-  function closeAuthModal(){
+  function closeAuthModal() {
     authModal.hidden = true;
     scrim.classList.remove('visible');
   }
 
-  function updateAuthMode(){
+  function updateAuthMode() {
     const signup = authMode === 'signup';
     $('#authTitle').textContent = signup ? 'Archive 계정 만들기' : 'Archive에 로그인';
     $('#authDesc').textContent = signup ? '한 번 가입하면 모든 기기에서 자료가 연결돼요.' : '어떤 브라우저에서도 같은 자료를 확인하세요.';
@@ -481,21 +559,21 @@
     authMessage.textContent = '';
   }
 
-  async function submitAuth(e){
+  async function submitAuth(e) {
     e.preventDefault();
     authSubmitBtn.disabled = true;
     authMessage.classList.remove('success');
     authMessage.textContent = '';
     const credentials = { email: authEmail.value.trim(), password: authPassword.value };
     const result = authMode === 'signup'
-      ? await cloud.auth.signUp({ ...credentials, options:{ emailRedirectTo: location.href.split('#')[0] } })
+      ? await cloud.auth.signUp({ ...credentials, options: { emailRedirectTo: location.href.split('#')[0] } })
       : await cloud.auth.signInWithPassword(credentials);
     authSubmitBtn.disabled = false;
-    if(result.error){
+    if (result.error) {
       authMessage.textContent = result.error.message;
       return;
     }
-    if(authMode === 'signup' && !result.data.session){
+    if (authMode === 'signup' && !result.data.session) {
       authMessage.classList.add('success');
       authMessage.textContent = '인증 메일을 보냈어요. 메일의 링크를 눌러 가입을 완료해주세요.';
       return;
@@ -503,18 +581,19 @@
     closeAuthModal();
   }
 
-  async function applySession(session){
+  async function applySession(session) {
     const nextUser = session?.user || null;
     const changed = nextUser?.id !== currentUser?.id;
     currentUser = nextUser;
     authBtn.textContent = currentUser ? currentUser.email : '로그인';
     authBtn.title = currentUser ? '클릭하여 로그아웃' : '로그인';
-    if(currentUser && changed){
+    if (currentUser && changed) {
       await pullCloudData();
       await ensureChatProfile();
       await loadChatRooms();
+      await loadCalendarEntries();
     }
-    if(!currentUser){
+    if (!currentUser) {
       setSyncStatus('이 브라우저에 저장됨');
       currentProfile = null;
       chatRooms = [];
@@ -524,10 +603,13 @@
       chatEmptyConversation.hidden = false;
       chatConversation.parentElement.classList.remove('mobile-conversation');
       renderChatRooms();
+
+      calendarEntries.clear();
+      renderCalendar();
     }
   }
 
-  async function initCloud(){
+  async function initCloud() {
     const { data } = await cloud.auth.getSession();
     await applySession(data.session);
     cloud.auth.onAuthStateChange((_event, session) => {
@@ -535,9 +617,9 @@
     });
   }
 
-  function createFolder(){
+  function createFolder() {
     const name = folderNameInput.value.trim();
-    if(!name) { folderNameInput.focus(); return; }
+    if (!name) { folderNameInput.focus(); return; }
     const folder = { id: uid(), name, color: pendingFolderColor };
     state.folders.push(folder);
     saveData();
@@ -547,56 +629,56 @@
   }
 
   /* ---------------- 1:1 Chat ---------------- */
-  function initials(name){
+  function initials(name) {
     return String(name || '?').trim().slice(0, 1).toUpperCase();
   }
 
-  function avatarGradient(id){
+  function avatarGradient(id) {
     const palettes = [
-      ['#5ac8fa','#0071e3'],['#ff9f0a','#ff6b35'],['#af52de','#7052c8'],
-      ['#34c759','#0a9f48'],['#ff375f','#d91e52'],['#64d2ff','#5e5ce6']
+      ['#5ac8fa', '#0071e3'], ['#ff9f0a', '#ff6b35'], ['#af52de', '#7052c8'],
+      ['#34c759', '#0a9f48'], ['#ff375f', '#d91e52'], ['#64d2ff', '#5e5ce6']
     ];
-    const hash = [...String(id)].reduce((n,c) => n + c.charCodeAt(0), 0);
-    const [a,b] = palettes[hash % palettes.length];
+    const hash = [...String(id)].reduce((n, c) => n + c.charCodeAt(0), 0);
+    const [a, b] = palettes[hash % palettes.length];
     return `linear-gradient(145deg,${a},${b})`;
   }
 
-  function avatarHtml(profile){
+  function avatarHtml(profile) {
     return `<span class="chat-avatar" style="background:${avatarGradient(profile.id)}">${escapeHtml(initials(profile.display_name))}</span>`;
   }
 
-  async function ensureChatProfile(){
-    if(!currentUser) return;
-    const { data, error } = await cloud.from('profiles').select('*').eq('id',currentUser.id).maybeSingle();
-    if(error){
+  async function ensureChatProfile() {
+    if (!currentUser) return;
+    const { data, error } = await cloud.from('profiles').select('*').eq('id', currentUser.id).maybeSingle();
+    if (error) {
       console.error('Profile load failed', error);
       return;
     }
     currentProfile = data || null;
-    if(!currentProfile){
-      const base = (currentUser.email?.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_]/g,'').slice(0,14) || 'user';
+    if (!currentProfile) {
+      const base = (currentUser.email?.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 14) || 'user';
       $('#profileNameInput').value = currentUser.email?.split('@')[0] || '';
-      $('#profileUsernameInput').value = `${base}_${currentUser.id.slice(0,4)}`.slice(0,20);
+      $('#profileUsernameInput').value = `${base}_${currentUser.id.slice(0, 4)}`.slice(0, 20);
       profileModal.hidden = false;
       scrim.classList.add('visible');
     }
     renderChatRooms();
   }
 
-  async function saveChatProfile(e){
+  async function saveChatProfile(e) {
     e.preventDefault();
     const displayName = $('#profileNameInput').value.trim();
     const username = $('#profileUsernameInput').value.trim().toLowerCase();
     const message = $('#profileMessage');
     message.textContent = '';
-    if(!/^[a-z0-9_]{3,20}$/.test(username)){
+    if (!/^[a-z0-9_]{3,20}$/.test(username)) {
       message.textContent = '사용자 이름은 영문 소문자, 숫자, 밑줄로 3~20자 입력해주세요.';
       return;
     }
     const { data, error } = await cloud.from('profiles').upsert({
-      id:currentUser.id, username, display_name:displayName
+      id: currentUser.id, username, display_name: displayName
     }).select().single();
-    if(error){
+    if (error) {
       message.textContent = error.code === '23505' ? '이미 사용 중인 사용자 이름이에요.' : error.message;
       return;
     }
@@ -606,26 +688,26 @@
     renderChatRooms();
   }
 
-  async function loadChatRooms(){
-    if(!currentUser) return;
-    const { data: memberships, error } = await cloud.from('chat_members').select('room_id').eq('user_id',currentUser.id);
-    if(error){ console.error('Chat list failed',error); return; }
-    const rooms = await Promise.all((memberships || []).map(async ({room_id}) => {
-      const [{ data: members },{ data: latest }] = await Promise.all([
-        cloud.from('chat_members').select('user_id').eq('room_id',room_id).neq('user_id',currentUser.id),
-        cloud.from('messages').select('body,created_at').eq('room_id',room_id).order('created_at',{ascending:false}).limit(1)
+  async function loadChatRooms() {
+    if (!currentUser) return;
+    const { data: memberships, error } = await cloud.from('chat_members').select('room_id').eq('user_id', currentUser.id);
+    if (error) { console.error('Chat list failed', error); return; }
+    const rooms = await Promise.all((memberships || []).map(async ({ room_id }) => {
+      const [{ data: members }, { data: latest }] = await Promise.all([
+        cloud.from('chat_members').select('user_id').eq('room_id', room_id).neq('user_id', currentUser.id),
+        cloud.from('messages').select('body,created_at').eq('room_id', room_id).order('created_at', { ascending: false }).limit(1)
       ]);
       const otherId = members?.[0]?.user_id;
-      if(!otherId) return null;
-      const { data: profile } = await cloud.from('profiles').select('*').eq('id',otherId).maybeSingle();
-      if(!profile) return null;
-      return { id:room_id, profile, latest:latest?.[0] || null };
+      if (!otherId) return null;
+      const { data: profile } = await cloud.from('profiles').select('*').eq('id', otherId).maybeSingle();
+      if (!profile) return null;
+      return { id: room_id, profile, latest: latest?.[0] || null };
     }));
-    chatRooms = rooms.filter(Boolean).sort((a,b) => new Date(b.latest?.created_at || 0)-new Date(a.latest?.created_at || 0));
+    chatRooms = rooms.filter(Boolean).sort((a, b) => new Date(b.latest?.created_at || 0) - new Date(a.latest?.created_at || 0));
     renderChatRooms();
   }
 
-  function renderChatRooms(){
+  function renderChatRooms() {
     countChats.textContent = chatRooms.length;
     const loggedIn = !!currentUser;
     chatLoginState.hidden = loggedIn;
@@ -633,7 +715,7 @@
     $('#newChatBtn').disabled = !loggedIn;
     chatProfileLabel.textContent = currentProfile ? `${currentProfile.display_name} · @${currentProfile.username}` : (loggedIn ? '프로필을 설정해주세요' : '로그인 후 이용할 수 있어요');
     chatRoomList.innerHTML = '';
-    if(loggedIn && !chatRooms.length){
+    if (loggedIn && !chatRooms.length) {
       chatRoomList.innerHTML = '<p class="search-guide">아직 채팅방이 없어요.<br>새 채팅을 시작해보세요.</p>';
       return;
     }
@@ -641,24 +723,24 @@
       const button = document.createElement('button');
       button.className = 'chat-room-item' + (room.id === activeRoomId ? ' active' : '');
       button.innerHTML = `${avatarHtml(room.profile)}<span class="chat-room-copy"><span class="chat-room-top"><strong>${escapeHtml(room.profile.display_name)}</strong><span class="chat-room-time">${room.latest ? chatListTime(room.latest.created_at) : ''}</span></span><span class="chat-room-preview">${escapeHtml(room.latest?.body || '새로운 대화를 시작해보세요.')}</span></span>`;
-      button.addEventListener('click',() => openChatRoom(room.id));
+      button.addEventListener('click', () => openChatRoom(room.id));
       chatRoomList.appendChild(button);
     });
   }
 
-  function chatListTime(value){
+  function chatListTime(value) {
     const date = new Date(value), now = new Date();
-    if(date.toDateString() === now.toDateString()) return date.toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
-    return date.toLocaleDateString('ko-KR',{month:'numeric',day:'numeric'});
+    if (date.toDateString() === now.toDateString()) return date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
+    return date.toLocaleDateString('ko-KR', { month: 'numeric', day: 'numeric' });
   }
 
-  function messageTime(value){
-    return new Date(value).toLocaleTimeString('ko-KR',{hour:'2-digit',minute:'2-digit'});
+  function messageTime(value) {
+    return new Date(value).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' });
   }
 
-  async function openChatRoom(roomId){
+  async function openChatRoom(roomId) {
     const room = chatRooms.find(r => r.id === roomId);
-    if(!room) return;
+    if (!room) return;
     activeRoomId = roomId;
     renderedMessageIds.clear();
     renderChatRooms();
@@ -670,16 +752,16 @@
     $('#chatHeaderAvatar').style.background = avatarGradient(room.profile.id);
     chatConversation.parentElement.classList.add('mobile-conversation');
     chatMessages.innerHTML = '<p class="search-guide">대화를 불러오는 중…</p>';
-    const { data, error } = await cloud.from('messages').select('*').eq('room_id',roomId).order('created_at',{ascending:true}).limit(500);
-    if(error){ chatMessages.innerHTML = '<p class="search-guide">메시지를 불러오지 못했어요.</p>'; return; }
+    const { data, error } = await cloud.from('messages').select('*').eq('room_id', roomId).order('created_at', { ascending: true }).limit(500);
+    if (error) { chatMessages.innerHTML = '<p class="search-guide">메시지를 불러오지 못했어요.</p>'; return; }
     chatMessages.innerHTML = '';
     (data || []).forEach(appendMessage);
     scrollChatToBottom();
     subscribeToMessages(roomId);
   }
 
-  function appendMessage(message){
-    if(renderedMessageIds.has(String(message.id))) return;
+  function appendMessage(message) {
+    if (renderedMessageIds.has(String(message.id))) return;
     renderedMessageIds.add(String(message.id));
     const row = document.createElement('div');
     row.className = 'message-row' + (message.user_id === currentUser?.id ? ' mine' : '');
@@ -687,83 +769,596 @@
     chatMessages.appendChild(row);
   }
 
-  function scrollChatToBottom(){
+  function scrollChatToBottom() {
     requestAnimationFrame(() => { chatMessages.scrollTop = chatMessages.scrollHeight; });
   }
 
-  function closeMessageSubscription(){
-    if(messageSubscription){ cloud.removeChannel(messageSubscription); messageSubscription = null; }
+  function closeMessageSubscription() {
+    if (messageSubscription) { cloud.removeChannel(messageSubscription); messageSubscription = null; }
   }
 
-  function subscribeToMessages(roomId){
+  function subscribeToMessages(roomId) {
     closeMessageSubscription();
     messageSubscription = cloud.channel(`room:${roomId}`)
-      .on('postgres_changes',{event:'INSERT',schema:'public',table:'messages',filter:`room_id=eq.${roomId}`},payload => {
-        if(activeRoomId !== roomId) return;
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `room_id=eq.${roomId}` }, payload => {
+        if (activeRoomId !== roomId) return;
         appendMessage(payload.new);
         scrollChatToBottom();
         loadChatRooms();
       }).subscribe();
   }
 
-  async function sendChatMessage(e){
+  async function sendChatMessage(e) {
     e.preventDefault();
     const body = chatInput.value.trim();
-    if(!body || !activeRoomId || !currentUser) return;
+    if (!body || !activeRoomId || !currentUser) return;
     chatInput.value = '';
     chatInput.style.height = 'auto';
-    const { data, error } = await cloud.from('messages').insert({room_id:activeRoomId,user_id:currentUser.id,body}).select().single();
-    if(error){ alert('메시지를 보내지 못했어요. 잠시 후 다시 시도해주세요.'); chatInput.value = body; return; }
+    const { data, error } = await cloud.from('messages').insert({ room_id: activeRoomId, user_id: currentUser.id, body }).select().single();
+    if (error) { alert('메시지를 보내지 못했어요. 잠시 후 다시 시도해주세요.'); chatInput.value = body; return; }
     appendMessage(data);
     scrollChatToBottom();
     loadChatRooms();
   }
 
-  function openNewChat(){
-    if(!currentUser){ openAuthModal(); return; }
-    if(!currentProfile){ ensureChatProfile(); return; }
+  function openNewChat() {
+    if (!currentUser) { openAuthModal(); return; }
+    if (!currentProfile) { ensureChatProfile(); return; }
     userSearchInput.value = '';
     userSearchResults.innerHTML = '<p class="search-guide">두 글자 이상 입력해주세요.</p>';
     newChatModal.hidden = false;
     scrim.classList.add('visible');
-    setTimeout(() => userSearchInput.focus(),50);
+    setTimeout(() => userSearchInput.focus(), 50);
   }
 
-  function closeNewChat(){
+  function closeNewChat() {
     newChatModal.hidden = true;
     scrim.classList.remove('visible');
   }
 
   let searchUserTimer = null;
-  function searchChatUsers(){
+  function searchChatUsers() {
     clearTimeout(searchUserTimer);
     searchUserTimer = setTimeout(async () => {
-      const term = userSearchInput.value.trim().replace(/[%_,()]/g,'');
-      if(term.length < 2){ userSearchResults.innerHTML = '<p class="search-guide">두 글자 이상 입력해주세요.</p>'; return; }
+      const term = userSearchInput.value.trim().replace(/[%_,()]/g, '');
+      if (term.length < 2) { userSearchResults.innerHTML = '<p class="search-guide">두 글자 이상 입력해주세요.</p>'; return; }
       userSearchResults.innerHTML = '<p class="search-guide">검색 중…</p>';
-      const { data, error } = await cloud.from('profiles').select('*').neq('id',currentUser.id).or(`username.ilike.%${term}%,display_name.ilike.%${term}%`).limit(20);
-      if(error || !data?.length){ userSearchResults.innerHTML = '<p class="search-guide">검색 결과가 없어요.</p>'; return; }
+      const { data, error } = await cloud.from('profiles').select('*').neq('id', currentUser.id).or(`username.ilike.%${term}%,display_name.ilike.%${term}%`).limit(20);
+      if (error || !data?.length) { userSearchResults.innerHTML = '<p class="search-guide">검색 결과가 없어요.</p>'; return; }
       userSearchResults.innerHTML = '';
       data.forEach(profile => {
         const button = document.createElement('button');
         button.className = 'user-result';
         button.innerHTML = `${avatarHtml(profile)}<span><strong>${escapeHtml(profile.display_name)}</strong><span>@${escapeHtml(profile.username)}</span></span>`;
-        button.addEventListener('click',() => createDirectChat(profile.id));
+        button.addEventListener('click', () => createDirectChat(profile.id));
         userSearchResults.appendChild(button);
       });
-    },300);
+    }, 300);
   }
 
-  async function createDirectChat(otherUserId){
-    const { data, error } = await cloud.rpc('create_direct_chat',{other_user:otherUserId});
-    if(error){ alert('채팅방을 만들지 못했어요.'); return; }
+  async function createDirectChat(otherUserId) {
+    const { data, error } = await cloud.rpc('create_direct_chat', { other_user: otherUserId });
+    if (error) { alert('채팅방을 만들지 못했어요.'); return; }
     closeNewChat();
     await loadChatRooms();
     openChatRoom(data);
   }
 
+  /* ---------------- Calendar ---------------- */
+
+  function dateKey(date) {
+    const year = date.getFullYear();
+
+    const month = String(
+      date.getMonth() + 1
+    ).padStart(2, '0');
+
+    const day = String(
+      date.getDate()
+    ).padStart(2, '0');
+
+    return `${year}-${month}-${day}`;
+  }
+
+  async function loadCalendarEntries() {
+    if (!currentUser) return;
+
+    const firstDate = new Date(
+      calendarCursor.getFullYear(),
+      calendarCursor.getMonth(),
+      1
+    );
+
+    const nextMonth = new Date(
+      calendarCursor.getFullYear(),
+      calendarCursor.getMonth() + 1,
+      1
+    );
+
+    const { data, error } = await cloud
+      .from('calendar_entries')
+      .select('*')
+      .eq('user_id', currentUser.id)
+      .gte('entry_date', dateKey(firstDate))
+      .lt('entry_date', dateKey(nextMonth));
+
+    if (error) {
+      console.error(
+        'Calendar load failed',
+        error
+      );
+      return;
+    }
+
+    calendarEntries.clear();
+
+    await Promise.all(
+      (data || []).map(async entry => {
+        if (entry.image_path) {
+          const { data: signedData } =
+            await cloud.storage
+              .from('calendar-images')
+              .createSignedUrl(
+                entry.image_path,
+                3600
+              );
+
+          entry.image_url =
+            signedData?.signedUrl || '';
+        }
+
+        calendarEntries.set(
+          entry.entry_date,
+          entry
+        );
+      })
+    );
+
+    renderCalendar();
+  }
+
+  function renderCalendar() {
+    if (
+      !calendarGrid
+      || !calendarMonthTitle
+    ) {
+      return;
+    }
+
+    const year =
+      calendarCursor.getFullYear();
+
+    const month =
+      calendarCursor.getMonth();
+
+    calendarMonthTitle.textContent =
+      `${year}년 ${month + 1}월`;
+
+    const firstDay = new Date(
+      year,
+      month,
+      1
+    ).getDay();
+
+    const daysInMonth = new Date(
+      year,
+      month + 1,
+      0
+    ).getDate();
+
+    const previousMonthDays = new Date(
+      year,
+      month,
+      0
+    ).getDate();
+
+    const todayKey =
+      dateKey(new Date());
+
+    calendarGrid.innerHTML = '';
+
+    for (
+      let index = 0;
+      index < 42;
+      index += 1
+    ) {
+      let day;
+      let cellDate;
+      let outside = false;
+
+      if (index < firstDay) {
+        day =
+          previousMonthDays
+          - firstDay
+          + index
+          + 1;
+
+        cellDate = new Date(
+          year,
+          month - 1,
+          day
+        );
+
+        outside = true;
+      } else if (
+        index >= firstDay + daysInMonth
+      ) {
+        day =
+          index
+          - firstDay
+          - daysInMonth
+          + 1;
+
+        cellDate = new Date(
+          year,
+          month + 1,
+          day
+        );
+
+        outside = true;
+      } else {
+        day =
+          index
+          - firstDay
+          + 1;
+
+        cellDate = new Date(
+          year,
+          month,
+          day
+        );
+      }
+
+      const key =
+        dateKey(cellDate);
+
+      const entry = outside
+        ? null
+        : calendarEntries.get(key);
+
+      const cell =
+        document.createElement('button');
+
+      cell.type = 'button';
+
+      cell.className =
+        'calendar-day'
+        + (outside ? ' outside' : '')
+        + (
+          index % 7 === 0
+            ? ' sunday'
+            : ''
+        )
+        + (
+          key === todayKey
+            ? ' today'
+            : ''
+        )
+        + (
+          entry
+            ? ' has-entry'
+            : ''
+        );
+
+      const photoHtml =
+        entry?.image_url
+          ? `
+          <img
+            class="calendar-day-photo"
+            src="${entry.image_url}"
+            alt=""
+          >
+        `
+          : '';
+
+      const noteHtml =
+        entry?.note
+          ? `
+          <span class="calendar-day-note">
+            ${escapeHtml(entry.note)}
+          </span>
+        `
+          : '';
+
+      cell.innerHTML = `
+      <span class="calendar-day-number">
+        ${day}
+      </span>
+
+      ${photoHtml}
+      ${noteHtml}
+    `;
+
+      cell.addEventListener(
+        'click',
+        () => openCalendarEntry(cellDate)
+      );
+
+      calendarGrid.appendChild(cell);
+    }
+  }
+
+  function openCalendarEntry(date) {
+    if (!currentUser) {
+      openAuthModal();
+      return;
+    }
+
+    selectedCalendarDate =
+      dateKey(date);
+
+    selectedCalendarEntry =
+      calendarEntries.get(
+        selectedCalendarDate
+      ) || null;
+
+    selectedCalendarFile = null;
+
+    calendarEntryDate.textContent =
+      date.toLocaleDateString(
+        'ko-KR',
+        {
+          year: 'numeric',
+          month: 'long',
+          day: 'numeric',
+          weekday: 'long'
+        }
+      );
+
+    calendarEntryNote.value =
+      selectedCalendarEntry?.note || '';
+
+    calendarPhotoInput.value = '';
+    calendarEntryMessage.textContent = '';
+
+    showCalendarPreview(
+      selectedCalendarEntry?.image_url || ''
+    );
+
+    $('#calendarEntryDeleteBtn')
+      .classList.toggle(
+        'visible',
+        Boolean(selectedCalendarEntry)
+      );
+
+    calendarEntryModal.hidden = false;
+    scrim.classList.add('visible');
+
+    setTimeout(
+      () => calendarEntryNote.focus(),
+      50
+    );
+  }
+
+  function showCalendarPreview(url) {
+    calendarPhotoPreview.hidden = !url;
+    calendarPhotoEmpty.hidden = Boolean(url);
+
+    if (url) {
+      calendarPhotoPreview.src = url;
+    } else {
+      calendarPhotoPreview
+        .removeAttribute('src');
+    }
+  }
+
+  function closeCalendarEntry() {
+    calendarEntryModal.hidden = true;
+    scrim.classList.remove('visible');
+
+    selectedCalendarFile = null;
+  }
+
+  function previewCalendarPhoto() {
+    const file =
+      calendarPhotoInput.files?.[0];
+
+    if (!file) return;
+
+    calendarEntryMessage.textContent = '';
+
+    if (!file.type.startsWith('image/')) {
+      calendarEntryMessage.textContent =
+        '이미지 파일만 첨부할 수 있어요.';
+
+      calendarPhotoInput.value = '';
+      return;
+    }
+
+    if (file.size > 5 * 1024 * 1024) {
+      calendarEntryMessage.textContent =
+        '사진은 5MB 이하로 선택해주세요.';
+
+      calendarPhotoInput.value = '';
+      return;
+    }
+
+    selectedCalendarFile = file;
+
+    const previewUrl =
+      URL.createObjectURL(file);
+
+    showCalendarPreview(previewUrl);
+  }
+
+  async function saveCalendarEntry(event) {
+    event.preventDefault();
+
+    if (
+      !currentUser
+      || !selectedCalendarDate
+    ) {
+      return;
+    }
+
+    const saveButton =
+      $('#calendarEntrySaveBtn');
+
+    saveButton.disabled = true;
+
+    calendarEntryMessage.textContent =
+      '저장 중…';
+
+    let imagePath =
+      selectedCalendarEntry?.image_path
+      || null;
+
+    if (selectedCalendarFile) {
+      const extension = (
+        selectedCalendarFile.name
+          .split('.')
+          .pop()
+        || 'jpg'
+      )
+        .replace(/[^a-z0-9]/gi, '')
+        .toLowerCase();
+
+      const newPath =
+        `${currentUser.id}/`
+        + `${selectedCalendarDate}-`
+        + `${Date.now()}.${extension}`;
+
+      const { error: uploadError } =
+        await cloud.storage
+          .from('calendar-images')
+          .upload(
+            newPath,
+            selectedCalendarFile,
+            {
+              contentType:
+                selectedCalendarFile.type,
+
+              upsert: false
+            }
+          );
+
+      if (uploadError) {
+        console.error(
+          'Calendar photo upload failed',
+          uploadError
+        );
+
+        calendarEntryMessage.textContent =
+          '사진 업로드에 실패했어요.';
+
+        saveButton.disabled = false;
+        return;
+      }
+
+      if (imagePath) {
+        await cloud.storage
+          .from('calendar-images')
+          .remove([imagePath]);
+      }
+
+      imagePath = newPath;
+    }
+
+    const note =
+      calendarEntryNote.value.trim();
+
+    if (!note && !imagePath) {
+      calendarEntryMessage.textContent =
+        '기록이나 사진을 하나 이상 추가해주세요.';
+
+      saveButton.disabled = false;
+      return;
+    }
+
+    const { error } = await cloud
+      .from('calendar_entries')
+      .upsert(
+        {
+          user_id: currentUser.id,
+          entry_date: selectedCalendarDate,
+          note,
+          image_path: imagePath,
+          updated_at:
+            new Date().toISOString()
+        },
+        {
+          onConflict:
+            'user_id,entry_date'
+        }
+      );
+
+    saveButton.disabled = false;
+
+    if (error) {
+      console.error(
+        'Calendar save failed',
+        error
+      );
+
+      calendarEntryMessage.textContent =
+        '기록을 저장하지 못했어요.';
+
+      return;
+    }
+
+    closeCalendarEntry();
+    await loadCalendarEntries();
+  }
+
+  async function deleteCalendarEntry() {
+    if (!selectedCalendarEntry) return;
+
+    const shouldDelete = confirm(
+      '이 날짜의 기록을 삭제할까요?'
+    );
+
+    if (!shouldDelete) return;
+
+    const { error } = await cloud
+      .from('calendar_entries')
+      .delete()
+      .eq('user_id', currentUser.id)
+      .eq(
+        'entry_date',
+        selectedCalendarDate
+      );
+
+    if (error) {
+      console.error(
+        'Calendar delete failed',
+        error
+      );
+
+      calendarEntryMessage.textContent =
+        '기록을 삭제하지 못했어요.';
+
+      return;
+    }
+
+    if (selectedCalendarEntry.image_path) {
+      await cloud.storage
+        .from('calendar-images')
+        .remove([
+          selectedCalendarEntry.image_path
+        ]);
+    }
+
+    closeCalendarEntry();
+    await loadCalendarEntries();
+  }
+
+  function moveCalendarMonth(offset) {
+    calendarCursor = new Date(
+      calendarCursor.getFullYear(),
+      calendarCursor.getMonth() + offset,
+      1
+    );
+
+    calendarEntries.clear();
+    renderCalendar();
+
+    if (currentUser) {
+      loadCalendarEntries();
+    }
+  }
+
   /* ---------------- Sidebar mobile ---------------- */
-  function closeSidebarMobile(){
+  function closeSidebarMobile() {
     sidebar.classList.remove('mobile-open');
   }
 
@@ -783,11 +1378,23 @@
   $('#addFolderBtn').addEventListener('click', openFolderModal);
   $('#folderCancelBtn').addEventListener('click', closeFolderModal);
   $('#folderCreateBtn').addEventListener('click', createFolder);
-  folderNameInput.addEventListener('keydown', e => { if(e.key === 'Enter') createFolder(); });
+  folderNameInput.addEventListener('keydown', e => { if (e.key === 'Enter') createFolder(); });
   scrim.addEventListener('click', () => {
-    if(!authModal.hidden) closeAuthModal();
-    if(!folderModal.hidden) closeFolderModal();
-    if(!newChatModal.hidden) closeNewChat();
+    if (!authModal.hidden) {
+      closeAuthModal();
+    }
+
+    if (!folderModal.hidden) {
+      closeFolderModal();
+    }
+
+    if (!newChatModal.hidden) {
+      closeNewChat();
+    }
+
+    if (!calendarEntryModal.hidden) {
+      closeCalendarEntry();
+    }
   });
 
   authBtn.addEventListener('click', openAuthModal);
@@ -798,19 +1405,19 @@
     updateAuthMode();
   });
 
-  $('#chatLoginBtn').addEventListener('click',openAuthModal);
-  $('#newChatBtn').addEventListener('click',openNewChat);
-  $('#newChatCloseBtn').addEventListener('click',closeNewChat);
-  userSearchInput.addEventListener('input',searchChatUsers);
-  $('#profileForm').addEventListener('submit',saveChatProfile);
-  $('#chatForm').addEventListener('submit',sendChatMessage);
-  $('#chatMobileBack').addEventListener('click',() => chatConversation.parentElement.classList.remove('mobile-conversation'));
-  chatInput.addEventListener('input',() => {
+  $('#chatLoginBtn').addEventListener('click', openAuthModal);
+  $('#newChatBtn').addEventListener('click', openNewChat);
+  $('#newChatCloseBtn').addEventListener('click', closeNewChat);
+  userSearchInput.addEventListener('input', searchChatUsers);
+  $('#profileForm').addEventListener('submit', saveChatProfile);
+  $('#chatForm').addEventListener('submit', sendChatMessage);
+  $('#chatMobileBack').addEventListener('click', () => chatConversation.parentElement.classList.remove('mobile-conversation'));
+  chatInput.addEventListener('input', () => {
     chatInput.style.height = 'auto';
-    chatInput.style.height = `${Math.min(chatInput.scrollHeight,100)}px`;
+    chatInput.style.height = `${Math.min(chatInput.scrollHeight, 100)}px`;
   });
-  chatInput.addEventListener('keydown',e => {
-    if(e.key === 'Enter' && !e.shiftKey){ e.preventDefault(); $('#chatForm').requestSubmit(); }
+  chatInput.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); $('#chatForm').requestSubmit(); }
   });
 
   $('#newNoteBtnSide').addEventListener('click', createNote);
@@ -819,18 +1426,66 @@
 
   $('#backBtn').addEventListener('click', () => closeEditor());
   $('#deleteBtn').addEventListener('click', () => {
-    if(confirm('이 자료를 삭제할까요?')) deleteCurrentNote();
+    if (confirm('이 자료를 삭제할까요?')) deleteCurrentNote();
   });
+
+  $('#calendarPrevBtn').addEventListener(
+    'click',
+    () => moveCalendarMonth(-1)
+  );
+
+  $('#calendarNextBtn').addEventListener(
+    'click',
+    () => moveCalendarMonth(1)
+  );
+
+  $('#calendarTodayBtn').addEventListener(
+    'click',
+    () => {
+      calendarCursor = new Date();
+      calendarCursor.setDate(1);
+
+      calendarEntries.clear();
+      renderCalendar();
+
+      if (currentUser) {
+        loadCalendarEntries();
+      }
+    }
+  );
+
+  $('#calendarEntryCloseBtn')
+    .addEventListener(
+      'click',
+      closeCalendarEntry
+    );
+
+  $('#calendarEntryForm')
+    .addEventListener(
+      'submit',
+      saveCalendarEntry
+    );
+
+  $('#calendarEntryDeleteBtn')
+    .addEventListener(
+      'click',
+      deleteCalendarEntry
+    );
+
+  calendarPhotoInput.addEventListener(
+    'change',
+    previewCalendarPhoto
+  );
   starBtn.addEventListener('click', () => {
     const note = state.notes.find(n => n.id === currentNoteId);
-    if(!note) return;
+    if (!note) return;
     note.starred = !note.starred;
     starBtn.classList.toggle('active', note.starred);
     saveData();
   });
   folderSelect.addEventListener('change', () => {
     const note = state.notes.find(n => n.id === currentNoteId);
-    if(!note) return;
+    if (!note) return;
     note.folderId = folderSelect.value;
     note.updatedAt = Date.now();
     saveData();
@@ -851,24 +1506,31 @@
   });
 
   document.addEventListener('keydown', (e) => {
-    if(e.key === 'Escape'){
-      if(!folderModal.hidden) closeFolderModal();
-      else if(!authModal.hidden) closeAuthModal();
-      else if(!newChatModal.hidden) closeNewChat();
-      else if(!editorView.hidden) closeEditor();
+    if (event.key === 'Escape') {
+      if (!folderModal.hidden) {
+        closeFolderModal();
+      } else if (!authModal.hidden) {
+        closeAuthModal();
+      } else if (!newChatModal.hidden) {
+        closeNewChat();
+      } else if (!calendarEntryModal.hidden) {
+        closeCalendarEntry();
+      } else if (!editorView.hidden) {
+        closeEditor();
+      }
     }
-    if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
+    if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
       e.preventDefault();
       searchInput.focus();
     }
   });
 
   window.addEventListener('beforeunload', () => {
-    if(currentNoteId) persistCurrentNote();
+    if (currentNoteId) persistCurrentNote();
   });
 
   window.addEventListener('focus', () => {
-    if(currentUser && editorView.hidden) pullCloudData();
+    if (currentUser && editorView.hidden) pullCloudData();
   });
 
   /* ---------------- Init ---------------- */

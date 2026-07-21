@@ -274,6 +274,10 @@
     renderSidebarFolders();
 
     if (view === 'chat') {
+
+      editorView.hidden = true;
+      editorView.style.display = 'none';
+
       folderGridView.hidden = true;
       calendarView.hidden = true;
       chatView.hidden = false;
@@ -286,6 +290,9 @@
         loadChatRooms();
       }
     } else if (view === 'calendar') {
+      editorView.hidden = true;
+      editorView.style.display = 'none';
+
       folderGridView.hidden = true;
       chatView.hidden = true;
       calendarView.hidden = false;
@@ -418,7 +425,12 @@
     starBtn.classList.toggle('active', !!note.starred);
 
     folderGridView.hidden = true;
+    chatView.hidden = true;
+    calendarView.hidden = true;
+
     editorView.hidden = false;
+    editorView.style.display = 'flex';
+
     noteTitle.focus();
   }
 
@@ -435,10 +447,23 @@
     if (currentNoteId) {
       persistCurrentNote();
     }
+
     currentNoteId = null;
+
     editorView.hidden = true;
-    folderGridView.hidden = false;
-    if (rerender) renderFolderGridView();
+    editorView.style.display = 'none';
+
+    if (
+      currentView !== 'chat'
+      && currentView !== 'calendar'
+    ) {
+      folderGridView.hidden = false;
+    }
+
+    if (rerender && currentView !== 'calendar') {
+      renderFolderGridView();
+    }
+
     renderSidebarFolders();
     renderCounts();
   }

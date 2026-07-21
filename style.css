@@ -23,7 +23,6 @@
   --shadow-lg: 0 20px 50px rgba(0,0,0,0.14);
   --sidebar-w: 272px;
   --ease: cubic-bezier(.22,1,.36,1);
-  --font-display: "Playfair Display", "Noto Serif KR", Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark){
@@ -344,48 +343,47 @@ svg{ width:18px; height:18px; fill:none; stroke:currentColor; }
 /* Folder grid */
 .folder-grid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
   gap:16px;
   margin-bottom: 8px;
 }
 .folder-card{
-  background: var(--panel);
-  border:1px solid var(--border);
+  background: transparent;
+  border: none;
   border-radius: var(--radius-lg);
-  padding: 24px 16px 18px;
+  padding: 6px 4px;
   cursor:pointer;
-  box-shadow: var(--shadow-sm);
-  transition: transform .22s var(--ease), box-shadow .22s var(--ease);
+  box-shadow: none;
+  transition: transform .2s var(--ease), opacity .2s var(--ease);
   position:relative;
-  display:flex; flex-direction:column; align-items:center; text-align:center;
 }
-.folder-card:hover{ transform: translateY(-4px) rotate(-0.4deg); box-shadow: var(--shadow-md); }
+.folder-card:hover{ transform: translateY(-2px); opacity: 0.88; }
 .folder-icon{
-  width:86px; height:62px; position:relative; margin-bottom:16px;
+  width:46px; height:36px; position:relative; margin-bottom:12px;
 }
 .folder-icon::before{
-  content:""; position:absolute; left:6px; top:-10px; width:40px; height:15px;
-  border-radius: 7px 12px 0 0;
+  content:""; position:absolute; left:0; top:-6px; width:22px; height:8px;
+  border-radius: 4px 6px 0 0;
   background: var(--folder-color, #f6c9d0);
 }
 .folder-icon::after{
-  content:""; position:absolute; left:0; top:0; width:86px; height:62px;
-  border-radius: 4px 16px 16px 16px;
+  content:""; position:absolute; left:0; top:0; width:46px; height:36px;
+  border-radius: 3px 8px 8px 8px;
   background: var(--folder-color, #f6c9d0);
-  box-shadow: inset 0 -10px 16px rgba(0,0,0,0.07), var(--shadow-sm);
+  box-shadow: inset 0 -6px 10px rgba(0,0,0,0.06);
 }
 .folder-card-name{
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 620;
-  font-size: 18px;
-  letter-spacing: 0;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 650;
+  font-size: 14.5px;
+  letter-spacing: -0.01em;
   color: var(--text);
-  margin-bottom: 3px;
+  margin-bottom: 2px;
   max-width: 100%;
   overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
 }
-.folder-card-count{ font-size:11.5px; color: var(--text-tertiary); font-family: -apple-system, sans-serif; font-style:normal; }
+.folder-card-count{ font-size:12px; color: var(--text-tertiary); font-family: inherit; font-style:normal; }
 .folder-card-del{
   position:absolute; top:12px; right:12px; width:24px; height:24px; border-radius:8px;
   border:none; background: rgba(0,0,0,0.05); color: var(--text-tertiary);
@@ -532,10 +530,10 @@ svg{ width:18px; height:18px; fill:none; stroke:currentColor; }
   box-shadow: var(--shadow-sm);
 }
 .todo-title{
-  font-family: var(--font-display);
-  font-style: italic;
-  font-weight: 650;
-  font-size: 27px;
+  font-family: inherit;
+  font-style: normal;
+  font-weight: 700;
+  font-size: 22px;
   letter-spacing: -0.01em;
   margin: 0 0 20px;
 }

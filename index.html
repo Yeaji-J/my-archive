@@ -9,19 +9,33 @@
 </head>
 
 <body>
-
   <div class="app">
 
-    <!-- ===== Sidebar ===== -->
+    <!-- Sidebar -->
     <aside class="sidebar" id="sidebar">
       <div class="sidebar-header">
-        <button class="brand brand-home" id="homeBtn" type="button" aria-label="전체 자료로 이동">
+        <button
+          class="brand brand-home"
+          id="homeBtn"
+          type="button"
+          aria-label="전체 자료로 이동"
+        >
           <span class="brand-mark"></span>
           <span class="brand-name">Archive</span>
         </button>
-        <button class="icon-btn" id="collapseBtn" title="사이드바 접기" aria-label="사이드바 접기">
+
+        <button
+          class="icon-btn"
+          id="collapseBtn"
+          title="사이드바 접기"
+          aria-label="사이드바 접기"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6" />
+            <path
+              d="M4 6h16M4 12h16M4 18h16"
+              stroke-linecap="round"
+              stroke-width="1.6"
+            />
           </svg>
         </button>
       </div>
@@ -29,49 +43,97 @@
       <div class="sidebar-search">
         <svg viewBox="0 0 24 24" class="search-icon">
           <circle cx="11" cy="11" r="7" stroke-width="1.6" />
-          <path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" />
+          <path
+            d="M21 21l-4.3-4.3"
+            stroke-linecap="round"
+            stroke-width="1.6"
+          />
         </svg>
+
         <input type="text" id="searchInput" placeholder="검색">
       </div>
 
       <nav class="sidebar-nav">
         <button class="nav-item active" data-view="all">
-          <span class="nav-icon nav-icon--all"></span> 전체 자료
+          <span class="nav-icon nav-icon--all"></span>
+          전체 자료
           <span class="nav-count" id="countAll">0</span>
         </button>
+
         <button class="nav-item" data-view="starred">
           <span class="nav-icon nav-icon--star">
             <svg viewBox="0 0 24 24">
-              <path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z" />
+              <path
+                d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z"
+              />
             </svg>
-          </span> 즐겨찾기
+          </span>
+
+          즐겨찾기
           <span class="nav-count" id="countStarred">0</span>
         </button>
+
         <button class="nav-item" id="chatNavBtn" data-view="chat">
           <span class="nav-icon nav-icon--chat">
             <svg viewBox="0 0 24 24">
-              <path d="M5 18.5l-2 2v-5A8 8 0 1111 20H6.5A1.5 1.5 0 015 18.5z" stroke-linejoin="round"
-                stroke-width="1.7" />
-            </svg>
-          </span> 채팅
-          <span class="nav-count" id="countChats">0</span>
-        </button>
-        <button class="nav-item" id="calendarNavBtn" data-view="calendar">
-          <span class="nav-icon nav-icon--calendar">
-            <svg viewBox="0 0 24 24">
-              <rect x="3.5" y="5" width="17" height="15" rx="3" stroke-width="1.6" />
-              <path d="M7.5 3v4M16.5 3v4M3.5 9.5h17" stroke-linecap="round" stroke-width="1.6" />
+              <path
+                d="M5 18.5l-2 2v-5A8 8 0 1111 20H6.5A1.5 1.5 0 015 18.5z"
+                stroke-linejoin="round"
+                stroke-width="1.7"
+              />
             </svg>
           </span>
+
+          채팅
+          <span class="nav-count" id="countChats">0</span>
+        </button>
+
+        <button
+          class="nav-item"
+          id="calendarNavBtn"
+          data-view="calendar"
+        >
+          <span class="nav-icon nav-icon--calendar">
+            <svg viewBox="0 0 24 24">
+              <rect
+                x="3.5"
+                y="5"
+                width="17"
+                height="15"
+                rx="3"
+                stroke-width="1.6"
+              />
+              <path
+                d="M7.5 3v4M16.5 3v4M3.5 9.5h17"
+                stroke-linecap="round"
+                stroke-width="1.6"
+              />
+            </svg>
+          </span>
+
           캘린더
         </button>
+
         <button class="nav-item" id="todoNavBtn" data-view="todo">
           <span class="nav-icon nav-icon--todo">
             <svg viewBox="0 0 24 24">
-              <rect x="3.5" y="3.5" width="17" height="17" rx="4" stroke-width="1.6" />
-              <path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+              <rect
+                x="3.5"
+                y="3.5"
+                width="17"
+                height="17"
+                rx="4"
+                stroke-width="1.6"
+              />
+              <path
+                d="M8 12l2.5 2.5L16 9"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
             </svg>
           </span>
+
           할 일
         </button>
       </nav>
@@ -79,55 +141,98 @@
       <div class="sidebar-section">
         <div class="sidebar-section-header">
           <span>폴더</span>
-          <button class="icon-btn small" id="addFolderBtn" title="새 폴더" aria-label="새 폴더">
+
+          <button
+            class="icon-btn small"
+            id="addFolderBtn"
+            title="새 폴더"
+            aria-label="새 폴더"
+          >
             <svg viewBox="0 0 24 24">
-              <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-width="1.8" />
+              <path
+                d="M12 5v14M5 12h14"
+                stroke-linecap="round"
+                stroke-width="1.8"
+              />
             </svg>
           </button>
         </div>
+
         <ul class="folder-list" id="folderList"></ul>
       </div>
 
       <div class="sidebar-footer">
         <button class="new-note-btn" id="newNoteBtnSide">
           <svg viewBox="0 0 24 24">
-            <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-width="1.8" />
+            <path
+              d="M12 5v14M5 12h14"
+              stroke-linecap="round"
+              stroke-width="1.8"
+            />
           </svg>
+
           새 자료
         </button>
       </div>
     </aside>
 
-    <!-- ===== Main ===== -->
+    <!-- Main -->
     <main class="main">
       <header class="topbar">
-        <button class="icon-btn sidebar-open-desktop" id="sidebarOpenBtn" aria-label="사이드바 열기" title="사이드바 열기">
+        <button
+          class="icon-btn sidebar-open-desktop"
+          id="sidebarOpenBtn"
+          aria-label="사이드바 열기"
+          title="사이드바 열기"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6" />
+            <path
+              d="M4 6h16M4 12h16M4 18h16"
+              stroke-linecap="round"
+              stroke-width="1.6"
+            />
           </svg>
         </button>
-        <!-- Sidebar-->
-        <button class="icon-btn sidebar-open-desktop" id="sidebarOpenBtn" aria-label="사이드바 열기" title="사이드바 열기">
+
+        <button
+          class="icon-btn sidebar-toggle-mobile"
+          id="sidebarToggleMobile"
+          aria-label="메뉴"
+        >
           <svg viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6" />
+            <path
+              d="M4 6h16M4 12h16M4 18h16"
+              stroke-linecap="round"
+              stroke-width="1.6"
+            />
           </svg>
         </button>
-        <button class="icon-btn sidebar-toggle-mobile" id="sidebarToggleMobile" aria-label="메뉴">
-          <svg viewBox="0 0 24 24">
-            <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6" />
-          </svg>
-        </button>
-        <div class="breadcrumb" id="breadcrumb">전체 자료</div>
+
+        <div class="breadcrumb" id="breadcrumb">
+          전체 자료
+        </div>
+
         <div class="topbar-actions">
-          <span class="sync-status" id="syncStatus">이 브라우저에 저장됨</span>
+          <span class="sync-status" id="syncStatus">
+            이 브라우저에 저장됨
+          </span>
+
           <button class="account-btn" id="authBtn">
-            <span class="account-avatar" id="accountAvatar"></span>
+            <span
+              class="account-avatar"
+              id="accountAvatar"
+Avatar            ></span>
 
             <span class="account-name" id="accountName">
               로그인
             </span>
           </button>
-          <button class="pill-btn" id="viewToggleBtn" title="보기 전환">
+
+          <button
+            class="pill-btn"
+            id="viewToggleBtn"
+            title="보기 전환"
+          >
             <svg viewBox="0 0 24 24" id="viewToggleIcon">
               <rect x="4" y="4" width="7" height="7" rx="1.6" />
               <rect x="13" y="4" width="7" height="7" rx="1.6" />
@@ -135,73 +240,169 @@
               <rect x="13" y="13" width="7" height="7" rx="1.6" />
             </svg>
           </button>
-          <button class="primary-btn" id="newNoteBtnTop">+ 새 자료</button>
+
+          <button class="primary-btn" id="newNoteBtnTop">
+            + 새 자료
+          </button>
         </div>
       </header>
 
-
-      <!-- Folder grid (home) -->
-      <section class="view view--folders" id="folderGridView">
+      <!-- Folder grid -->
+      <section
+        class="view view--folders"
+        id="folderGridView"
+      >
         <div class="folder-grid" id="folderGrid"></div>
-        <div class="section-divider" id="notesDividerWrap">
+
+        <div
+          class="section-divider"
+          id="notesDividerWrap"
+        >
           <span>모든 자료</span>
         </div>
+
         <div class="note-grid" id="noteGrid"></div>
+
         <div class="empty-state" id="emptyState" hidden>
           <div class="empty-icon"></div>
           <h3>아직 자료가 없어요</h3>
           <p>새 자료를 추가하고 폴더로 정리해보세요.</p>
-          <button class="primary-btn" id="emptyAddBtn">+ 새 자료 만들기</button>
+
+          <button class="primary-btn" id="emptyAddBtn">
+            + 새 자료 만들기
+          </button>
         </div>
       </section>
 
       <!-- Chat -->
-      <section class="view view--chat" id="chatView" hidden>
+      <section
+        class="view view--chat"
+        id="chatView"
+        hidden
+      >
         <div class="chat-shell">
-          <aside class="chat-list-panel" id="chatListPanel">
+          <aside
+            class="chat-list-panel"
+            id="chatListPanel"
+          >
             <div class="chat-list-header">
               <div>
                 <h2>채팅</h2>
-                <p id="chatProfileLabel">로그인 후 이용할 수 있어요</p>
+                <p id="chatProfileLabel">
+                  로그인 후 이용할 수 있어요
+                </p>
               </div>
-              <button class="primary-btn chat-new-btn" id="newChatBtn">+ 새 채팅</button>
+
+              <button
+                class="primary-btn chat-new-btn"
+                id="newChatBtn"
+              >
+                + 새 채팅
+              </button>
             </div>
-            <div class="chat-login-state" id="chatLoginState">
+
+            <div
+              class="chat-login-state"
+              id="chatLoginState"
+            >
               <div class="empty-icon"></div>
               <h3>로그인이 필요해요</h3>
-              <p>계정으로 로그인하고 친구와 대화를 시작해보세요.</p>
-              <button class="primary-btn" id="chatLoginBtn">로그인</button>
+
+              <p>
+                계정으로 로그인하고 친구와 대화를
+                시작해보세요.
+              </p>
+
+              <button
+                class="primary-btn"
+                id="chatLoginBtn"
+              >
+                로그인
+              </button>
             </div>
-            <div class="chat-room-list" id="chatRoomList"></div>
+
+            <div
+              class="chat-room-list"
+              id="chatRoomList"
+            ></div>
           </aside>
 
-
-
-          <article class="chat-conversation" id="chatConversation">
-            <div class="chat-empty-conversation" id="chatEmptyConversation">
+          <article
+            class="chat-conversation"
+            id="chatConversation"
+          >
+            <div
+              class="chat-empty-conversation"
+              id="chatEmptyConversation"
+            >
               <div class="chat-empty-bubble"></div>
               <h3>대화를 선택해보세요</h3>
-              <p>가입한 친구를 찾아 새로운 채팅을 시작할 수 있어요.</p>
+
+              <p>
+                가입한 친구를 찾아 새로운 채팅을
+                시작할 수 있어요.
+              </p>
             </div>
-            <div class="chat-active" id="chatActive" hidden>
+
+            <div
+              class="chat-active"
+              id="chatActive"
+              hidden
+            >
               <header class="chat-conversation-header">
-                <button class="icon-btn chat-mobile-back" id="chatMobileBack" aria-label="채팅 목록">
+                <button
+                  class="icon-btn chat-mobile-back"
+                  id="chatMobileBack"
+                  aria-label="채팅 목록"
+                >
                   <svg viewBox="0 0 24 24">
-                    <path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+                    <path
+                      d="M15 6l-6 6 6 6"
+                      stroke-linecap="round"
+                      stroke-linejoin="round"
+                      stroke-width="1.8"
+                    />
                   </svg>
                 </button>
-                <div class="chat-avatar" id="chatHeaderAvatar"></div>
+
+                <div
+                  class="chat-avatar"
+                  id="chatHeaderAvatar"
+                ></div>
+
                 <div>
                   <strong id="chatHeaderName"></strong>
                   <span id="chatHeaderUsername"></span>
                 </div>
               </header>
-              <div class="chat-messages" id="chatMessages"></div>
-              <form class="chat-composer" id="chatForm">
-                <textarea id="chatInput" rows="1" maxlength="2000" placeholder="메시지를 입력하세요"></textarea>
-                <button type="submit" class="chat-send-btn" aria-label="보내기">
+
+              <div
+                class="chat-messages"
+                id="chatMessages"
+              ></div>
+
+              <form
+                class="chat-composer"
+                id="chatForm"
+              >
+                <textarea
+                  id="chatInput"
+                  rows="1"
+                  maxlength="2000"
+                  placeholder="메시지를 입력하세요"
+                ></textarea>
+
+                <button
+                  type="submit"
+                  class="chat-send-btn"
+                  aria-label="보내기"
+                >
                   <svg viewBox="0 0 24 24">
-                    <path d="M4 12L20 4l-5.5 16-3.3-6.7L4 12z" stroke-linejoin="round" stroke-width="1.7" />
+                    <path
+                      d="M4 12L20 4l-5.5 16-3.3-6.7L4 12z"
+                      stroke-linejoin="round"
+                      stroke-width="1.7"
+                    />
                   </svg>
                 </button>
               </form>
@@ -211,29 +412,62 @@
       </section>
 
       <!-- Calendar -->
-      <section class="view view--calendar" id="calendarView" hidden>
+      <section
+        class="view view--calendar"
+        id="calendarView"
+        hidden
+      >
         <div class="calendar-page">
           <div class="calendar-page-head">
             <div>
-              <span class="calendar-eyebrow">MY MOMENTS</span>
-              <h1 id="calendarMonthTitle">2026년 7월</h1>
-              <p>하루의 짧은 기록과 사진을 남겨보세요.</p>
+              <span class="calendar-eyebrow">
+                MY MOMENTS
+              </span>
+
+              <h1 id="calendarMonthTitle">
+                2026년 7월
+              </h1>
+
+              <p>
+                하루의 짧은 기록과 사진을 남겨보세요.
+              </p>
             </div>
 
             <div class="calendar-controls">
-              <button class="calendar-control-btn" id="calendarTodayBtn">
+              <button
+                class="calendar-control-btn"
+                id="calendarTodayBtn"
+              >
                 오늘
               </button>
 
-              <button class="calendar-control-icon" id="calendarPrevBtn" aria-label="이전 달">
+              <button
+                class="calendar-control-icon"
+                id="calendarPrevBtn"
+                aria-label="이전 달"
+              >
                 <svg viewBox="0 0 24 24">
-                  <path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+                  <path
+                    d="M15 6l-6 6 6 6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
                 </svg>
               </button>
 
-              <button class="calendar-control-icon" id="calendarNextBtn" aria-label="다음 달">
+              <button
+                class="calendar-control-icon"
+                id="calendarNextBtn"
+                aria-label="다음 달"
+              >
                 <svg viewBox="0 0 24 24">
-                  <path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+                  <path
+                    d="M9 6l6 6-6 6"
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="1.8"
+                  />
                 </svg>
               </button>
             </div>
@@ -250,56 +484,144 @@
               <span>토</span>
             </div>
 
-            <div class="calendar-grid" id="calendarGrid"></div>
+            <div
+              class="calendar-grid"
+              id="calendarGrid"
+            ></div>
           </div>
         </div>
       </section>
 
       <!-- To-do list -->
-      <section class="view view--todo" id="todoView" hidden>
+      <section
+        class="view view--todo"
+        id="todoView"
+        hidden
+      >
         <div class="todo-page">
           <div class="todo-card">
-            <h2 class="todo-title">To Do List</h2>
-            <form class="todo-add-row" id="todoAddForm">
-              <input type="text" id="todoInput" placeholder="할 일을 입력하세요" maxlength="120" autocomplete="off">
-              <button type="submit" class="icon-btn todo-add-btn" aria-label="추가">
-                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-width="1.8"/></svg>
+            <h2 class="todo-title">
+              To Do List
+            </h2>
+
+            <form
+              class="todo-add-row"
+              id="todoAddForm"
+            >
+              <input
+                type="text"
+                id="todoInput"
+                placeholder="할 일을 입력하세요"
+                maxlength="120"
+                autocomplete="off"
+              >
+
+              <button
+                type="submit"
+                class="icon-btn todo-add-btn"
+                aria-label="추가"
+              >
+                <svg viewBox="0 0 24 24">
+                  <path
+                    d="M12 5v14M5 12h14"
+                    stroke-linecap="round"
+                    stroke-width="1.8"
+                  />
+                </svg>
               </button>
             </form>
-            <ul class="todo-list" id="todoList"></ul>
-            <p class="todo-empty" id="todoEmpty" hidden>아직 할 일이 없어요. 위에서 추가해보세요.</p>
+
+            <ul
+              class="todo-list"
+              id="todoList"
+            ></ul>
+
+            <p
+              class="todo-empty"
+              id="todoEmpty"
+              hidden
+            >
+              아직 할 일이 없어요. 위에서 추가해보세요.
+            </p>
           </div>
         </div>
       </section>
 
       <!-- Note editor -->
-      <section class="view view--editor" id="editorView" hidden>
+      <section
+        class="view view--editor"
+        id="editorView"
+        hidden
+      >
         <div class="editor-toolbar">
           <button class="text-btn" id="backBtn">
             <svg viewBox="0 0 24 24">
-              <path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+              <path
+                d="M15 6l-6 6 6 6"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.8"
+              />
             </svg>
+
             뒤로
           </button>
+
           <div class="editor-toolbar-right">
-            <select id="folderSelect" class="folder-select"></select>
-            <button class="icon-btn" id="starBtn" title="즐겨찾기" aria-label="즐겨찾기">
+            <select
+              id="folderSelect"
+              class="folder-select"
+            ></select>
+
+            <button
+              class="icon-btn"
+              id="starBtn"
+              title="즐겨찾기"
+              aria-label="즐겨찾기"
+            >
               <svg viewBox="0 0 24 24">
-                <path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z" />
+                <path
+                  d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z"
+                />
               </svg>
             </button>
-            <button class="icon-btn danger" id="deleteBtn" title="삭제" aria-label="삭제">
+
+            <button
+              class="icon-btn danger"
+              id="deleteBtn"
+              title="삭제"
+              aria-label="삭제"
+            >
               <svg viewBox="0 0 24 24">
-                <path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7"
-                  stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" />
+                <path
+                  d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="1.6"
+                />
               </svg>
             </button>
           </div>
         </div>
+
         <div class="editor-body">
-          <input type="text" id="noteTitle" class="note-title-input" placeholder="제목 없음">
-          <div class="note-meta" id="noteMeta"></div>
-          <textarea id="noteContent" class="note-content-input" placeholder="내용을 입력하세요…"></textarea>
+          <input
+            type="text"
+            id="noteTitle"
+            class="note-title-input"
+            placeholder="제목 없음"
+          >
+
+          <div
+            class="note-meta"
+            id="noteMeta"
+          ></div>
+
+          <textarea
+            id="noteContent"
+            class="note-content-input"
+            placeholder="내용을 입력하세요…"
+          ></textarea>
         </div>
       </section>
     </main>
@@ -311,13 +633,36 @@
       <div class="new-chat-title-row">
         <div>
           <h3>새 채팅</h3>
-          <p>친구의 닉네임 또는 사용자 이름을 검색하세요.</p>
+
+          <p>
+            친구의 닉네임 또는 사용자 이름을 검색하세요.
+          </p>
         </div>
-        <button class="auth-close" id="newChatCloseBtn" aria-label="닫기">×</button>
+
+        <button
+          class="auth-close"
+          id="newChatCloseBtn"
+          type="button"
+          aria-label="닫기"
+        >
+          ×
+        </button>
       </div>
-      <input type="search" id="userSearchInput" placeholder="친구 검색" autocomplete="off">
-      <div class="user-search-results" id="userSearchResults">
-        <p class="search-guide">두 글자 이상 입력해주세요.</p>
+
+      <input
+        type="search"
+        id="userSearchInput"
+        placeholder="친구 검색"
+        autocomplete="off"
+      >
+
+      <div
+        class="user-search-results"
+        id="userSearchResults"
+      >
+        <p class="search-guide">
+          두 글자 이상 입력해주세요.
+        </p>
       </div>
     </div>
   </div>
@@ -325,66 +670,195 @@
   <!-- Profile modal -->
   <div class="modal" id="profileModal" hidden>
     <div class="modal-card profile-card">
-      <div class="auth-logo"><span class="brand-mark"></span></div>
-      <h3>채팅 프로필 만들기</h3>
-      <p class="auth-desc">친구가 알아볼 수 있는 이름을 정해주세요.</p>
+      <button
+        class="auth-close"
+        id="profileCloseBtn"
+        type="button"
+        aria-label="닫기"
+      >
+        ×
+      </button>
+
+      <div class="auth-logo">
+        <span class="brand-mark"></span>
+      </div>
+
+      <h3 id="profileModalTitle">
+        프로필 수정
+      </h3>
+
+      <p
+        class="auth-desc"
+        id="profileModalDesc"
+      >
+        친구에게 표시되는 프로필을 수정할 수 있어요.
+      </p>
+
       <form id="profileForm">
-        <label class="auth-label" for="profileNameInput">닉네임</label>
-        <input type="text" id="profileNameInput" maxlength="30" placeholder="예: 예지" required>
-        <label class="auth-label" for="profileUsernameInput">사용자 이름</label>
-        <div class="username-field"><span>@</span><input type="text" id="profileUsernameInput" minlength="3"
-            maxlength="20" pattern="[a-z0-9_]+" placeholder="yeaji" required></div>
-        <p class="auth-message" id="profileMessage"></p>
-        <button class="primary-btn auth-submit" type="submit">완료</button>
+        <label
+          class="auth-label"
+          for="profileNameInput"
+        >
+          닉네임
+        </label>
+
+        <input
+          type="text"
+          id="profileNameInput"
+          maxlength="30"
+          placeholder="예: 예지"
+          required
+        >
+
+        <label
+          class="auth-label"
+          for="profileUsernameInput"
+        >
+          사용자 이름
+        </label>
+
+        <div class="username-field">
+          <span>@</span>
+
+          <input
+            type="text"
+            id="profileUsernameInput"
+            minlength="3"
+            maxlength="20"
+            pattern="[a-z0-9_]+"
+            placeholder="yeaji"
+            required
+          >
+        </div>
+
+        <p
+          class="auth-message"
+          id="profileMessage"
+        ></p>
+
+        <button
+          class="primary-btn auth-submit"
+          type="submit"
+        >
+          변경사항 저장
+        </button>
       </form>
+
+      <button
+        class="profile-logout-btn"
+        id="profileLogoutBtn"
+        type="button"
+      >
+        로그아웃
+      </button>
     </div>
   </div>
 
   <div class="scrim" id="scrim"></div>
 
   <!-- Calendar modal -->
-  <div class="modal" id="calendarEntryModal" hidden>
+  <div
+    class="modal"
+    id="calendarEntryModal"
+    hidden
+  >
     <div class="modal-card calendar-entry-card">
-      <button class="auth-close" id="calendarEntryCloseBtn" aria-label="닫기">
+      <button
+        class="auth-close"
+        id="calendarEntryCloseBtn"
+        type="button"
+        aria-label="닫기"
+      >
         ×
       </button>
 
-      <span class="calendar-entry-date" id="calendarEntryDate"></span>
+      <span
+        class="calendar-entry-date"
+        id="calendarEntryDate"
+      ></span>
 
       <h3>오늘의 기록</h3>
 
       <form id="calendarEntryForm">
-        <textarea id="calendarEntryNote" maxlength="300" rows="4" placeholder="오늘 기억하고 싶은 순간을 적어보세요."></textarea>
+        <textarea
+          id="calendarEntryNote"
+          maxlength="300"
+          rows="4"
+          placeholder="오늘 기억하고 싶은 순간을 적어보세요."
+        ></textarea>
 
-        <label class="calendar-photo-picker" id="calendarPhotoPicker" for="calendarPhotoInput">
-          <input type="file" id="calendarPhotoInput" accept="image/*" hidden>
+        <label
+          class="calendar-photo-picker"
+          id="calendarPhotoPicker"
+          for="calendarPhotoInput"
+        >
+          <input
+            type="file"
+            id="calendarPhotoInput"
+            accept="image/*"
+            hidden
+          >
 
-          <div class="calendar-photo-empty" id="calendarPhotoEmpty">
+          <div
+            class="calendar-photo-empty"
+            id="calendarPhotoEmpty"
+          >
             <svg viewBox="0 0 24 24">
-              <rect x="3" y="4" width="18" height="16" rx="3" stroke-width="1.5" />
-              <circle cx="9" cy="10" r="2" stroke-width="1.5" />
-              <path d="M4 17l4.5-4 3.5 3 3-2.5 5 4.5" stroke-linecap="round" stroke-linejoin="round"
-                stroke-width="1.5" />
+              <rect
+                x="3"
+                y="4"
+                width="18"
+                height="16"
+                rx="3"
+                stroke-width="1.5"
+              />
+              <circle
+                cx="9"
+                cy="10"
+                r="2"
+                stroke-width="1.5"
+              />
+              <path
+                d="M4 17l4.5-4 3.5 3 3-2.5 5 4.5"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.5"
+              />
             </svg>
 
             <span>사진 첨부</span>
             <small>정방형으로 표시돼요</small>
           </div>
 
-          <img id="calendarPhotoPreview" alt="첨부 사진 미리보기" hidden>
+          <img
+            id="calendarPhotoPreview"
+            alt="첨부 사진 미리보기"
+            hidden
+          >
         </label>
 
         <div class="calendar-entry-actions">
-          <button type="button" class="text-btn calendar-delete-btn" id="calendarEntryDeleteBtn">
+          <button
+            type="button"
+            class="text-btn calendar-delete-btn"
+            id="calendarEntryDeleteBtn"
+          >
             기록 삭제
           </button>
 
-          <button type="submit" class="primary-btn" id="calendarEntrySaveBtn">
+          <button
+            type="submit"
+            class="primary-btn"
+            id="calendarEntrySaveBtn"
+          >
             저장
           </button>
         </div>
 
-        <p class="auth-message" id="calendarEntryMessage"></p>
+        <p
+          class="auth-message"
+          id="calendarEntryMessage"
+        ></p>
       </form>
     </div>
   </div>
@@ -393,11 +867,35 @@
   <div class="modal" id="folderModal" hidden>
     <div class="modal-card">
       <h3>새 폴더</h3>
-      <input type="text" id="folderNameInput" placeholder="폴더 이름" maxlength="30">
-      <div class="color-swatches" id="colorSwatches"></div>
+
+      <input
+        type="text"
+        id="folderNameInput"
+        placeholder="폴더 이름"
+        maxlength="30"
+      >
+
+      <div
+        class="color-swatches"
+        id="colorSwatches"
+      ></div>
+
       <div class="modal-actions">
-        <button class="text-btn" id="folderCancelBtn">취소</button>
-        <button class="primary-btn" id="folderCreateBtn">만들기</button>
+        <button
+          class="text-btn"
+          id="folderCancelBtn"
+          type="button"
+        >
+          취소
+        </button>
+
+        <button
+          class="primary-btn"
+          id="folderCreateBtn"
+          type="button"
+        >
+          만들기
+        </button>
       </div>
     </div>
   </div>
@@ -405,20 +903,81 @@
   <!-- Account modal -->
   <div class="modal" id="authModal" hidden>
     <div class="modal-card auth-card">
-      <button class="auth-close" id="authCloseBtn" aria-label="닫기">×</button>
-      <div class="auth-logo"><span class="brand-mark"></span></div>
-      <h3 id="authTitle">Archive에 로그인</h3>
-      <p class="auth-desc" id="authDesc">어떤 브라우저에서도 같은 자료를 확인하세요.</p>
+      <button
+        class="auth-close"
+        id="authCloseBtn"
+        type="button"
+        aria-label="닫기"
+      >
+        ×
+      </button>
+
+      <div class="auth-logo">
+        <span class="brand-mark"></span>
+      </div>
+
+      <h3 id="authTitle">
+        Archive에 로그인
+      </h3>
+
+      <p class="auth-desc" id="authDesc">
+        어떤 브라우저에서도 같은 자료를 확인하세요.
+      </p>
+
       <form id="authForm">
-        <label class="auth-label" for="authEmail">이메일</label>
-        <input type="email" id="authEmail" placeholder="name@example.com" autocomplete="email" required>
-        <label class="auth-label" for="authPassword">비밀번호</label>
-        <input type="password" id="authPassword" placeholder="6자 이상" minlength="6" autocomplete="current-password"
-          required>
-        <p class="auth-message" id="authMessage" role="status"></p>
-        <button type="submit" class="primary-btn auth-submit" id="authSubmitBtn">로그인</button>
+        <label
+          class="auth-label"
+          for="authEmail"
+        >
+          이메일
+        </label>
+
+        <input
+          type="email"
+          id="authEmail"
+          placeholder="name@example.com"
+          autocomplete="email"
+          required
+        >
+
+        <label
+          class="auth-label"
+          for="authPassword"
+        >
+          비밀번호
+        </label>
+
+        <input
+          type="password"
+          id="authPassword"
+          placeholder="6자 이상"
+          minlength="6"
+          autocomplete="current-password"
+          required
+        >
+
+        <p
+          class="auth-message"
+          id="authMessage"
+          role="status"
+        ></p>
+
+        <button
+          type="submit"
+          class="primary-btn auth-submit"
+          id="authSubmitBtn"
+        >
+          로그인
+        </button>
       </form>
-      <button class="auth-switch" id="authSwitchBtn">처음이신가요? 계정 만들기</button>
+
+      <button
+        class="auth-switch"
+        id="authSwitchBtn"
+        type="button"
+      >
+        처음이신가요? 계정 만들기
+      </button>
     </div>
   </div>
 

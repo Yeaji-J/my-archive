@@ -2,6 +2,9 @@
   'use strict';
 
   const STORAGE_KEY = 'archive.data.v1';
+  const SUPABASE_URL = 'https://qkujxjidngqwvibkqbre.supabase.co';
+  const SUPABASE_KEY = 'sb_publishable_v7DldiFXJPfbb0J95PKW_Q_Pmf0YR-a';
+  const cloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
   const FOLDER_COLORS = ['#5ac8fa','#0071e3','#34c759','#ff9f0a','#ff375f','#af52de','#8e8e93','#ff3b30'];
 
   /* ---------------- Data layer ---------------- */
@@ -38,6 +41,67 @@
 
   function saveData(){
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    scheduleCloudSave();
+  }
+
+  let currentUser = null;
+  let cloudSaveTimer = null;
+  let pullingCloudData = false;
+
+  function setSyncStatus(message, type = ''){
+    const el = document.querySelector('#syncStatus');
+    if(!el) return;
+    el.textContent = message;
+    el.className = 'sync-status' + (type ? ` ${type}` : '');
+  }
+
+  function scheduleCloudSave(){
+    if(!currentUser || pullingCloudData) return;
+    clearTimeout(cloudSaveTimer);
+    setSyncStatus('저장 중…', 'syncing');
+    cloudSaveTimer = setTimeout(pushCloudData, 450);
+  }
+
+  async function pushCloudData(){
+    if(!currentUser) return;
+    const { error } = await cloud.from('archive_data').upsert({
+      user_id: currentUser.id,
+      data: state,
+      updated_at: new Date().toISOString()
+    }, { onConflict: 'user_id' });
+    if(error){
+      console.error('Cloud save failed', error);
+      setSyncStatus('동기화 실패', 'error');
+      return;
+    }
+    setSyncStatus('모든 기기에 저장됨');
+  }
+
+  async function pullCloudData(){
+    if(!currentUser) return;
+    setSyncStatus('동기화 중…', 'syncing');
+    const { data, error } = await cloud
+      .from('archive_data')
+      .select('data')
+      .eq('user_id', currentUser.id)
+      .maybeSingle();
+    if(error){
+      console.error('Cloud load failed', error);
+      setSyncStatus('DB 설정 필요', 'error');
+      return;
+    }
+    if(data?.data){
+      pullingCloudData = true;
+      state = data.data;
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      pullingCloudData = false;
+      currentView = 'all';
+      closeEditor(false);
+      render();
+      setSyncStatus('모든 기기와 동기화됨');
+    } else {
+      await pushCloudData();
+    }
   }
 
   function uid(){
@@ -77,6 +141,15 @@
   const folderNameInput = $('#folderNameInput');
   const colorSwatches = $('#colorSwatches');
   const viewToggleBtn = $('#viewToggleBtn');
+  const authBtn = $('#authBtn');
+  const authModal = $('#authModal');
+  const authForm = $('#authForm');
+  const authEmail = $('#authEmail');
+  const authPassword = $('#authPassword');
+  const authMessage = $('#authMessage');
+  const authSubmitBtn = $('#authSubmitBtn');
+  const authSwitchBtn = $('#authSwitchBtn');
+  let authMode = 'signin';
 
   /* ---------------- Rendering ---------------- */
   function render(){
@@ -343,6 +416,73 @@
     scrim.classList.remove('visible');
   }
 
+  /* ---------------- Account & cloud sync ---------------- */
+  function openAuthModal(){
+    if(currentUser){
+      if(confirm(`${currentUser.email} 계정에서 로그아웃할까요?`)) cloud.auth.signOut();
+      return;
+    }
+    authMessage.textContent = '';
+    authModal.hidden = false;
+    scrim.classList.add('visible');
+    setTimeout(() => authEmail.focus(), 50);
+  }
+
+  function closeAuthModal(){
+    authModal.hidden = true;
+    scrim.classList.remove('visible');
+  }
+
+  function updateAuthMode(){
+    const signup = authMode === 'signup';
+    $('#authTitle').textContent = signup ? 'Archive 계정 만들기' : 'Archive에 로그인';
+    $('#authDesc').textContent = signup ? '한 번 가입하면 모든 기기에서 자료가 연결돼요.' : '어떤 브라우저에서도 같은 자료를 확인하세요.';
+    authSubmitBtn.textContent = signup ? '계정 만들기' : '로그인';
+    authSwitchBtn.textContent = signup ? '이미 계정이 있나요? 로그인' : '처음이신가요? 계정 만들기';
+    authPassword.autocomplete = signup ? 'new-password' : 'current-password';
+    authMessage.textContent = '';
+  }
+
+  async function submitAuth(e){
+    e.preventDefault();
+    authSubmitBtn.disabled = true;
+    authMessage.classList.remove('success');
+    authMessage.textContent = '';
+    const credentials = { email: authEmail.value.trim(), password: authPassword.value };
+    const result = authMode === 'signup'
+      ? await cloud.auth.signUp({ ...credentials, options:{ emailRedirectTo: location.href.split('#')[0] } })
+      : await cloud.auth.signInWithPassword(credentials);
+    authSubmitBtn.disabled = false;
+    if(result.error){
+      authMessage.textContent = result.error.message;
+      return;
+    }
+    if(authMode === 'signup' && !result.data.session){
+      authMessage.classList.add('success');
+      authMessage.textContent = '인증 메일을 보냈어요. 메일의 링크를 눌러 가입을 완료해주세요.';
+      return;
+    }
+    closeAuthModal();
+  }
+
+  async function applySession(session){
+    const nextUser = session?.user || null;
+    const changed = nextUser?.id !== currentUser?.id;
+    currentUser = nextUser;
+    authBtn.textContent = currentUser ? currentUser.email : '로그인';
+    authBtn.title = currentUser ? '클릭하여 로그아웃' : '로그인';
+    if(currentUser && changed) await pullCloudData();
+    if(!currentUser) setSyncStatus('이 브라우저에 저장됨');
+  }
+
+  async function initCloud(){
+    const { data } = await cloud.auth.getSession();
+    await applySession(data.session);
+    cloud.auth.onAuthStateChange((_event, session) => {
+      setTimeout(() => applySession(session), 0);
+    });
+  }
+
   function createFolder(){
     const name = folderNameInput.value.trim();
     if(!name) { folderNameInput.focus(); return; }
@@ -376,7 +516,18 @@
   $('#folderCancelBtn').addEventListener('click', closeFolderModal);
   $('#folderCreateBtn').addEventListener('click', createFolder);
   folderNameInput.addEventListener('keydown', e => { if(e.key === 'Enter') createFolder(); });
-  scrim.addEventListener('click', closeFolderModal);
+  scrim.addEventListener('click', () => {
+    if(!authModal.hidden) closeAuthModal();
+    if(!folderModal.hidden) closeFolderModal();
+  });
+
+  authBtn.addEventListener('click', openAuthModal);
+  $('#authCloseBtn').addEventListener('click', closeAuthModal);
+  authForm.addEventListener('submit', submitAuth);
+  authSwitchBtn.addEventListener('click', () => {
+    authMode = authMode === 'signin' ? 'signup' : 'signin';
+    updateAuthMode();
+  });
 
   $('#newNoteBtnSide').addEventListener('click', createNote);
   $('#newNoteBtnTop').addEventListener('click', createNote);
@@ -418,6 +569,7 @@
   document.addEventListener('keydown', (e) => {
     if(e.key === 'Escape'){
       if(!folderModal.hidden) closeFolderModal();
+      else if(!authModal.hidden) closeAuthModal();
       else if(!editorView.hidden) closeEditor();
     }
     if((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k'){
@@ -430,6 +582,11 @@
     if(currentNoteId) persistCurrentNote();
   });
 
+  window.addEventListener('focus', () => {
+    if(currentUser && editorView.hidden) pullCloudData();
+  });
+
   /* ---------------- Init ---------------- */
   render();
+  initCloud();
 })();

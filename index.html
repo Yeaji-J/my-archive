@@ -66,6 +66,8 @@
       </button>
       <div class="breadcrumb" id="breadcrumb">전체 자료</div>
       <div class="topbar-actions">
+        <span class="sync-status" id="syncStatus">이 브라우저에 저장됨</span>
+        <button class="account-btn" id="authBtn">로그인</button>
         <button class="pill-btn" id="viewToggleBtn" title="보기 전환">
           <svg viewBox="0 0 24 24" id="viewToggleIcon"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></svg>
         </button>
@@ -129,6 +131,26 @@
   </div>
 </div>
 
+<!-- Account modal -->
+<div class="modal" id="authModal" hidden>
+  <div class="modal-card auth-card">
+    <button class="auth-close" id="authCloseBtn" aria-label="닫기">×</button>
+    <div class="auth-logo"><span class="brand-mark"></span></div>
+    <h3 id="authTitle">Archive에 로그인</h3>
+    <p class="auth-desc" id="authDesc">어떤 브라우저에서도 같은 자료를 확인하세요.</p>
+    <form id="authForm">
+      <label class="auth-label" for="authEmail">이메일</label>
+      <input type="email" id="authEmail" placeholder="name@example.com" autocomplete="email" required>
+      <label class="auth-label" for="authPassword">비밀번호</label>
+      <input type="password" id="authPassword" placeholder="6자 이상" minlength="6" autocomplete="current-password" required>
+      <p class="auth-message" id="authMessage" role="status"></p>
+      <button type="submit" class="primary-btn auth-submit" id="authSubmitBtn">로그인</button>
+    </form>
+    <button class="auth-switch" id="authSwitchBtn">처음이신가요? 계정 만들기</button>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="script.js"></script>
 </body>
 </html>

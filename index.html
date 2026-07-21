@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Archive — 나만의 자료 정리 공간</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div class="app">
+
+  <!-- ===== Sidebar ===== -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+      <div class="brand">
+        <span class="brand-mark"></span>
+        <span class="brand-name">Archive</span>
+      </div>
+      <button class="icon-btn" id="collapseBtn" title="사이드바 접기" aria-label="사이드바 접기">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6"/></svg>
+      </button>
+    </div>
+
+    <div class="sidebar-search">
+      <svg viewBox="0 0 24 24" class="search-icon"><circle cx="11" cy="11" r="7" stroke-width="1.6"/><path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6"/></svg>
+      <input type="text" id="searchInput" placeholder="검색">
+    </div>
+
+    <nav class="sidebar-nav">
+      <button class="nav-item active" data-view="all">
+        <span class="nav-icon nav-icon--all"></span> 전체 자료
+        <span class="nav-count" id="countAll">0</span>
+      </button>
+      <button class="nav-item" data-view="starred">
+        <span class="nav-icon nav-icon--star">
+          <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z"/></svg>
+        </span> 즐겨찾기
+        <span class="nav-count" id="countStarred">0</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-section">
+      <div class="sidebar-section-header">
+        <span>폴더</span>
+        <button class="icon-btn small" id="addFolderBtn" title="새 폴더" aria-label="새 폴더">
+          <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-width="1.8"/></svg>
+        </button>
+      </div>
+      <ul class="folder-list" id="folderList"></ul>
+    </div>
+
+    <div class="sidebar-footer">
+      <button class="new-note-btn" id="newNoteBtnSide">
+        <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-width="1.8"/></svg>
+        새 자료
+      </button>
+    </div>
+  </aside>
+
+  <!-- ===== Main ===== -->
+  <main class="main">
+    <header class="topbar">
+      <button class="icon-btn sidebar-toggle-mobile" id="sidebarToggleMobile" aria-label="메뉴">
+        <svg viewBox="0 0 24 24"><path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6"/></svg>
+      </button>
+      <div class="breadcrumb" id="breadcrumb">전체 자료</div>
+      <div class="topbar-actions">
+        <button class="pill-btn" id="viewToggleBtn" title="보기 전환">
+          <svg viewBox="0 0 24 24" id="viewToggleIcon"><rect x="4" y="4" width="7" height="7" rx="1.6"/><rect x="13" y="4" width="7" height="7" rx="1.6"/><rect x="4" y="13" width="7" height="7" rx="1.6"/><rect x="13" y="13" width="7" height="7" rx="1.6"/></svg>
+        </button>
+        <button class="primary-btn" id="newNoteBtnTop">+ 새 자료</button>
+      </div>
+    </header>
+
+    <!-- Folder grid (home) -->
+    <section class="view view--folders" id="folderGridView">
+      <div class="folder-grid" id="folderGrid"></div>
+      <div class="section-divider" id="notesDividerWrap">
+        <span>모든 자료</span>
+      </div>
+      <div class="note-grid" id="noteGrid"></div>
+      <div class="empty-state" id="emptyState" hidden>
+        <div class="empty-icon"></div>
+        <h3>아직 자료가 없어요</h3>
+        <p>새 자료를 추가하고 폴더로 정리해보세요.</p>
+        <button class="primary-btn" id="emptyAddBtn">+ 새 자료 만들기</button>
+      </div>
+    </section>
+
+    <!-- Note editor -->
+    <section class="view view--editor" id="editorView" hidden>
+      <div class="editor-toolbar">
+        <button class="text-btn" id="backBtn">
+          <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>
+          뒤로
+        </button>
+        <div class="editor-toolbar-right">
+          <select id="folderSelect" class="folder-select"></select>
+          <button class="icon-btn" id="starBtn" title="즐겨찾기" aria-label="즐겨찾기">
+            <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z"/></svg>
+          </button>
+          <button class="icon-btn danger" id="deleteBtn" title="삭제" aria-label="삭제">
+            <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6"/></svg>
+          </button>
+        </div>
+      </div>
+      <div class="editor-body">
+        <input type="text" id="noteTitle" class="note-title-input" placeholder="제목 없음">
+        <div class="note-meta" id="noteMeta"></div>
+        <textarea id="noteContent" class="note-content-input" placeholder="내용을 입력하세요…"></textarea>
+      </div>
+    </section>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+
+<!-- New folder modal -->
+<div class="modal" id="folderModal" hidden>
+  <div class="modal-card">
+    <h3>새 폴더</h3>
+    <input type="text" id="folderNameInput" placeholder="폴더 이름" maxlength="30">
+    <div class="color-swatches" id="colorSwatches"></div>
+    <div class="modal-actions">
+      <button class="text-btn" id="folderCancelBtn">취소</button>
+      <button class="primary-btn" id="folderCreateBtn">만들기</button>
+    </div>
+  </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>

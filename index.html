@@ -38,6 +38,12 @@
         </span> 즐겨찾기
         <span class="nav-count" id="countStarred">0</span>
       </button>
+      <button class="nav-item" id="chatNavBtn" data-view="chat">
+        <span class="nav-icon nav-icon--chat">
+          <svg viewBox="0 0 24 24"><path d="M5 18.5l-2 2v-5A8 8 0 1111 20H6.5A1.5 1.5 0 015 18.5z" stroke-linejoin="round" stroke-width="1.7"/></svg>
+        </span> 채팅
+        <span class="nav-count" id="countChats">0</span>
+      </button>
     </nav>
 
     <div class="sidebar-section">
@@ -90,6 +96,55 @@
       </div>
     </section>
 
+    <!-- Chat -->
+    <section class="view view--chat" id="chatView" hidden>
+      <div class="chat-shell">
+        <aside class="chat-list-panel" id="chatListPanel">
+          <div class="chat-list-header">
+            <div>
+              <h2>채팅</h2>
+              <p id="chatProfileLabel">로그인 후 이용할 수 있어요</p>
+            </div>
+            <button class="primary-btn chat-new-btn" id="newChatBtn">+ 새 채팅</button>
+          </div>
+          <div class="chat-login-state" id="chatLoginState">
+            <div class="empty-icon"></div>
+            <h3>로그인이 필요해요</h3>
+            <p>계정으로 로그인하고 친구와 대화를 시작해보세요.</p>
+            <button class="primary-btn" id="chatLoginBtn">로그인</button>
+          </div>
+          <div class="chat-room-list" id="chatRoomList"></div>
+        </aside>
+
+        <article class="chat-conversation" id="chatConversation">
+          <div class="chat-empty-conversation" id="chatEmptyConversation">
+            <div class="chat-empty-bubble"></div>
+            <h3>대화를 선택해보세요</h3>
+            <p>가입한 친구를 찾아 새로운 채팅을 시작할 수 있어요.</p>
+          </div>
+          <div class="chat-active" id="chatActive" hidden>
+            <header class="chat-conversation-header">
+              <button class="icon-btn chat-mobile-back" id="chatMobileBack" aria-label="채팅 목록">
+                <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8"/></svg>
+              </button>
+              <div class="chat-avatar" id="chatHeaderAvatar"></div>
+              <div>
+                <strong id="chatHeaderName"></strong>
+                <span id="chatHeaderUsername"></span>
+              </div>
+            </header>
+            <div class="chat-messages" id="chatMessages"></div>
+            <form class="chat-composer" id="chatForm">
+              <textarea id="chatInput" rows="1" maxlength="2000" placeholder="메시지를 입력하세요"></textarea>
+              <button type="submit" class="chat-send-btn" aria-label="보내기">
+                <svg viewBox="0 0 24 24"><path d="M4 12L20 4l-5.5 16-3.3-6.7L4 12z" stroke-linejoin="round" stroke-width="1.7"/></svg>
+              </button>
+            </form>
+          </div>
+        </article>
+      </div>
+    </section>
+
     <!-- Note editor -->
     <section class="view view--editor" id="editorView" hidden>
       <div class="editor-toolbar">
@@ -114,6 +169,40 @@
       </div>
     </section>
   </main>
+</div>
+
+<!-- New chat modal -->
+<div class="modal" id="newChatModal" hidden>
+  <div class="modal-card new-chat-card">
+    <div class="new-chat-title-row">
+      <div>
+        <h3>새 채팅</h3>
+        <p>친구의 닉네임 또는 사용자 이름을 검색하세요.</p>
+      </div>
+      <button class="auth-close" id="newChatCloseBtn" aria-label="닫기">×</button>
+    </div>
+    <input type="search" id="userSearchInput" placeholder="친구 검색" autocomplete="off">
+    <div class="user-search-results" id="userSearchResults">
+      <p class="search-guide">두 글자 이상 입력해주세요.</p>
+    </div>
+  </div>
+</div>
+
+<!-- Profile modal -->
+<div class="modal" id="profileModal" hidden>
+  <div class="modal-card profile-card">
+    <div class="auth-logo"><span class="brand-mark"></span></div>
+    <h3>채팅 프로필 만들기</h3>
+    <p class="auth-desc">친구가 알아볼 수 있는 이름을 정해주세요.</p>
+    <form id="profileForm">
+      <label class="auth-label" for="profileNameInput">닉네임</label>
+      <input type="text" id="profileNameInput" maxlength="30" placeholder="예: 예지" required>
+      <label class="auth-label" for="profileUsernameInput">사용자 이름</label>
+      <div class="username-field"><span>@</span><input type="text" id="profileUsernameInput" minlength="3" maxlength="20" pattern="[a-z0-9_]+" placeholder="yeaji" required></div>
+      <p class="auth-message" id="profileMessage"></p>
+      <button class="primary-btn auth-submit" type="submit">완료</button>
+    </form>
+  </div>
 </div>
 
 <div class="scrim" id="scrim"></div>

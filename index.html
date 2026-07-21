@@ -97,6 +97,12 @@
             <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6" />
           </svg>
         </button>
+        <!-- Sidebar-->
+        <button class="icon-btn sidebar-open-desktop" id="sidebarOpenBtn" aria-label="사이드바 열기" title="사이드바 열기">
+          <svg viewBox="0 0 24 24">
+            <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6" />
+          </svg>
+        </button>
         <button class="icon-btn sidebar-toggle-mobile" id="sidebarToggleMobile" aria-label="메뉴">
           <svg viewBox="0 0 24 24">
             <path d="M4 6h16M4 12h16M4 18h16" stroke-linecap="round" stroke-width="1.6" />
@@ -107,7 +113,10 @@
           <span class="sync-status" id="syncStatus">이 브라우저에 저장됨</span>
           <button class="account-btn" id="authBtn">
             <span class="account-avatar" id="accountAvatar"></span>
-            <span class="account-name" id="accountName">로그인</span>
+
+            <span class="account-name" id="accountName">
+              로그인
+            </span>
           </button>
           <button class="pill-btn" id="viewToggleBtn" title="보기 전환">
             <svg viewBox="0 0 24 24" id="viewToggleIcon">
@@ -120,6 +129,7 @@
           <button class="primary-btn" id="newNoteBtnTop">+ 새 자료</button>
         </div>
       </header>
+
 
       <!-- Folder grid (home) -->
       <section class="view view--folders" id="folderGridView">

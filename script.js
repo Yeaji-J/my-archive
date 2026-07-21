@@ -155,6 +155,8 @@
   const colorSwatches = $('#colorSwatches');
   const viewToggleBtn = $('#viewToggleBtn');
   const authBtn = $('#authBtn');
+  const accountAvatar = $('#accountAvatar');
+  const accountName = $('#accountName');
   const authModal = $('#authModal');
   const authForm = $('#authForm');
   const authEmail = $('#authEmail');
@@ -585,7 +587,6 @@
     const nextUser = session?.user || null;
     const changed = nextUser?.id !== currentUser?.id;
     currentUser = nextUser;
-    authBtn.textContent = currentUser ? currentUser.email : '로그인';
     authBtn.title = currentUser ? '클릭하여 로그아웃' : '로그인';
     if (currentUser && changed) {
       await pullCloudData();
@@ -607,6 +608,8 @@
       calendarEntries.clear();
       renderCalendar();
     }
+
+    renderAccountButton();
   }
 
   async function initCloud() {
@@ -643,6 +646,30 @@
     return `linear-gradient(145deg,${a},${b})`;
   }
 
+  function renderAccountButton() {
+    const label =
+      currentProfile?.display_name
+      || currentUser?.email?.split('@')[0]
+      || '로그인';
+
+    accountName.textContent = label;
+
+    accountAvatar.textContent =
+      currentUser
+        ? initials(label)
+        : '';
+
+    if (currentUser) {
+      accountAvatar.style.background =
+        avatarGradient(currentUser.id);
+    }
+
+    authBtn.classList.toggle(
+      'logged-in',
+      Boolean(currentUser)
+    );
+  }
+
   function avatarHtml(profile) {
     return `<span class="chat-avatar" style="background:${avatarGradient(profile.id)}">${escapeHtml(initials(profile.display_name))}</span>`;
   }
@@ -655,6 +682,7 @@
       return;
     }
     currentProfile = data || null;
+    renderAccountButton();
     if (!currentProfile) {
       const base = (currentUser.email?.split('@')[0] || 'user').toLowerCase().replace(/[^a-z0-9_]/g, '').slice(0, 14) || 'user';
       $('#profileNameInput').value = currentUser.email?.split('@')[0] || '';
@@ -683,6 +711,7 @@
       return;
     }
     currentProfile = data;
+    renderAccountButton();
     profileModal.hidden = true;
     scrim.classList.remove('visible');
     renderChatRooms();
@@ -1367,7 +1396,19 @@
     btn.addEventListener('click', () => setView(btn.dataset.view));
   });
 
-  $('#collapseBtn').addEventListener('click', () => sidebar.classList.toggle('collapsed'));
+  $('#collapseBtn').addEventListener(
+    'click',
+    () => {
+      sidebar.classList.add('collapsed');
+    }
+  );
+
+  $('#sidebarOpenBtn').addEventListener(
+    'click',
+    () => {
+      sidebar.classList.remove('collapsed');
+    }
+  );
   $('#sidebarToggleMobile').addEventListener('click', () => sidebar.classList.toggle('mobile-open'));
 
   searchInput.addEventListener('input', (e) => {
@@ -1453,7 +1494,12 @@
       }
     }
   );
-
+  $('#homeBtn').addEventListener(
+    'click',
+    () => {
+      setView('all');
+    }
+  );
   $('#calendarEntryCloseBtn')
     .addEventListener(
       'click',

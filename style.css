@@ -892,3 +892,73 @@ svg{ width:18px; height:18px; fill:none; stroke:currentColor; }
     min-height: 100px;
   }
 }
+/* 로고 메인 이동 버튼 */
+.brand-home {
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  padding: 0;
+  font: inherit;
+  cursor: pointer;
+  border-radius: 9px;
+}
+
+.brand-home:hover .brand-name {
+  color: var(--accent);
+}
+
+/* 접힌 사이드바 다시 열기 */
+.sidebar-open-desktop {
+  display: none;
+  flex-shrink: 0;
+}
+
+/*
+  sidebar와 main이 서로 붙어 있는 구조에서
+  sidebar가 접히면 상단 버튼을 표시
+*/
+.sidebar.collapsed + .main .sidebar-open-desktop {
+  display: flex;
+}
+
+/* 닉네임 프로필 버튼 */
+.account-avatar {
+  display: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  color: #fff;
+  place-items: center;
+  flex-shrink: 0;
+  font-size: 10px;
+  font-weight: 750;
+  background:
+    linear-gradient(
+      145deg,
+      #5ac8fa,
+      #0071e3
+    );
+}
+
+.account-btn.logged-in {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  padding-left: 6px;
+}
+
+.account-btn.logged-in .account-avatar {
+  display: grid;
+}
+
+.account-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (max-width: 739px) {
+  .sidebar-open-desktop {
+    display: none !important;
+  }
+}

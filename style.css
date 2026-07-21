@@ -23,6 +23,7 @@
   --shadow-lg: 0 20px 50px rgba(0,0,0,0.14);
   --sidebar-w: 272px;
   --ease: cubic-bezier(.22,1,.36,1);
+  --font-display: "Playfair Display", "Noto Serif KR", Georgia, serif;
 }
 
 @media (prefers-color-scheme: dark){
@@ -129,6 +130,8 @@ svg{ width:18px; height:18px; fill:none; stroke:currentColor; }
 .nav-icon--star{ color:#ff9f0a; display:flex; }
 .nav-icon--chat{ color:#34c759; display:flex; }
 .nav-icon--chat svg{ width:17px; height:17px; }
+.nav-icon--todo{ color:#f5c344; display:flex; }
+.nav-icon--todo svg{ width:17px; height:17px; }
 .nav-icon--star svg{ fill: currentColor; stroke:none; }
 .nav-item.active .nav-icon--all{ background: linear-gradient(145deg,#5ac8fa,#0071e3); }
 
@@ -341,7 +344,7 @@ svg{ width:18px; height:18px; fill:none; stroke:currentColor; }
 /* Folder grid */
 .folder-grid{
   display:grid;
-  grid-template-columns: repeat(auto-fill, minmax(168px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
   gap:16px;
   margin-bottom: 8px;
 }
@@ -349,30 +352,40 @@ svg{ width:18px; height:18px; fill:none; stroke:currentColor; }
   background: var(--panel);
   border:1px solid var(--border);
   border-radius: var(--radius-lg);
-  padding: 18px 18px 16px;
+  padding: 24px 16px 18px;
   cursor:pointer;
   box-shadow: var(--shadow-sm);
   transition: transform .22s var(--ease), box-shadow .22s var(--ease);
   position:relative;
+  display:flex; flex-direction:column; align-items:center; text-align:center;
 }
-.folder-card:hover{ transform: translateY(-3px); box-shadow: var(--shadow-md); }
+.folder-card:hover{ transform: translateY(-4px) rotate(-0.4deg); box-shadow: var(--shadow-md); }
 .folder-icon{
-  width:46px; height:36px; position:relative; margin-bottom:14px;
+  width:86px; height:62px; position:relative; margin-bottom:16px;
 }
 .folder-icon::before{
-  content:""; position:absolute; left:0; top:-6px; width:22px; height:8px;
-  border-radius: 4px 6px 0 0;
-  background: var(--folder-color, #5ac8fa);
-  filter: brightness(1.12);
+  content:""; position:absolute; left:6px; top:-10px; width:40px; height:15px;
+  border-radius: 7px 12px 0 0;
+  background: var(--folder-color, #f6c9d0);
 }
 .folder-icon::after{
-  content:""; position:absolute; left:0; top:0; width:46px; height:36px;
-  border-radius: 3px 8px 8px 8px;
-  background: linear-gradient(160deg, var(--folder-color, #5ac8fa), color-mix(in srgb, var(--folder-color, #5ac8fa) 70%, #000 20%));
-  box-shadow: inset 0 1px 1px rgba(255,255,255,.35), var(--shadow-sm);
+  content:""; position:absolute; left:0; top:0; width:86px; height:62px;
+  border-radius: 4px 16px 16px 16px;
+  background: var(--folder-color, #f6c9d0);
+  box-shadow: inset 0 -10px 16px rgba(0,0,0,0.07), var(--shadow-sm);
 }
-.folder-card-name{ font-size:14.5px; font-weight:650; letter-spacing:-0.01em; margin-bottom:2px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
-.folder-card-count{ font-size:12px; color: var(--text-tertiary); }
+.folder-card-name{
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 620;
+  font-size: 18px;
+  letter-spacing: 0;
+  color: var(--text);
+  margin-bottom: 3px;
+  max-width: 100%;
+  overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+}
+.folder-card-count{ font-size:11.5px; color: var(--text-tertiary); font-family: -apple-system, sans-serif; font-style:normal; }
 .folder-card-del{
   position:absolute; top:12px; right:12px; width:24px; height:24px; border-radius:8px;
   border:none; background: rgba(0,0,0,0.05); color: var(--text-tertiary);
@@ -509,7 +522,69 @@ svg{ width:18px; height:18px; fill:none; stroke:currentColor; }
 .color-swatch.selected{ border-color: var(--text); }
 .modal-actions{ display:flex; justify-content:flex-end; gap:10px; }
 
-/* ---------- Scrollbars ---------- */
+/* ---------- To-Do list ---------- */
+.todo-page{ max-width: 480px; margin: 0 auto; padding-top: 6px; }
+.todo-card{
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  padding: 28px 26px 22px;
+  box-shadow: var(--shadow-sm);
+}
+.todo-title{
+  font-family: var(--font-display);
+  font-style: italic;
+  font-weight: 650;
+  font-size: 27px;
+  letter-spacing: -0.01em;
+  margin: 0 0 20px;
+}
+.todo-add-row{ display:flex; gap:8px; margin-bottom: 18px; }
+.todo-add-row input{
+  flex:1; border:1px solid var(--border); background: var(--bg);
+  border-radius:10px; padding:9px 13px; font-size:14px; color: var(--text); outline:none;
+}
+.todo-add-row input:focus{ border-color: var(--accent); }
+.todo-add-btn{
+  background: var(--accent); color:#fff; width:36px; height:36px; border-radius:10px; flex-shrink:0;
+}
+.todo-add-btn:hover{ background: var(--accent-hover); }
+.todo-add-btn svg{ width:15px; height:15px; }
+
+.todo-list{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; }
+.todo-item{
+  display:flex; align-items:center; gap:12px;
+  padding:10px 2px; border-bottom:1px solid var(--border);
+}
+.todo-item:last-child{ border-bottom:none; }
+.todo-checkbox{
+  width:17px; height:17px; border-radius:5px; flex-shrink:0; cursor:pointer;
+  border: none; background:#f5c344;
+  display:flex; align-items:center; justify-content:center;
+  transition: background .15s, transform .12s;
+}
+.todo-checkbox:active{ transform: scale(.88); }
+.todo-checkbox svg{ width:11px; height:11px; opacity:0; stroke:#fff; stroke-width:3; fill:none; }
+.todo-item.done .todo-checkbox svg{ opacity:1; }
+.todo-item.done .todo-checkbox{ background:#c7c7cc; }
+.todo-text{
+  flex:1; font-size:14px; color: var(--text); word-break:break-word; line-height:1.4;
+}
+.todo-item.done .todo-text{ color: var(--text-tertiary); text-decoration: line-through; }
+.todo-del{
+  border:none; background:transparent; color: var(--text-tertiary); width:22px; height:22px;
+  border-radius:6px; display:flex; align-items:center; justify-content:center; cursor:pointer;
+  opacity:0; transition: opacity .15s; flex-shrink:0;
+}
+.todo-item:hover .todo-del{ opacity:1; }
+.todo-del:hover{ color: var(--danger); background: rgba(255,59,48,0.1); }
+.todo-del svg{ width:12px; height:12px; }
+.todo-empty{ font-size:13px; color: var(--text-tertiary); text-align:center; padding:22px 0 6px; }
+
+@media (max-width: 860px){
+  .todo-page{ padding: 0 2px; }
+  .todo-card{ padding: 22px 18px 18px; }
+}
 ::-webkit-scrollbar{ width:8px; height:8px; }
 ::-webkit-scrollbar-thumb{ background: rgba(0,0,0,0.15); border-radius:8px; }
 ::-webkit-scrollbar-track{ background:transparent; }

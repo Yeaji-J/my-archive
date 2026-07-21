@@ -2,10 +2,11 @@
   'use strict';
 
   const STORAGE_KEY = 'archive.data.v1';
+  const TODO_KEY = 'archive.todos.v1';
   const SUPABASE_URL = 'https://qkujxjidngqwvibkqbre.supabase.co';
   const SUPABASE_KEY = 'sb_publishable_v7DldiFXJPfbb0J95PKW_Q_Pmf0YR-a';
   const cloud = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-  const FOLDER_COLORS = ['#5ac8fa', '#0071e3', '#34c759', '#ff9f0a', '#ff375f', '#af52de', '#8e8e93', '#ff3b30'];
+  const FOLDER_COLORS = ['#f6c9d0', '#93b8a4', '#f3c98b', '#f5d76e', '#e3bdea', '#a9d3ea', '#e4a9a0', '#c9c2e8'];
 
   /* ---------------- Data layer ---------------- */
   function loadData() {
@@ -21,8 +22,8 @@
     const f1 = uid(), f2 = uid();
     return {
       folders: [
-        { id: f1, name: '레퍼런스', color: '#0071e3' },
-        { id: f2, name: '아이디어', color: '#ff9f0a' }
+        { id: f1, name: '레퍼런스', color: '#a9d3ea' },
+        { id: f2, name: '아이디어', color: '#f3c98b' }
       ],
       notes: [
         {
@@ -42,6 +43,18 @@
   function saveData() {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
     scheduleCloudSave();
+  }
+
+  function loadTodos() {
+    try {
+      const raw = localStorage.getItem(TODO_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) { console.warn('Could not read todos', e); }
+    return [];
+  }
+
+  function saveTodos() {
+    localStorage.setItem(TODO_KEY, JSON.stringify(todos));
   }
 
   let currentUser = null;
@@ -108,6 +121,7 @@
   }
 
   let state = loadData();
+  let todos = loadTodos();
 
   /* ---------------- App state ---------------- */
   let currentView = 'all';       // 'all' | 'starred' | folderId
@@ -180,6 +194,11 @@
   const calendarView = $('#calendarView');
   const calendarGrid = $('#calendarGrid');
   const calendarMonthTitle = $('#calendarMonthTitle');
+  const todoView = $('#todoView');
+  const todoList = $('#todoList');
+  const todoInput = $('#todoInput');
+  const todoAddForm = $('#todoAddForm');
+  const todoEmpty = $('#todoEmpty');
 
   const calendarEntryModal = $('#calendarEntryModal');
   const calendarEntryDate = $('#calendarEntryDate');
@@ -211,6 +230,7 @@
       folderGridView.hidden = true;
       editorView.hidden = true;
       chatView.hidden = true;
+      todoView.hidden = true;
       calendarView.hidden = false;
 
       breadcrumb.textContent = '캘린더';
@@ -219,8 +239,22 @@
       return;
     }
 
+    if (currentView === 'todo') {
+      folderGridView.hidden = true;
+      editorView.hidden = true;
+      chatView.hidden = true;
+      calendarView.hidden = true;
+      todoView.hidden = false;
+
+      breadcrumb.textContent = '할 일';
+
+      renderTodos();
+      return;
+    }
+
     chatView.hidden = true;
     calendarView.hidden = true;
+    todoView.hidden = true;
 
     if (editorView.hidden) {
       renderFolderGridView();
@@ -295,6 +329,7 @@
 
       folderGridView.hidden = true;
       chatView.hidden = true;
+      todoView.hidden = true;
       calendarView.hidden = false;
 
       breadcrumb.textContent = '캘린더';
@@ -304,9 +339,22 @@
       if (currentUser) {
         loadCalendarEntries();
       }
+    } else if (view === 'todo') {
+      editorView.hidden = true;
+      editorView.style.display = 'none';
+
+      folderGridView.hidden = true;
+      chatView.hidden = true;
+      calendarView.hidden = true;
+      todoView.hidden = false;
+
+      breadcrumb.textContent = '할 일';
+
+      renderTodos();
     } else {
       chatView.hidden = true;
       calendarView.hidden = true;
+      todoView.hidden = true;
       folderGridView.hidden = false;
 
       renderFolderGridView();
@@ -427,6 +475,7 @@
     folderGridView.hidden = true;
     chatView.hidden = true;
     calendarView.hidden = true;
+    todoView.hidden = true;
 
     editorView.hidden = false;
     editorView.style.display = 'flex';
@@ -456,11 +505,17 @@
     if (
       currentView !== 'chat'
       && currentView !== 'calendar'
+      && currentView !== 'todo'
     ) {
       folderGridView.hidden = false;
     }
 
-    if (rerender && currentView !== 'calendar') {
+    if (currentView === 'todo') {
+      todoView.hidden = false;
+      renderTodos();
+    }
+
+    if (rerender && currentView !== 'calendar' && currentView !== 'todo') {
       renderFolderGridView();
     }
 
@@ -485,6 +540,7 @@
     if (
       currentView === 'chat'
       || currentView === 'calendar'
+      || currentView === 'todo'
     ) {
       setView('all');
     }
@@ -493,7 +549,8 @@
         'all',
         'starred',
         'chat',
-        'calendar'
+        'calendar',
+        'todo'
       ].includes(currentView)
         ? currentView
         : state.folders[0]?.id || '';
@@ -518,6 +575,47 @@
     folderGridView.hidden = false;
     render();
   }
+
+  /* ---------------- To-Do list ---------------- */
+  function renderTodos() {
+    todoList.innerHTML = '';
+    todoEmpty.hidden = todos.length !== 0;
+    todos.forEach(t => {
+      const li = document.createElement('li');
+      li.className = 'todo-item' + (t.done ? ' done' : '');
+      li.innerHTML = `
+        <button class="todo-checkbox" aria-label="완료 체크" title="완료 체크">
+          <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+        <span class="todo-text"></span>
+        <button class="todo-del" aria-label="삭제" title="삭제">
+          <svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18" stroke-linecap="round" stroke-width="2.2"/></svg>
+        </button>
+      `;
+      li.querySelector('.todo-text').textContent = t.text;
+      li.querySelector('.todo-checkbox').addEventListener('click', () => {
+        t.done = !t.done;
+        saveTodos();
+        renderTodos();
+      });
+      li.querySelector('.todo-del').addEventListener('click', () => {
+        todos = todos.filter(x => x.id !== t.id);
+        saveTodos();
+        renderTodos();
+      });
+      todoList.appendChild(li);
+    });
+  }
+
+  todoAddForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const text = todoInput.value.trim();
+    if (!text) return;
+    todos.unshift({ id: uid(), text, done: false });
+    todoInput.value = '';
+    saveTodos();
+    renderTodos();
+  });
 
   /* ---------------- Folders ---------------- */
   function deleteFolder(folderId) {

@@ -6,6 +6,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Archive — 나만의 자료 정리 공간</title>
   <link rel="stylesheet" href="style.css">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,500;1,600;1,700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -64,6 +67,15 @@
             </svg>
           </span>
           캘린더
+        </button>
+        <button class="nav-item" id="todoNavBtn" data-view="todo">
+          <span class="nav-icon nav-icon--todo">
+            <svg viewBox="0 0 24 24">
+              <rect x="3.5" y="3.5" width="17" height="17" rx="4" stroke-width="1.6" />
+              <path d="M8 12l2.5 2.5L16 9" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+            </svg>
+          </span>
+          할 일
         </button>
       </nav>
 
@@ -242,6 +254,23 @@
             </div>
 
             <div class="calendar-grid" id="calendarGrid"></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- To-do list -->
+      <section class="view view--todo" id="todoView" hidden>
+        <div class="todo-page">
+          <div class="todo-card">
+            <h2 class="todo-title">To Do List</h2>
+            <form class="todo-add-row" id="todoAddForm">
+              <input type="text" id="todoInput" placeholder="할 일을 입력하세요" maxlength="120" autocomplete="off">
+              <button type="submit" class="icon-btn todo-add-btn" aria-label="추가">
+                <svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-width="1.8"/></svg>
+              </button>
+            </form>
+            <ul class="todo-list" id="todoList"></ul>
+            <p class="todo-empty" id="todoEmpty" hidden>아직 할 일이 없어요. 위에서 추가해보세요.</p>
           </div>
         </div>
       </section>

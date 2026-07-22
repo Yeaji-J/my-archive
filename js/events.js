@@ -1,0 +1,505 @@
+'use strict';
+
+/* ---------------- Sidebar mobile ---------------- */
+
+  function closeSidebarMobile() {
+    sidebar.classList.remove(
+      'mobile-open'
+    );
+  }
+
+  /* ---------------- Event wiring ---------------- */
+
+  document
+    .querySelectorAll('.nav-item')
+    .forEach(button => {
+      button.addEventListener(
+        'click',
+        () =>
+          setView(
+            button.dataset.view
+          )
+      );
+    });
+
+  $('#collapseBtn')
+    .addEventListener(
+      'click',
+      () => {
+        sidebar.classList.add(
+          'collapsed'
+        );
+      }
+    );
+
+  $('#sidebarOpenBtn')
+    .addEventListener(
+      'click',
+      () => {
+        sidebar.classList.remove(
+          'collapsed'
+        );
+      }
+    );
+
+  $('#sidebarToggleMobile')
+    .addEventListener(
+      'click',
+      () => {
+        sidebar.classList.toggle(
+          'mobile-open'
+        );
+      }
+    );
+
+  searchInput.addEventListener(
+    'input',
+    event => {
+      searchTerm =
+        event.target.value;
+
+      renderFolderGridView();
+    }
+  );
+
+  $('#addFolderBtn')
+    .addEventListener(
+      'click',
+      openFolderModal
+    );
+
+  $('#folderCancelBtn')
+    .addEventListener(
+      'click',
+      closeFolderModal
+    );
+
+  $('#folderCreateBtn')
+    .addEventListener(
+      'click',
+      createFolder
+    );
+
+  folderNameInput.addEventListener(
+    'keydown',
+    event => {
+      if (event.key === 'Enter') {
+        createFolder();
+      }
+    }
+  );
+
+  scrim.addEventListener(
+    'click',
+    () => {
+      if (!authModal.hidden) {
+        closeAuthModal();
+      }
+
+      if (!folderModal.hidden) {
+        closeFolderModal();
+      }
+
+      if (!newChatModal.hidden) {
+        closeNewChat();
+      }
+
+      if (
+        !calendarEntryModal.hidden
+      ) {
+        closeCalendarEntry();
+      }
+
+      if (
+        !profileModal.hidden
+        && currentProfile
+      ) {
+        closeProfileModal();
+      }
+    }
+  );
+
+  authBtn.addEventListener(
+    'click',
+    openAuthModal
+  );
+
+  $('#authCloseBtn')
+    .addEventListener(
+      'click',
+      closeAuthModal
+    );
+
+  authForm.addEventListener(
+    'submit',
+    submitAuth
+  );
+
+  authSwitchBtn.addEventListener(
+    'click',
+    () => {
+      authMode =
+        authMode === 'signin'
+          ? 'signup'
+          : 'signin';
+
+      updateAuthMode();
+    }
+  );
+
+  $('#chatLoginBtn')
+    .addEventListener(
+      'click',
+      openAuthModal
+    );
+
+  $('#newChatBtn')
+    .addEventListener(
+      'click',
+      openNewChat
+    );
+
+  $('#newChatCloseBtn')
+    .addEventListener(
+      'click',
+      closeNewChat
+    );
+
+  userSearchInput.addEventListener(
+    'input',
+    searchChatUsers
+  );
+
+  $('#profileForm')
+    .addEventListener(
+      'submit',
+      saveChatProfile
+    );
+
+  $('#profileCloseBtn')
+    .addEventListener(
+      'click',
+      closeProfileModal
+    );
+
+  $('#profileLogoutBtn')
+    .addEventListener(
+      'click',
+      async () => {
+        if (!currentUser) return;
+
+        const shouldLogout =
+          confirm(
+            `${currentUser.email} 계정에서 로그아웃할까요?`
+          );
+
+        if (!shouldLogout) return;
+
+        profileModal.hidden = true;
+
+        scrim.classList.remove(
+          'visible'
+        );
+
+        await cloud.auth.signOut();
+      }
+    );
+
+  $('#chatForm')
+    .addEventListener(
+      'submit',
+      sendChatMessage
+    );
+
+  $('#chatMobileBack')
+    .addEventListener(
+      'click',
+      () => {
+        chatConversation
+          .parentElement
+          .classList.remove(
+            'mobile-conversation'
+          );
+      }
+    );
+
+  chatInput.addEventListener(
+    'input',
+    () => {
+      chatInput.style.height =
+        'auto';
+
+      chatInput.style.height =
+        `${Math.min(
+          chatInput.scrollHeight,
+          100
+        )}px`;
+    }
+  );
+
+  chatInput.addEventListener(
+    'keydown',
+    event => {
+      if (
+        event.key === 'Enter'
+        && !event.shiftKey
+      ) {
+        event.preventDefault();
+
+        $('#chatForm')
+          .requestSubmit();
+      }
+    }
+  );
+
+  $('#newNoteBtnSide')
+    .addEventListener(
+      'click',
+      createNote
+    );
+
+  $('#newNoteBtnTop')
+    .addEventListener(
+      'click',
+      createNote
+    );
+
+  $('#emptyAddBtn')
+    .addEventListener(
+      'click',
+      createNote
+    );
+
+  $('#backBtn')
+    .addEventListener(
+      'click',
+      () => closeEditor()
+    );
+
+  $('#deleteBtn')
+    .addEventListener(
+      'click',
+      () => {
+        const shouldDelete =
+          confirm(
+            '이 자료를 삭제할까요?'
+          );
+
+        if (shouldDelete) {
+          deleteCurrentNote();
+        }
+      }
+    );
+
+  $('#calendarPrevBtn')
+    .addEventListener(
+      'click',
+      () =>
+        moveCalendarMonth(-1)
+    );
+
+  $('#calendarNextBtn')
+    .addEventListener(
+      'click',
+      () =>
+        moveCalendarMonth(1)
+    );
+
+  $('#calendarTodayBtn')
+    .addEventListener(
+      'click',
+      () => {
+        calendarCursor =
+          new Date();
+
+        calendarCursor.setDate(1);
+
+        calendarEntries.clear();
+        renderCalendar();
+
+        if (currentUser) {
+          loadCalendarEntries();
+        }
+      }
+    );
+
+  $('#homeBtn')
+    .addEventListener(
+      'click',
+      () => {
+        setView('all');
+      }
+    );
+
+  $('#calendarEntryCloseBtn')
+    .addEventListener(
+      'click',
+      closeCalendarEntry
+    );
+
+  $('#calendarEntryForm')
+    .addEventListener(
+      'submit',
+      saveCalendarEntry
+    );
+
+  $('#calendarEntryDeleteBtn')
+    .addEventListener(
+      'click',
+      deleteCalendarEntry
+    );
+
+  calendarPhotoInput
+    .addEventListener(
+      'change',
+      previewCalendarPhoto
+    );
+
+  starBtn.addEventListener(
+    'click',
+    () => {
+      const note =
+        state.notes.find(
+          item =>
+            item.id === currentNoteId
+        );
+
+      if (!note) return;
+
+      note.starred = !note.starred;
+
+      starBtn.classList.toggle(
+        'active',
+        note.starred
+      );
+
+      saveData();
+    }
+  );
+
+  folderSelect.addEventListener(
+    'change',
+    () => {
+      const note =
+        state.notes.find(
+          item =>
+            item.id === currentNoteId
+        );
+
+      if (!note) return;
+
+      note.folderId =
+        folderSelect.value;
+
+      note.updatedAt = Date.now();
+
+      saveData();
+    }
+  );
+
+  let autosaveTimer = null;
+
+  [
+    noteTitle,
+    noteContent
+  ].forEach(element => {
+    element.addEventListener(
+      'input',
+      () => {
+        clearTimeout(
+          autosaveTimer
+        );
+
+        autosaveTimer =
+          setTimeout(
+            persistCurrentNote,
+            400
+          );
+      }
+    );
+  });
+
+  viewToggleBtn.addEventListener(
+    'click',
+    () => {
+      gridMode = !gridMode;
+
+      viewToggleBtn.classList.toggle(
+        'active-grid',
+        !gridMode
+      );
+
+      renderFolderGridView();
+    }
+  );
+
+  document.addEventListener(
+    'keydown',
+    event => {
+      if (event.key === 'Escape') {
+        if (!folderModal.hidden) {
+          closeFolderModal();
+        } else if (
+          !authModal.hidden
+        ) {
+          closeAuthModal();
+        } else if (
+          !newChatModal.hidden
+        ) {
+          closeNewChat();
+        } else if (
+          !calendarEntryModal.hidden
+        ) {
+          closeCalendarEntry();
+        } else if (
+          !profileModal.hidden
+          && currentProfile
+        ) {
+          closeProfileModal();
+        } else if (
+          !editorView.hidden
+        ) {
+          closeEditor();
+        }
+      }
+
+      if (
+        (
+          event.metaKey
+          || event.ctrlKey
+        )
+        && event.key
+          .toLowerCase() === 'k'
+      ) {
+        event.preventDefault();
+        searchInput.focus();
+      }
+    }
+  );
+
+  window.addEventListener(
+    'beforeunload',
+    () => {
+      if (currentNoteId) {
+        persistCurrentNote();
+      }
+    }
+  );
+
+  window.addEventListener(
+    'focus',
+    () => {
+      if (
+        currentUser
+        && editorView.hidden
+        && !folderDeleteInProgress
+      ) {
+        pullCloudData();
+      }
+    }
+  );
+
+  /* ---------------- Init ---------------- */
+
+  render();
+  initCloud();

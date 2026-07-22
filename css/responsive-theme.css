@@ -1,0 +1,491 @@
+/* ---------- Scrollbar ---------- */
+
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 8px;
+  background: rgba(0, 0, 0, 0.15);
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* hidden 요소 겹침 방지 */
+
+[hidden] {
+  display: none !important;
+}
+
+/* ---------- Responsive ---------- */
+
+@media (max-width: 900px) {
+  .calendar-page {
+    padding: 28px 18px 50px;
+  }
+
+  .calendar-day {
+    min-height: 104px;
+    padding: 7px;
+  }
+
+  .calendar-day-photo {
+    width: 42px;
+  }
+}
+
+@media (max-width: 860px) {
+  .sidebar {
+    position: fixed;
+    inset: 0 auto 0 0;
+    z-index: 45;
+    box-shadow: var(--shadow-lg);
+  }
+
+  .sidebar:not(.mobile-open) {
+    margin-left: calc(-1 * var(--sidebar-w));
+  }
+
+  .sidebar-toggle-mobile {
+    display: flex;
+  }
+
+  .editor-body {
+    padding: 26px 22px 60px;
+  }
+
+  .view {
+    padding: 20px 16px 60px;
+  }
+
+  .view.view--chat {
+    padding: 0;
+  }
+
+  .topbar {
+    padding: 14px 16px;
+  }
+
+  .todo-page {
+    padding: 0 2px;
+  }
+
+  .todo-card {
+    padding: 22px 18px 18px;
+  }
+}
+
+@media (max-width: 739px) {
+  .sidebar-open-desktop {
+    display: none !important;
+  }
+
+  .sync-status {
+    display: none;
+  }
+
+  .account-btn {
+    max-width: 92px;
+  }
+
+  .chat-shell {
+    position: relative;
+    display: block;
+  }
+
+  .chat-list-panel,
+  .chat-conversation {
+    position: absolute;
+    inset: 0;
+  }
+
+  .chat-conversation {
+    z-index: 2;
+    transform: translateX(100%);
+    transition: transform .28s var(--ease);
+  }
+
+  .chat-shell.mobile-conversation .chat-conversation {
+    transform: translateX(0);
+  }
+
+  .chat-mobile-back {
+    display: flex;
+  }
+
+  .chat-messages {
+    padding: 18px 14px;
+  }
+
+  .chat-composer {
+    margin: 0 12px 12px;
+  }
+
+  .calendar-page-head {
+    align-items: flex-start;
+  }
+
+  .calendar-page-head h1 {
+    font-size: 27px;
+  }
+
+  .calendar-page-head p {
+    display: none;
+  }
+
+  .calendar-control-btn {
+    display: none;
+  }
+
+  .apple-calendar-card {
+    overflow-x: auto;
+    border-radius: 18px;
+  }
+
+  .calendar-weekdays,
+  .calendar-grid {
+    min-width: 700px;
+  }
+
+  .calendar-day {
+    min-height: 100px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}
+
+/* ========================================
+   White + Pastel 컬러 테마
+======================================== */
+
+/* 다크 모드와 관계없이 밝은 테마 유지 */
+:root {
+  color-scheme: light;
+
+  --bg: #fafafd;
+  --bg-elev: rgba(255, 255, 255, 0.92);
+  --panel: #ffffff;
+
+  --border: rgba(70, 80, 105, 0.07);
+
+  --text: #30333a;
+  --text-secondary: #747982;
+  --text-tertiary: #afb3bc;
+
+  --accent: #82a5cf;
+  --accent-hover: #7399c7;
+  --accent-soft: rgba(130, 165, 207, 0.13);
+
+  --danger: #e58d91;
+  --star: #edbd72;
+
+  --shadow-sm:
+    0 1px 3px rgba(71, 82, 107, 0.035);
+
+  --shadow-md:
+    0 10px 28px rgba(71, 82, 107, 0.075);
+
+  --shadow-lg:
+    0 20px 55px rgba(71, 82, 107, 0.13);
+}
+
+body {
+  background: #fafafd;
+  color: var(--text);
+}
+
+.main {
+  background: #ffffff;
+}
+
+.sidebar {
+  background: rgba(251, 251, 253, 0.96);
+  border-right-color: rgba(70, 80, 105, 0.06);
+}
+
+.topbar {
+  background: rgba(255, 255, 255, 0.94);
+  border-bottom-color: rgba(70, 80, 105, 0.06);
+}
+
+/* 로고도 조금 더 파스텔 느낌으로 */
+.brand-mark {
+  background:
+    linear-gradient(
+      145deg,
+      #bde6f5,
+      #8eb8df 60%,
+      #789dcc
+    );
+
+  box-shadow:
+    inset 0 1px 1px rgba(255, 255, 255, 0.7),
+    0 3px 8px rgba(126, 165, 207, 0.24);
+}
+
+/* 사이드바 메뉴 선택 색상 */
+.nav-item.active {
+  background: rgba(130, 165, 207, 0.13);
+  color: #6f94c1;
+}
+
+.nav-item:hover {
+  background: rgba(130, 165, 207, 0.07);
+}
+
+.folder-item.active {
+  background: rgba(130, 165, 207, 0.12);
+  color: #6f94c1;
+}
+
+.folder-item:hover {
+  background: rgba(130, 165, 207, 0.07);
+}
+
+/* ========================================
+   폴더 색상을 더 연한 파스텔로 표시
+======================================== */
+
+.folder-icon::before,
+.folder-icon::after {
+  /*
+   * 저장된 기존 폴더 색상을 흰색과 섞어서
+   * 자동으로 연한 파스텔 색상으로 표시
+   */
+  background:
+    color-mix(
+      in srgb,
+      var(--folder-color, #b9d8ef) 44%,
+      #ffffff 56%
+    );
+}
+
+.folder-icon::after {
+  box-shadow:
+    inset 0 -6px 12px rgba(80, 95, 120, 0.035);
+}
+
+/* 사이드바와 게시글 하단의 작은 폴더 표시 */
+.folder-dot,
+.note-card-folder-dot {
+  opacity: 0.62;
+  filter:
+    saturate(0.7)
+    brightness(1.08);
+}
+
+/* 폴더 카드의 삭제 버튼도 부드럽게 */
+.folder-card-del {
+  background: rgba(130, 165, 207, 0.07);
+  color: #a3aab5;
+}
+
+.folder-card-del:hover {
+  background: rgba(229, 141, 145, 0.12);
+  color: #d77d83;
+}
+
+/* ========================================
+   게시글 카드에 폴더별 은은한 배경색
+======================================== */
+
+.note-card {
+  /*
+   * JS에서 각 게시글의 폴더 색상이
+   * --folder-color로 전달됩니다.
+   */
+  background:
+    color-mix(
+      in srgb,
+      var(--folder-color, #dce8f3) 9%,
+      #ffffff 91%
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--folder-color, #dce8f3) 14%,
+      rgba(85, 95, 115, 0.07) 86%
+    );
+
+  box-shadow:
+    0 2px 8px rgba(73, 83, 105, 0.025);
+}
+
+.note-card:hover {
+  background:
+    color-mix(
+      in srgb,
+      var(--folder-color, #dce8f3) 13%,
+      #ffffff 87%
+    );
+
+  border-color:
+    color-mix(
+      in srgb,
+      var(--folder-color, #dce8f3) 24%,
+      rgba(85, 95, 115, 0.07) 76%
+    );
+
+  box-shadow:
+    0 10px 25px rgba(73, 83, 105, 0.065);
+}
+
+/* 폴더 없는 자료는 흰색 유지 */
+.note-card.no-folder {
+  background: #ffffff;
+  border-color: rgba(70, 80, 105, 0.07);
+}
+
+/* 리스트 보기에서도 은은한 배경 유지 */
+.list-mode .note-card {
+  border: 0;
+  border-bottom:
+    1px solid rgba(70, 80, 105, 0.06);
+  border-radius: 10px;
+}
+
+.list-mode .note-card:hover {
+  background:
+    color-mix(
+      in srgb,
+      var(--folder-color, #dce8f3) 11%,
+      #ffffff 89%
+    );
+}
+
+/* ========================================
+   버튼도 파스텔 블루로 통일
+======================================== */
+
+.primary-btn,
+.new-note-btn,
+.chat-send-btn,
+.todo-add-btn {
+  background: #82a5cf;
+}
+
+.primary-btn:hover,
+.new-note-btn:hover,
+.chat-send-btn:hover,
+.todo-add-btn:hover {
+  background: #7399c7;
+}
+
+.account-btn,
+.pill-btn {
+  background: #ffffff;
+  border-color: rgba(70, 80, 105, 0.07);
+}
+
+.account-btn:hover {
+  color: #7399c7;
+}
+
+/* ========================================
+   채팅 화면 화이트 + 은은한 블루
+======================================== */
+
+.chat-list-panel {
+  background: #fbfbfd;
+  border-right-color: rgba(70, 80, 105, 0.06);
+}
+
+.chat-conversation {
+  background: #ffffff;
+}
+
+.chat-room-item:hover,
+.chat-room-item.active {
+  background: rgba(130, 165, 207, 0.11);
+}
+
+/* 내 메시지의 강한 파란색을 연한 색으로 변경 */
+.message-row.mine .message-bubble {
+  color: #87a8cd;
+  font-weight: 400;
+}
+
+/* 상대방 메시지도 너무 진하지 않게 */
+.message-bubble {
+  color: #4d5159;
+  font-weight: 400;
+}
+
+/* 시간 표시를 더 얇고 연하게 */
+.message-time {
+  color: #c0c3ca;
+  font-size: 9px;
+  font-weight: 200;
+  letter-spacing: -0.01em;
+}
+
+/* 채팅방 목록의 시간 */
+.chat-room-time {
+  color: #bdc1c9;
+  font-weight: 200;
+}
+
+/* 메시지 입력 영역 */
+.chat-composer {
+  border-color: rgba(130, 165, 207, 0.13);
+  background: #fafbfc;
+}
+
+.chat-composer:focus-within {
+  border-color: rgba(130, 165, 207, 0.55);
+  box-shadow:
+    0 0 0 3px rgba(130, 165, 207, 0.1);
+}
+
+/* ========================================
+   캘린더 배경도 화이트·파스텔로 조정
+======================================== */
+
+.view--calendar {
+  background: #f5f5f8;
+}
+
+.calendar-page {
+  background:
+    linear-gradient(
+      180deg,
+      #f7f7fa 0%,
+      #f3f4f7 100%
+    );
+}
+
+.apple-calendar-card {
+  border-color: rgba(100, 110, 130, 0.06);
+  background: rgba(255, 255, 255, 0.97);
+
+  box-shadow:
+    0 20px 55px rgba(90, 100, 120, 0.07),
+    0 2px 8px rgba(90, 100, 120, 0.025);
+}
+
+.calendar-day.today .calendar-day-number {
+  background: #e99498;
+}
+
+.calendar-eyebrow {
+  color: #82a5cf;
+}
+
+.calendar-day.has-entry::after {
+  background: #98b5d7;
+}

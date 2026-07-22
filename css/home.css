@@ -39,6 +39,110 @@
   font-size: 12px;
 }
 
+.home-library-strip {
+  display: flex;
+  align-items: stretch;
+  gap: 14px;
+  min-height: 122px;
+  margin-bottom: 30px;
+  padding: 14px;
+  overflow-x: auto;
+  border: 1px solid rgba(91, 102, 119, .07);
+  border-radius: 15px;
+  background: rgba(250, 251, 253, .78);
+  box-shadow: 0 8px 24px rgba(69, 78, 94, .035);
+}
+
+.home-folder-shortcuts,
+.home-note-shortcuts {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 10px;
+}
+
+.home-folder-link {
+  display: flex;
+  width: 152px;
+  flex: 0 0 152px;
+  align-items: center;
+  gap: 11px;
+  padding: 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: #4c5159;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-folder-link:hover { background: rgba(130, 165, 207, .07); }
+
+.home-mini-folder {
+  position: relative;
+  width: 40px;
+  height: 32px;
+  flex: 0 0 auto;
+  border-radius: 5px 7px 7px 7px;
+  background: color-mix(in srgb, var(--folder-color) 72%, #fff 28%);
+  box-shadow: inset 0 -7px 12px rgba(75, 91, 111, .04);
+}
+
+.home-mini-folder::before {
+  position: absolute;
+  top: -5px;
+  left: 0;
+  width: 19px;
+  height: 8px;
+  border-radius: 5px 5px 0 0;
+  background: inherit;
+  content: "";
+}
+
+.home-folder-link strong,
+.home-folder-link small { display: block; white-space: nowrap; }
+.home-folder-link strong { margin-bottom: 5px; font-size: 12px; }
+.home-folder-link small { color: #adb1b8; font-size: 9px; }
+
+.home-strip-divider {
+  width: 1px;
+  flex: 0 0 1px;
+  margin: 6px 2px;
+  background: rgba(90, 101, 117, .09);
+}
+
+.home-note-link {
+  width: 205px;
+  flex: 0 0 205px;
+  padding: 13px 14px;
+  overflow: hidden;
+  border: 1px solid color-mix(in srgb, var(--folder-color) 20%, rgba(80, 91, 109, .06) 80%);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--folder-color) 10%, #fff 90%);
+  color: #4d525a;
+  text-align: left;
+  cursor: pointer;
+}
+
+.home-note-link:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(70, 82, 101, .06); }
+.home-note-link strong,
+.home-note-link span,
+.home-note-link small { display: block; }
+.home-note-link strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
+.home-note-link span { height: 30px; margin: 7px 0 9px; overflow: hidden; color: #8c9199; font-size: 9px; line-height: 1.65; }
+.home-note-link small { overflow: hidden; color: #b1b5bc; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.home-note-link i { display: inline-block; width: 5px; height: 5px; margin-right: 5px; border-radius: 50%; background: var(--folder-color); }
+
+.home-strip-more {
+  width: 58px;
+  flex: 0 0 58px;
+  border: 0;
+  border-radius: 10px;
+  background: rgba(130, 165, 207, .08);
+  color: #86a2c2;
+  font-size: 9px;
+  cursor: pointer;
+}
+
 .home-board {
   display: grid;
   grid-template-columns: minmax(380px, 1.25fr) minmax(350px, 1fr) minmax(220px, .48fr);
@@ -251,11 +355,11 @@
   margin: 0;
   color: #484942;
   font-family: Georgia, "Times New Roman", serif;
-  font-size: clamp(18px, 1.4vw, 25px);
-  line-height: 1.75;
+  font-size: clamp(15px, 1.05vw, 19px);
+  line-height: 1.85;
   word-break: keep-all;
 }
-.quote-copy cite { display: block; margin-top: 28px; color: #9a9585; font-size: 10px; font-style: normal; line-height: 1.6; }
+.quote-copy cite { display: block; margin-top: 24px; color: #9a9585; font-size: 9px; font-style: normal; line-height: 1.6; }
 .quote-dots { position: absolute; z-index: 2; right: 28px; bottom: 26px; display: flex; gap: 5px; }
 .quote-dots span { width: 4px; height: 4px; border-radius: 50%; background: #d0c9b4; }
 .quote-dots span.active { background: #8e8a7d; }

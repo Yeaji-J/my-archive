@@ -38,6 +38,7 @@ function renderHomeDashboard() {
     });
 
   renderHomeCalendar();
+  renderHomeLibraryStrip();
   renderTemplatePreview(activeTemplate);
   renderHomeQuote();
   startHomeQuoteRotation();
@@ -49,6 +50,46 @@ function renderHomeDashboard() {
       }
     });
   }
+}
+
+function renderHomeLibraryStrip() {
+  const folderWrap = $('#homeFolderShortcuts');
+  const noteWrap = $('#homeNoteShortcuts');
+
+  folderWrap.innerHTML = state.folders.slice(0, 4).map(folder => {
+    const count = state.notes.filter(note => note.folderId === folder.id).length;
+    return `
+      <button class="home-folder-link" type="button" data-folder-id="${folder.id}">
+        <span class="home-mini-folder" style="--folder-color:${folder.color}"></span>
+        <span><strong>${escapeHtml(folder.name)}</strong><small>${count}개 자료</small></span>
+      </button>
+    `;
+  }).join('');
+
+  noteWrap.innerHTML = state.notes
+    .slice()
+    .sort((first, second) => second.updatedAt - first.updatedAt)
+    .slice(0, 6)
+    .map(note => {
+      const folder = state.folders.find(item => item.id === note.folderId);
+      const color = folder?.color || '#dfe4e9';
+      const summary = note.content.trim().replace(/\s+/g, ' ') || '내용 없음';
+      return `
+        <button class="home-note-link" type="button" data-note-id="${note.id}" style="--folder-color:${color}">
+          <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+          <span>${escapeHtml(summary)}</span>
+          <small><i></i>${escapeHtml(folder?.name || '폴더 없음')} · ${formatDate(note.updatedAt)}</small>
+        </button>
+      `;
+    }).join('');
+
+  folderWrap.querySelectorAll('[data-folder-id]').forEach(button => {
+    button.addEventListener('click', () => setView(button.dataset.folderId));
+  });
+
+  noteWrap.querySelectorAll('[data-note-id]').forEach(button => {
+    button.addEventListener('click', () => openEditor(button.dataset.noteId));
+  });
 }
 
 function renderHomeCalendar() {
@@ -276,6 +317,7 @@ document.querySelectorAll('.template-tab').forEach(tab => {
 });
 
 $('#homeCalendarMore').addEventListener('click', () => setView('calendar'));
+$('#homeAllNotesButton').addEventListener('click', () => setView('all'));
 $('#quickChatButton').addEventListener('click', openQuickChatNote);
 $('#quickChatClose').addEventListener('click', () => { $('#quickChatNote').hidden = true; });
 $('#quickChatForm').addEventListener('submit', sendQuickChatMessage);

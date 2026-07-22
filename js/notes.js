@@ -6,6 +6,20 @@
     renderSidebarFolders();
     renderCounts();
 
+    if (currentView === 'home') {
+      folderGridView.hidden = true;
+      editorView.hidden = true;
+      chatView.hidden = true;
+      calendarView.hidden = true;
+      todoView.hidden = true;
+      homeView.hidden = false;
+      breadcrumb.textContent = '홈';
+      renderHomeDashboard();
+      return;
+    }
+
+    homeView.hidden = true;
+
     if (currentView === 'chat') {
       folderGridView.hidden = true;
       editorView.hidden = true;
@@ -158,7 +172,18 @@
 
     renderSidebarFolders();
 
-    if (view === 'chat') {
+    if (view === 'home') {
+      editorView.hidden = true;
+      editorView.style.display = 'none';
+      folderGridView.hidden = true;
+      chatView.hidden = true;
+      calendarView.hidden = true;
+      todoView.hidden = true;
+      homeView.hidden = false;
+      breadcrumb.textContent = '홈';
+      renderHomeDashboard();
+    } else if (view === 'chat') {
+      homeView.hidden = true;
       editorView.hidden = true;
       editorView.style.display = 'none';
 
@@ -175,6 +200,7 @@
         loadChatRooms();
       }
     } else if (view === 'calendar') {
+      homeView.hidden = true;
       editorView.hidden = true;
       editorView.style.display = 'none';
 
@@ -191,6 +217,7 @@
         loadCalendarEntries();
       }
     } else if (view === 'todo') {
+      homeView.hidden = true;
       editorView.hidden = true;
       editorView.style.display = 'none';
 
@@ -203,6 +230,7 @@
 
       renderTodos();
     } else {
+      homeView.hidden = true;
       chatView.hidden = true;
       calendarView.hidden = true;
       todoView.hidden = true;
@@ -215,6 +243,9 @@
   }
 
   function currentBreadcrumb() {
+    if (currentView === 'home') {
+      return '홈';
+    }
     if (currentView === 'all') {
       return '전체 자료';
     }
@@ -526,6 +557,7 @@
     );
 
     folderGridView.hidden = true;
+    homeView.hidden = true;
     chatView.hidden = true;
     calendarView.hidden = true;
     todoView.hidden = true;
@@ -577,7 +609,8 @@
     editorView.style.display = 'none';
 
     if (
-      currentView !== 'chat'
+      currentView !== 'home'
+      && currentView !== 'chat'
       && currentView !== 'calendar'
       && currentView !== 'todo'
     ) {
@@ -589,8 +622,14 @@
       renderTodos();
     }
 
+    if (currentView === 'home') {
+      homeView.hidden = false;
+      renderHomeDashboard();
+    }
+
     if (
       rerender
+      && currentView !== 'home'
       && currentView !== 'calendar'
       && currentView !== 'todo'
     ) {
@@ -627,7 +666,8 @@
 
   function createNote() {
     if (
-      currentView === 'chat'
+      currentView === 'home'
+      || currentView === 'chat'
       || currentView === 'calendar'
       || currentView === 'todo'
     ) {
@@ -636,6 +676,7 @@
 
     const excludedViews = [
       'all',
+      'home',
       'starred',
       'chat',
       'calendar',

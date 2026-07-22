@@ -271,7 +271,7 @@ const STORAGE_KEY = 'archive.data.v1';
 
   /* ---------------- App state ---------------- */
 
-  let currentView = 'all';
+  let currentView = 'home';
   let currentNoteId = null;
   let searchTerm = '';
   let gridMode = true;
@@ -316,6 +316,8 @@ const STORAGE_KEY = 'archive.data.v1';
 
   const folderGridView =
     $('#folderGridView');
+
+  const homeView = $('#homeView');
 
   const chatView = $('#chatView');
   const editorView = $('#editorView');

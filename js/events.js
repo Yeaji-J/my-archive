@@ -323,13 +323,13 @@
       }
     );
 
-  $('#homeBtn')
-    .addEventListener(
-      'click',
-      () => {
-        setView('all');
-      }
-    );
+      $('#homeBtn')
+        .addEventListener(
+          'click',
+          () => {
+            setView('home');
+          }
+        );
 
   $('#calendarEntryCloseBtn')
     .addEventListener(

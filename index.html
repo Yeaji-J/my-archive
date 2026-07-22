@@ -5,11 +5,13 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Archive — 나만의 자료 정리 공간</title>
+  <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/base.css">
   <link rel="stylesheet" href="css/notes.css">
   <link rel="stylesheet" href="css/chat.css">
   <link rel="stylesheet" href="css/todo.css">
   <link rel="stylesheet" href="css/calendar.css">
+  <link rel="stylesheet" href="css/home.css">
   <link rel="stylesheet" href="css/responsive-theme.css">
 </head>
 
@@ -23,7 +25,7 @@
           class="brand brand-home"
           id="homeBtn"
           type="button"
-          aria-label="전체 자료로 이동"
+          aria-label="홈으로 이동"
         >
           <span class="brand-mark"></span>
           <span class="brand-name">Archive</span>
@@ -59,7 +61,7 @@
       </div>
 
       <nav class="sidebar-nav">
-        <button class="nav-item active" data-view="all">
+        <button class="nav-item" data-view="all">
           <span class="nav-icon nav-icon--all"></span>
           전체 자료
           <span class="nav-count" id="countAll">0</span>
@@ -226,7 +228,7 @@
             <span
               class="account-avatar"
               id="accountAvatar"
-Avatar            ></span>
+            ></span>
 
             <span class="account-name" id="accountName">
               로그인
@@ -252,10 +254,80 @@ Avatar            ></span>
         </div>
       </header>
 
+      <!-- Home dashboard -->
+      <section class="view view--home" id="homeView">
+        <div class="home-intro">
+          <div>
+            <span class="home-eyebrow">MY ARCHIVE</span>
+            <h1>오늘의 기록을 가볍게 시작해요.</h1>
+          </div>
+          <p id="homeDateLabel"></p>
+        </div>
+
+        <div class="home-board">
+          <section class="home-calendar-card paper-card">
+            <div class="home-card-head">
+              <div>
+                <span class="home-section-label">MY MOMENTS</span>
+                <h2 id="homeCalendarTitle"></h2>
+              </div>
+              <button class="home-text-btn" id="homeCalendarMore" type="button">전체 보기</button>
+            </div>
+            <div class="mini-calendar-weekdays">
+              <span>일</span><span>월</span><span>화</span><span>수</span>
+              <span>목</span><span>금</span><span>토</span>
+            </div>
+            <div class="mini-calendar-grid" id="homeCalendarGrid"></div>
+          </section>
+
+          <section class="template-file" aria-label="작성 템플릿">
+            <div class="template-tabs" id="templateTabs">
+              <button class="template-tab active" data-template="memo" type="button"><span>01</span>메모</button>
+              <button class="template-tab" data-template="todo" type="button"><span>02</span>할 일</button>
+              <button class="template-tab" data-template="moodboard" type="button"><span>03</span>무드보드</button>
+              <button class="template-tab pending" data-template="blank4" type="button"><span>04</span>준비 중</button>
+              <button class="template-tab pending" data-template="blank5" type="button"><span>05</span>준비 중</button>
+            </div>
+            <div class="template-paper" id="templatePreview"></div>
+          </section>
+
+          <aside class="quote-note paper-card">
+            <div class="quote-tape"></div>
+            <span class="home-section-label">A NOTE FOR TODAY</span>
+            <div class="quote-copy" id="quoteCopy"></div>
+            <div class="quote-dots" id="quoteDots" aria-hidden="true"></div>
+          </aside>
+        </div>
+
+        <button class="quick-chat-button" id="quickChatButton" type="button" aria-label="빠른 채팅 열기">
+          <svg viewBox="0 0 24 24"><path d="M5 18.5l-2 2v-5A8 8 0 1111 20H6.5A1.5 1.5 0 015 18.5z" stroke-linejoin="round" stroke-width="1.7" /></svg>
+        </button>
+
+        <section class="quick-chat-note" id="quickChatNote" hidden aria-label="빠른 채팅">
+          <div class="quick-chat-tape"></div>
+          <header>
+            <div>
+              <span>QUICK NOTE</span>
+              <strong id="quickChatTitle">친구에게 메모 남기기</strong>
+            </div>
+            <button id="quickChatClose" type="button" aria-label="닫기">×</button>
+          </header>
+          <div class="quick-chat-rooms" id="quickChatRooms"></div>
+          <div class="quick-chat-lines" id="quickChatLines">
+            <p>로그인한 뒤 친구를 선택하면<br>이곳에서 바로 대화할 수 있어요.</p>
+          </div>
+          <form class="quick-chat-form" id="quickChatForm">
+            <textarea id="quickChatInput" rows="1" maxlength="2000" placeholder="메모하듯 메시지를 적어보세요"></textarea>
+            <button type="submit">보내기</button>
+          </form>
+        </section>
+      </section>
+
       <!-- Folder grid -->
       <section
         class="view view--folders"
         id="folderGridView"
+        hidden
       >
         <div class="folder-grid" id="folderGrid"></div>
 
@@ -994,6 +1066,7 @@ Avatar            ></span>
   <script src="js/auth.js"></script>
   <script src="js/chat.js"></script>
   <script src="js/calendar.js"></script>
+  <script src="js/home.js"></script>
   <script src="js/events.js"></script>
 </body>
 

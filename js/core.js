@@ -326,6 +326,10 @@ const STORAGE_KEY = 'archive.data.v1';
   const noteContent = $('#noteContent');
   const noteMeta = $('#noteMeta');
 
+  const memoEditorPanel = $('#memoEditorPanel');
+  const moodboardEditorPanel = $('#moodboardEditorPanel');
+  const editorTemplateMessage = $('#editorTemplateMessage');
+
   const folderSelect =
     $('#folderSelect');
 

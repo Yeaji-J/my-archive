@@ -196,8 +196,8 @@ function renderTemplatePreview(template) {
       kicker: '03 · MOODBOARD',
       title: '감각을 한 화면에 모으기',
       desc: '사진과 글을 자유롭게 옮기고, 펜으로 선을 그리는 캔버스형 템플릿이에요.',
-      action: '곧 만들 예정이에요',
-      command: 'pending'
+      action: '새 무드보드 만들기',
+      command: 'moodboard'
     },
     blank4: {
       kicker: '04 · COMING SOON',
@@ -231,6 +231,7 @@ function renderTemplatePreview(template) {
     const command = event.currentTarget.dataset.command;
     if (command === 'memo') createNote();
     if (command === 'todo') setView('todo');
+    if (command === 'moodboard') createNote('moodboard');
   });
 }
 

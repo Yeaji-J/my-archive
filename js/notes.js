@@ -545,8 +545,9 @@
 
     if (!note) return;
 
-    noteTitle.value = note.title;
-    noteContent.value = note.content;
+    noteTitle.value = note.title || '';
+    noteContent.value = note.content || '';
+    note.template = note.template || 'memo';
 
     updateEditorMeta(note);
     populateFolderSelect(note.folderId);
@@ -565,7 +566,11 @@
     editorView.hidden = false;
     editorView.style.display = 'flex';
 
-    noteTitle.focus();
+    setEditorTemplate(note.template, false);
+
+    if (note.template === 'memo') {
+      noteTitle.focus();
+    }
   }
 
   function updateEditorMeta(note) {
@@ -664,7 +669,7 @@
     saveData();
   }
 
-  function createNote() {
+  function createNote(template = 'memo') {
     if (
       currentView === 'home'
       || currentView === 'chat'
@@ -692,6 +697,10 @@
       id: uid(),
       title: '',
       content: '',
+      template,
+      moodboard: template === 'moodboard'
+        ? { items: [], drawing: '' }
+        : undefined,
       folderId,
       starred: false,
       createdAt: Date.now(),

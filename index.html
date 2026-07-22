@@ -698,24 +698,51 @@
           </div>
         </div>
 
-        <div class="editor-body">
-          <input
-            type="text"
-            id="noteTitle"
-            class="note-title-input"
-            placeholder="제목 없음"
-          >
+        <div class="editor-folder-shell">
+          <nav class="editor-template-tabs" id="editorTemplateTabs" aria-label="작성 템플릿">
+            <button type="button" class="editor-template-tab active" data-editor-template="memo"><span>01</span>메모</button>
+            <button type="button" class="editor-template-tab" data-editor-template="todo"><span>02</span>할 일</button>
+            <button type="button" class="editor-template-tab" data-editor-template="moodboard"><span>03</span>무드보드</button>
+            <button type="button" class="editor-template-tab pending" data-editor-template="blank4"><span>04</span>준비 중</button>
+            <button type="button" class="editor-template-tab pending" data-editor-template="blank5"><span>05</span>준비 중</button>
+          </nav>
 
-          <div
-            class="note-meta"
-            id="noteMeta"
-          ></div>
+          <div class="editor-paper">
+            <div class="editor-heading">
+              <input type="text" id="noteTitle" class="note-title-input" placeholder="제목 없음">
+              <div class="note-meta" id="noteMeta"></div>
+            </div>
 
-          <textarea
-            id="noteContent"
-            class="note-content-input"
-            placeholder="내용을 입력하세요…"
-          ></textarea>
+            <div class="editor-template-panel" id="memoEditorPanel">
+              <textarea id="noteContent" class="note-content-input" placeholder="내용을 입력하세요…"></textarea>
+            </div>
+
+            <div class="editor-template-panel moodboard-panel" id="moodboardEditorPanel" hidden>
+              <div class="moodboard-toolbar">
+                <label class="moodboard-tool primary">
+                  사진 추가
+                  <input type="file" id="moodboardImageInput" accept="image/*" multiple hidden>
+                </label>
+                <button type="button" class="moodboard-tool" id="moodboardTextBtn">텍스트</button>
+                <button type="button" class="moodboard-tool" id="moodboardPenBtn">펜</button>
+                <label class="moodboard-color" title="펜 색상"><input type="color" id="moodboardPenColor" value="#596676"></label>
+                <select class="moodboard-width" id="moodboardPenWidth" aria-label="펜 굵기">
+                  <option value="2">얇게</option><option value="4" selected>보통</option><option value="7">굵게</option>
+                </select>
+                <button type="button" class="moodboard-tool" id="moodboardClearDrawing">선 지우기</button>
+                <button type="button" class="moodboard-tool danger" id="moodboardDeleteItem">선택 삭제</button>
+              </div>
+              <div class="moodboard-canvas-wrap" id="moodboardCanvasWrap">
+                <div class="moodboard-guide" id="moodboardGuide">
+                  사진을 끌어다 놓거나 텍스트와 펜으로 자유롭게 채워보세요.
+                </div>
+                <div class="moodboard-items" id="moodboardItems"></div>
+                <canvas id="moodboardDrawingCanvas"></canvas>
+              </div>
+            </div>
+
+            <div class="editor-template-panel editor-template-message" id="editorTemplateMessage" hidden></div>
+          </div>
         </div>
       </section>
     </main>
@@ -1084,6 +1111,7 @@
   <script src="js/chat.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/home.js"></script>
+  <script src="js/moodboard.js"></script>
   <script src="js/events.js"></script>
 </body>
 

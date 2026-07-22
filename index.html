@@ -121,28 +121,6 @@
           캘린더
         </button>
 
-        <button class="nav-item" id="todoNavBtn" data-view="todo">
-          <span class="nav-icon nav-icon--todo">
-            <svg viewBox="0 0 24 24">
-              <rect
-                x="3.5"
-                y="3.5"
-                width="17"
-                height="17"
-                rx="4"
-                stroke-width="1.6"
-              />
-              <path
-                d="M8 12l2.5 2.5L16 9"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.8"
-              />
-            </svg>
-          </span>
-
-          할 일
-        </button>
       </nav>
 
       <div class="sidebar-section">
@@ -647,57 +625,6 @@
         id="editorView"
         hidden
       >
-        <div class="editor-toolbar">
-          <button class="text-btn" id="backBtn">
-            <svg viewBox="0 0 24 24">
-              <path
-                d="M15 6l-6 6 6 6"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.8"
-              />
-            </svg>
-
-            뒤로
-          </button>
-
-          <div class="editor-toolbar-right">
-            <select
-              id="folderSelect"
-              class="folder-select"
-            ></select>
-
-            <button
-              class="icon-btn"
-              id="starBtn"
-              title="즐겨찾기"
-              aria-label="즐겨찾기"
-            >
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z"
-                />
-              </svg>
-            </button>
-
-            <button
-              class="icon-btn danger"
-              id="deleteBtn"
-              title="삭제"
-              aria-label="삭제"
-            >
-              <svg viewBox="0 0 24 24">
-                <path
-                  d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="1.6"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-
         <div class="editor-folder-shell">
           <nav class="editor-template-tabs" id="editorTemplateTabs" aria-label="작성 템플릿">
             <button type="button" class="editor-template-tab active" data-editor-template="memo"><span>01</span>메모</button>
@@ -708,6 +635,22 @@
           </nav>
 
           <div class="editor-paper">
+            <div class="editor-toolbar">
+              <button class="text-btn" id="backBtn">
+                <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" /></svg>
+                뒤로
+              </button>
+              <div class="editor-toolbar-right">
+                <select id="folderSelect" class="folder-select"></select>
+                <button class="icon-btn" id="starBtn" title="즐겨찾기" aria-label="즐겨찾기">
+                  <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z" /></svg>
+                </button>
+                <button class="icon-btn danger" id="deleteBtn" title="삭제" aria-label="삭제">
+                  <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" /></svg>
+                </button>
+              </div>
+            </div>
+
             <div class="editor-heading">
               <input type="text" id="noteTitle" class="note-title-input" placeholder="제목 없음">
               <div class="note-meta" id="noteMeta"></div>
@@ -715,6 +658,22 @@
 
             <div class="editor-template-panel" id="memoEditorPanel">
               <textarea id="noteContent" class="note-content-input" placeholder="내용을 입력하세요…"></textarea>
+            </div>
+
+            <div class="editor-template-panel editor-todo-panel" id="todoEditorPanel" hidden>
+              <div class="editor-todo-head">
+                <div>
+                  <span>TO DO LIST</span>
+                  <h2>해야 할 일을 가볍게 정리해요.</h2>
+                </div>
+                <strong id="editorTodoCount">0</strong>
+              </div>
+              <form class="editor-todo-form" id="editorTodoForm">
+                <input type="text" id="editorTodoInput" maxlength="120" autocomplete="off" placeholder="새로운 할 일을 입력하세요">
+                <button type="submit">추가</button>
+              </form>
+              <ul class="editor-todo-list" id="editorTodoList"></ul>
+              <p class="editor-todo-empty" id="editorTodoEmpty">아직 할 일이 없어요.</p>
             </div>
 
             <div class="editor-template-panel moodboard-panel" id="moodboardEditorPanel" hidden>

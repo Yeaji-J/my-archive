@@ -230,7 +230,7 @@ function renderTemplatePreview(template) {
   preview.querySelector('[data-command]').addEventListener('click', event => {
     const command = event.currentTarget.dataset.command;
     if (command === 'memo') createNote();
-    if (command === 'todo') setView('todo');
+    if (command === 'todo') createNote('todo');
     if (command === 'moodboard') createNote('moodboard');
   });
 }

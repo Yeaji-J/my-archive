@@ -24,16 +24,12 @@ function setEditorTemplate(template, updateNote = true) {
   const note = getCurrentNote();
   if (!note) return;
 
-  if (template === 'todo') {
-    setView('todo');
-    return;
-  }
-
   document.querySelectorAll('[data-editor-template]').forEach(tab => {
     tab.classList.toggle('active', tab.dataset.editorTemplate === template);
   });
 
   memoEditorPanel.hidden = template !== 'memo';
+  todoEditorPanel.hidden = template !== 'todo';
   moodboardEditorPanel.hidden = template !== 'moodboard';
   editorTemplateMessage.hidden = !template.startsWith('blank');
 
@@ -49,10 +45,52 @@ function setEditorTemplate(template, updateNote = true) {
     updateEditorMeta(note);
   }
 
+  if (template === 'todo') {
+    if (!note.title) {
+      note.title = '할 일';
+      noteTitle.value = note.title;
+    }
+    renderEditorTodos();
+  }
+
   if (template === 'moodboard') {
     ensureMoodboard(note);
     requestAnimationFrame(renderMoodboard);
   }
+}
+
+function renderEditorTodos() {
+  const list = $('#editorTodoList');
+  const empty = $('#editorTodoEmpty');
+  const remaining = todos.filter(todo => !todo.done).length;
+
+  $('#editorTodoCount').textContent = remaining;
+  empty.hidden = todos.length > 0;
+  list.innerHTML = '';
+
+  todos.forEach(todo => {
+    const item = document.createElement('li');
+    item.className = 'editor-todo-item' + (todo.done ? ' done' : '');
+    item.innerHTML = `
+      <button class="editor-todo-check" type="button" aria-label="완료 상태 변경">
+        <svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" /></svg>
+      </button>
+      <span class="editor-todo-text"></span>
+      <button class="editor-todo-delete" type="button" aria-label="삭제">×</button>
+    `;
+    item.querySelector('.editor-todo-text').textContent = todo.text;
+    item.querySelector('.editor-todo-check').addEventListener('click', () => {
+      todo.done = !todo.done;
+      saveTodos();
+      renderEditorTodos();
+    });
+    item.querySelector('.editor-todo-delete').addEventListener('click', () => {
+      todos = todos.filter(current => current.id !== todo.id);
+      saveTodos();
+      renderEditorTodos();
+    });
+    list.appendChild(item);
+  });
 }
 
 function scheduleMoodboardSave() {
@@ -311,6 +349,17 @@ $('#moodboardClearDrawing').addEventListener('click', () => {
   ensureMoodboard(note).drawing = '';
   resizeMoodboardCanvas('');
   scheduleMoodboardSave();
+});
+
+$('#editorTodoForm').addEventListener('submit', event => {
+  event.preventDefault();
+  const input = $('#editorTodoInput');
+  const text = input.value.trim();
+  if (!text) return;
+  todos.unshift({ id: uid(), text, done: false });
+  input.value = '';
+  saveTodos();
+  renderEditorTodos();
 });
 
 const moodboardCanvas = $('#moodboardDrawingCanvas');

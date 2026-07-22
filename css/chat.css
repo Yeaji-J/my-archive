@@ -1,5 +1,19 @@
 /* ---------- Chat ---------- */
 
+.message-bubble,
+.chat-composer textarea {
+  font-family: 'IsYun', "Pretendard", sans-serif;
+}
+
+.message-bubble {
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.chat-composer textarea {
+  font-size: 15px;
+}
+
 .view.view--chat {
   flex: 1 1 0;
   min-height: 0;

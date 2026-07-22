@@ -25,6 +25,7 @@ let homeQuoteIndex = 0;
 let homeQuoteTimer = null;
 let activeTemplate = 'memo';
 let quickChatRoomId = null;
+let homeStripPosition = 0;
 
 function renderHomeDashboard() {
   const now = new Date();
@@ -90,6 +91,28 @@ function renderHomeLibraryStrip() {
   noteWrap.querySelectorAll('[data-note-id]').forEach(button => {
     button.addEventListener('click', () => openEditor(button.dataset.noteId));
   });
+
+  homeStripPosition = 0;
+  updateHomeStripPosition();
+}
+
+function updateHomeStripPosition() {
+  const viewport = $('#homeLibraryViewport');
+  const track = viewport.querySelector('.home-library-track');
+  const maxPosition = Math.max(0, track.scrollWidth - viewport.clientWidth);
+
+  homeStripPosition = Math.min(Math.max(homeStripPosition, 0), maxPosition);
+  track.style.transform = `translateX(-${homeStripPosition}px)`;
+  track.style.transition = 'transform .36s cubic-bezier(.22, 1, .36, 1)';
+
+  $('#homeStripPrev').disabled = homeStripPosition <= 0;
+  $('#homeStripNext').disabled = homeStripPosition >= maxPosition - 1;
+}
+
+function moveHomeStrip(direction) {
+  const viewport = $('#homeLibraryViewport');
+  homeStripPosition += direction * Math.max(260, viewport.clientWidth * .72);
+  updateHomeStripPosition();
 }
 
 function renderHomeCalendar() {
@@ -318,6 +341,9 @@ document.querySelectorAll('.template-tab').forEach(tab => {
 
 $('#homeCalendarMore').addEventListener('click', () => setView('calendar'));
 $('#homeAllNotesButton').addEventListener('click', () => setView('all'));
+$('#homeStripPrev').addEventListener('click', () => moveHomeStrip(-1));
+$('#homeStripNext').addEventListener('click', () => moveHomeStrip(1));
+window.addEventListener('resize', updateHomeStripPosition);
 $('#quickChatButton').addEventListener('click', openQuickChatNote);
 $('#quickChatClose').addEventListener('click', () => { $('#quickChatNote').hidden = true; });
 $('#quickChatForm').addEventListener('submit', sendQuickChatMessage);

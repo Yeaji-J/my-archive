@@ -91,11 +91,7 @@ async function getChatImageUrl(
 
   if (error) {
     console.error('Chat image URL failed', error);
-    const { data: publicData } =
-      cloud.storage
-        .from(bucket)
-        .getPublicUrl(path);
-    return publicData?.publicUrl || '';
+    return '';
   }
 
   return data?.signedUrl || '';

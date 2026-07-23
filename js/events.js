@@ -313,10 +313,16 @@
     .addEventListener(
       'change',
       event => {
-        sendChatPhoto(
+        prepareChatPhoto(
           event.target.files?.[0]
         );
       }
+    );
+
+  $('#chatAttachmentRemove')
+    .addEventListener(
+      'click',
+      clearPendingChatImage
     );
 
   function closeChatImageLightbox() {
@@ -355,6 +361,26 @@
           chatInput.scrollHeight,
           100
         )}px`;
+    }
+  );
+
+  chatInput.addEventListener(
+    'paste',
+    event => {
+      const imageItem = [
+        ...(event.clipboardData?.items || [])
+      ].find(
+        item =>
+          item.type.startsWith('image/')
+      );
+
+      if (!imageItem) return;
+
+      const file = imageItem.getAsFile();
+      if (!file) return;
+
+      event.preventDefault();
+      prepareChatPhoto(file);
     }
   );
 

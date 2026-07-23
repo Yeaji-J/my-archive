@@ -381,10 +381,10 @@ async function appendQuickChatMessage(message) {
     message.user_id === currentUser?.id
       ? 'mine'
       : '';
-  const imagePath =
-    chatImagePath(message.body);
+  const media =
+    parseChatMedia(message.body);
 
-  if (!imagePath) {
+  if (!media) {
     row.textContent = message.body;
     $('#quickChatLines').appendChild(row);
     scrollQuickChatToBottom();
@@ -395,7 +395,8 @@ async function appendQuickChatMessage(message) {
   row.textContent = '사진 불러오는 중…';
   $('#quickChatLines').appendChild(row);
 
-  const url = await getChatImageUrl(imagePath);
+  const url = media.image
+    || await getChatImageUrl(media.path);
   if (!url) {
     row.textContent = '사진을 불러오지 못했어요.';
     return;
@@ -414,6 +415,16 @@ async function appendQuickChatMessage(message) {
     () => openChatImageLightbox(url)
   );
   row.appendChild(button);
+
+  if (media.text) {
+    const caption =
+      document.createElement('span');
+    caption.className =
+      'quick-chat-image-caption';
+    caption.textContent = media.text;
+    row.appendChild(caption);
+  }
+
   scrollQuickChatToBottom();
 }
 

@@ -3,6 +3,41 @@
 /* ---------------- 1:1 Chat ---------------- */
 
 const CHAT_IMAGE_PREFIX = '__ARCHIVE_IMAGE__:';
+const CHAT_MEDIA_PREFIX = '__ARCHIVE_MEDIA__:';
+let pendingChatImage = '';
+
+function parseChatMedia(body) {
+  const value = String(body || '');
+
+  if (value.startsWith(CHAT_MEDIA_PREFIX)) {
+    try {
+      const data = JSON.parse(
+        value.slice(CHAT_MEDIA_PREFIX.length)
+      );
+
+      if (
+        typeof data.image === 'string'
+        && data.image.startsWith('data:image/')
+      ) {
+        return {
+          image: data.image,
+          path: '',
+          text: String(data.text || '')
+        };
+      }
+    } catch (error) {
+      console.error(
+        'Chat media parse failed',
+        error
+      );
+    }
+  }
+
+  const path = chatImagePath(value);
+  return path
+    ? { image: '', path, text: '' }
+    : null;
+}
 
 function chatImagePath(body) {
   return String(body || '').startsWith(CHAT_IMAGE_PREFIX)
@@ -11,9 +46,11 @@ function chatImagePath(body) {
 }
 
 function chatMessagePreview(body) {
-  return chatImagePath(body)
-    ? '사진'
-    : String(body || '');
+  const media = parseChatMedia(body);
+  if (!media) return String(body || '');
+  return media.text
+    ? `사진 · ${media.text}`
+    : '사진';
 }
 
 async function getChatImageUrl(path) {
@@ -24,7 +61,11 @@ async function getChatImageUrl(path) {
 
   if (error) {
     console.error('Chat image URL failed', error);
-    return '';
+    const { data: publicData } =
+      cloud.storage
+        .from('calendar-images')
+        .getPublicUrl(path);
+    return publicData?.publicUrl || '';
   }
 
   return data?.signedUrl || '';
@@ -464,6 +505,7 @@ function openChatImageLightbox(url) {
     if (!room) return;
 
     activeRoomId = roomId;
+    clearPendingChatImage();
 
     renderedMessageIds.clear();
     renderChatRooms();
@@ -569,12 +611,18 @@ function openChatImageLightbox(url) {
           : ''
       );
 
-    const imagePath =
-      chatImagePath(message.body);
+    const media =
+      parseChatMedia(message.body);
+
+    if (media) {
+      row.classList.add(
+        'image-message-row'
+      );
+    }
 
     row.innerHTML = `
-      <div class="message-bubble ${imagePath ? 'message-bubble-image' : ''}">
-        ${imagePath ? '<span class="chat-image-loading">사진 불러오는 중…</span>' : escapeHtml(message.body)}
+      <div class="message-bubble ${media ? 'message-bubble-image' : ''}">
+        ${media ? '<span class="chat-image-loading">사진 불러오는 중…</span>' : escapeHtml(message.body)}
       </div>
 
       <time class="message-time">
@@ -584,9 +632,9 @@ function openChatImageLightbox(url) {
 
     chatMessages.appendChild(row);
 
-    if (imagePath) {
-      const url =
-        await getChatImageUrl(imagePath);
+    if (media) {
+      const url = media.image
+        || await getChatImageUrl(media.path);
       const bubble =
         row.querySelector('.message-bubble');
 
@@ -610,6 +658,15 @@ function openChatImageLightbox(url) {
           () => openChatImageLightbox(url)
         );
         bubble.appendChild(button);
+
+        if (media.text) {
+          const caption =
+            document.createElement('p');
+          caption.className =
+            'chat-image-caption';
+          caption.textContent = media.text;
+          bubble.appendChild(caption);
+        }
         scrollChatToBottom();
       } else {
         bubble.textContent =
@@ -672,15 +729,26 @@ function openChatImageLightbox(url) {
       chatInput.value.trim();
 
     if (
-      !body
+      (!body && !pendingChatImage)
       || !activeRoomId
       || !currentUser
     ) {
       return;
     }
 
+    const outgoingImage =
+      pendingChatImage;
+    const outgoingBody =
+      outgoingImage
+        ? `${CHAT_MEDIA_PREFIX}${JSON.stringify({
+            image: outgoingImage,
+            text: body
+          })}`
+        : body;
+
     chatInput.value = '';
     chatInput.style.height = 'auto';
+    clearPendingChatImage();
 
     const { data, error } =
       await cloud
@@ -688,7 +756,7 @@ function openChatImageLightbox(url) {
         .insert({
           room_id: activeRoomId,
           user_id: currentUser.id,
-          body
+          body: outgoingBody
         })
         .select()
         .single();
@@ -704,6 +772,9 @@ function openChatImageLightbox(url) {
       );
 
       chatInput.value = body;
+      if (outgoingImage) {
+        setPendingChatImage(outgoingImage);
+      }
       return;
     }
 
@@ -723,7 +794,7 @@ function openChatImageLightbox(url) {
       reader.onload = () => {
         const image = new Image();
         image.onload = () => {
-          const maxSize = 1400;
+          const maxSize = 800;
           const scale = Math.min(
             1,
             maxSize / Math.max(
@@ -750,14 +821,11 @@ function openChatImageLightbox(url) {
               canvas.width,
               canvas.height
             );
-          canvas.toBlob(
-            blob => blob
-              ? resolve(blob)
-              : reject(
-                  new Error('사진 변환 실패')
-                ),
-            'image/jpeg',
-            .82
+          resolve(
+            canvas.toDataURL(
+              'image/jpeg',
+              .68
+            )
           );
         };
         image.onerror = reject;
@@ -768,15 +836,25 @@ function openChatImageLightbox(url) {
     });
   }
 
-  async function sendChatPhoto(file) {
-    if (
-      !file
-      || !activeRoomId
-      || !currentUser
-    ) {
-      return;
-    }
+  function setPendingChatImage(dataUrl) {
+    pendingChatImage = dataUrl;
+    $('#chatAttachmentPreviewImage').src =
+      dataUrl;
+    $('#chatAttachmentPreview').hidden =
+      false;
+  }
 
+  function clearPendingChatImage() {
+    pendingChatImage = '';
+    $('#chatAttachmentPreview').hidden =
+      true;
+    $('#chatAttachmentPreviewImage')
+      .removeAttribute('src');
+    $('#chatPhotoInput').value = '';
+  }
+
+  async function prepareChatPhoto(file) {
+    if (!file) return;
     const photoButton =
       document.querySelector(
         '.chat-photo-btn'
@@ -784,56 +862,22 @@ function openChatImageLightbox(url) {
     photoButton.classList.add('uploading');
 
     try {
-      const blob =
+      const dataUrl =
         await resizeChatImage(file);
-      const path =
-        `${currentUser.id}/chat/`
-        + `${activeRoomId}/`
-        + `${Date.now()}-${uid()}.jpg`;
-
-      const { error: uploadError } =
-        await cloud.storage
-          .from('calendar-images')
-          .upload(path, blob, {
-            contentType: 'image/jpeg',
-            upsert: false
-          });
-
-      if (uploadError) {
-        throw uploadError;
-      }
-
-      const { data, error } =
-        await cloud
-          .from('messages')
-          .insert({
-            room_id: activeRoomId,
-            user_id: currentUser.id,
-            body: `${CHAT_IMAGE_PREFIX}${path}`
-          })
-          .select()
-          .single();
-
-      if (error) {
-        throw error;
-      }
-
-      appendMessage(data);
-      scrollChatToBottom();
-      loadChatRooms();
+      setPendingChatImage(dataUrl);
+      chatInput.focus();
     } catch (error) {
       console.error(
-        'Chat photo failed',
+        'Chat photo preview failed',
         error
       );
       alert(
-        '사진을 보내지 못했어요. 잠시 후 다시 시도해주세요.'
+        '사진을 준비하지 못했어요. 다른 사진으로 다시 시도해주세요.'
       );
     } finally {
       photoButton.classList.remove(
         'uploading'
       );
-      $('#chatPhotoInput').value = '';
     }
   }
 

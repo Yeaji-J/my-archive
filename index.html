@@ -527,6 +527,11 @@
                 class="chat-composer"
                 id="chatForm"
               >
+                <div class="chat-attachment-preview" id="chatAttachmentPreview" hidden>
+                  <img id="chatAttachmentPreviewImage" alt="전송할 사진 미리보기">
+                  <button type="button" id="chatAttachmentRemove" aria-label="첨부 사진 삭제">×</button>
+                </div>
+
                 <label class="chat-photo-btn" title="사진 보내기" aria-label="사진 보내기">
                   <input type="file" id="chatPhotoInput" accept="image/*" hidden>
                   <svg viewBox="0 0 24 24">

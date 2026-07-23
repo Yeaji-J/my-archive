@@ -499,9 +499,11 @@ body.chat-view-active .quick-chat-note {
 .quick-chat-lines { height: 330px; padding: 20px 5px 15px; overflow-y: auto; }
 .quick-chat-lines p { margin: 0 0 13px; color: #747266; font-family: 'IsYun', "Pretendard", sans-serif; font-size: 16px; line-height: 1.65; }
 .quick-chat-lines p.mine { color: #7590aa; text-align: right; }
-.quick-chat-lines p.image { line-height: 1; }
+.quick-chat-lines p.image { display: flex; flex-direction: column; align-items: flex-start; gap: 10px; margin-block: 18px; line-height: 1; }
+.quick-chat-lines p.image.mine { align-items: flex-end; }
 .quick-chat-image { width: 92px; height: 76px; padding: 0; overflow: hidden; border: 0; border-radius: 8px; background: #fff; cursor: pointer; }
 .quick-chat-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.quick-chat-image-caption { display: block; font-family: 'IsYun', "Pretendard", sans-serif; font-size: 16px; line-height: 1.55; }
 .quick-chat-form { display: flex; gap: 8px; align-items: flex-end; }
 .quick-chat-form textarea { flex: 1; min-height: 37px; max-height: 70px; resize: none; border: 0; border-bottom: 1px solid rgba(100, 103, 91, .2); outline: none; background: rgba(255,255,255,.3); color: #585950; font-family: 'IsYun', "Pretendard", sans-serif; font-size: 15px; }
 .quick-chat-form button { padding: 8px 10px; border: 0; background: transparent; color: #779374; font-size: 10px; cursor: pointer; }

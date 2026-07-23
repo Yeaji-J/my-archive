@@ -201,13 +201,47 @@ $('#collectionOneLineInput').addEventListener('input', event => { ensureCollecti
 $('#collectionTagsInput').addEventListener('input', event => { ensureCollectionData(getCurrentNote()).tags = event.target.value.split(',').map(tag => tag.trim()).filter(Boolean); scheduleTemplateDataSave(); });
 $('#collectionContentInput').addEventListener('input', event => { ensureCollectionData(getCurrentNote()).content = event.target.value; scheduleTemplateDataSave(); });
 $('#collectionAddField').addEventListener('click', addCollectionField);
-$('#collectionCoverInput').addEventListener('change', async event => {
-  const file = event.target.files?.[0];
+async function setCollectionCover(
+  file
+) {
   const note = getCurrentNote();
   if (!file || !note) return;
   ensureCollectionData(note).cover = await compressMoodboardImage(file);
   renderCollectionEditor();
   scheduleTemplateDataSave();
+}
+
+$('#collectionCoverInput').addEventListener('change', async event => {
+  await setCollectionCover(
+    event.target.files?.[0]
+  );
+  event.target.value = '';
+});
+
+bindImageDropTarget(
+  $('#collectionCoverDropZone'),
+  files => setCollectionCover(files[0]),
+  {
+    onError: message =>
+      alert(message)
+  }
+);
+
+document.addEventListener('paste', event => {
+  if (
+    !collectionEditorPanel.hidden
+    && !event.defaultPrevented
+  ) {
+    const images =
+      clipboardImageFiles(
+        event.clipboardData
+      );
+
+    if (!images.length) return;
+
+    event.preventDefault();
+    setCollectionCover(images[0]);
+  }
 });
 
 $('#editorTemplateSearch').addEventListener('input', () => renderTemplateLibraryBar(getCurrentNote()?.template || 'memo'));

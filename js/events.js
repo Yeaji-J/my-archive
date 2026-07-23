@@ -502,6 +502,36 @@
       previewCalendarPhoto
     );
 
+  bindImageDropTarget(
+    $('#calendarPhotoPicker'),
+    files =>
+      previewCalendarPhoto(files[0]),
+    {
+      onError: message => {
+        calendarEntryMessage
+          .textContent = message;
+      }
+    }
+  );
+
+  calendarEntryModal
+    .addEventListener(
+      'paste',
+      event => {
+        const images =
+          clipboardImageFiles(
+            event.clipboardData
+          );
+
+        if (!images.length) return;
+
+        event.preventDefault();
+        previewCalendarPhoto(
+          images[0]
+        );
+      }
+    );
+
   starBtn.addEventListener(
     'click',
     () => {

@@ -338,6 +338,13 @@
     0 0 0 3px var(--accent-soft);
 }
 
+.chat-composer.image-drag-over {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  box-shadow:
+    0 0 0 3px var(--accent-soft);
+}
+
 .chat-composer textarea {
   flex: 1;
   max-height: 100px;

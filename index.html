@@ -821,7 +821,7 @@
                 <button type="button" class="moodboard-tool" id="moodboardClearDrawing">선 지우기</button>
                 <button type="button" class="moodboard-tool danger" id="moodboardDeleteItem">선택 삭제</button>
               </div>
-              <div class="moodboard-canvas-wrap" id="moodboardCanvasWrap">
+              <div class="moodboard-canvas-wrap" id="moodboardCanvasWrap" tabindex="0">
                 <div class="moodboard-guide" id="moodboardGuide">
                   사진을 끌어다 놓거나 텍스트와 펜으로 자유롭게 채워보세요.
                 </div>
@@ -847,7 +847,7 @@
             <div class="editor-template-panel collection-editor-panel" id="collectionEditorPanel" hidden>
               <div class="collection-editor-layout">
                 <div class="collection-cover-area">
-                  <label class="collection-cover-label">
+                  <label class="collection-cover-label" id="collectionCoverDropZone">
                     <img id="collectionCoverPreview" alt="">
                     <span id="collectionCoverEmpty">대표 이미지 추가</span>
                     <input type="file" id="collectionCoverInput" accept="image/*" hidden>
@@ -1103,7 +1103,7 @@
             </svg>
 
             <span>사진 첨부</span>
-            <small>정방형으로 표시돼요</small>
+            <small>붙여넣기·드롭도 가능해요</small>
           </div>
 
           <img

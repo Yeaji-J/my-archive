@@ -881,6 +881,15 @@ function openChatImageLightbox(url) {
     }
   }
 
+  bindImageDropTarget(
+    $('#chatForm'),
+    files => prepareChatPhoto(files[0]),
+    {
+      onError: message =>
+        alert(message)
+    }
+  );
+
   function openNewChat() {
     if (!currentUser) {
       openAuthModal();

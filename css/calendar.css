@@ -280,6 +280,13 @@
   cursor: pointer;
 }
 
+.calendar-photo-picker.image-drag-over {
+  border-color: #86a9cf;
+  background: #eff5fb;
+  box-shadow:
+    0 0 0 4px rgba(134, 169, 207, .12);
+}
+
 .calendar-photo-empty {
   height: 100%;
   display: flex;

@@ -212,11 +212,18 @@ function makeMoodboardItemDraggable(element, item) {
   });
 }
 
-async function addMoodboardImages(files) {
+async function addMoodboardImages(
+  files,
+  dropPoint = null
+) {
   const note = getCurrentNote();
   if (!note) return;
   const board = ensureMoodboard(note);
   const images = [...files].filter(file => file.type.startsWith('image/'));
+  const baseX =
+    dropPoint?.x ?? 35;
+  const baseY =
+    dropPoint?.y ?? 35;
 
   for (const [index, file] of images.entries()) {
     if (file.size > 8 * 1024 * 1024) continue;
@@ -225,8 +232,20 @@ async function addMoodboardImages(files) {
       id: uid(),
       type: 'image',
       src,
-      x: 35 + (index % 4) * 34,
-      y: 35 + (index % 4) * 34,
+      x: Math.max(
+        0,
+        Math.min(
+          baseX + (index % 4) * 34,
+          moodboardWrap.clientWidth - 250
+        )
+      ),
+      y: Math.max(
+        0,
+        Math.min(
+          baseY + (index % 4) * 34,
+          moodboardWrap.clientHeight - 180
+        )
+      ),
       width: 250,
       height: 180,
       rotation: (index % 3 - 1) * 2
@@ -379,16 +398,54 @@ moodboardCanvas.addEventListener('pointerup', endMoodboardDrawing);
 moodboardCanvas.addEventListener('pointercancel', endMoodboardDrawing);
 
 const moodboardWrap = $('#moodboardCanvasWrap');
-moodboardWrap.addEventListener('click', () => selectMoodboardItem(null));
-moodboardWrap.addEventListener('dragover', event => {
-  event.preventDefault();
-  moodboardWrap.classList.add('drag-over');
+ moodboardWrap.addEventListener('click', () => {
+  selectMoodboardItem(null);
+  moodboardWrap.focus({
+    preventScroll: true
+  });
 });
-moodboardWrap.addEventListener('dragleave', () => moodboardWrap.classList.remove('drag-over'));
-moodboardWrap.addEventListener('drop', event => {
-  event.preventDefault();
-  moodboardWrap.classList.remove('drag-over');
-  addMoodboardImages(event.dataTransfer.files);
+
+bindImageDropTarget(
+  moodboardWrap,
+  (files, event) => {
+    const bounds =
+      moodboardWrap
+        .getBoundingClientRect();
+
+    return addMoodboardImages(
+      files,
+      {
+        x: event.clientX
+          - bounds.left
+          - 125,
+        y: event.clientY
+          - bounds.top
+          - 90
+      }
+    );
+  },
+  {
+    activeClass: 'drag-over',
+    onError: message =>
+      alert(message)
+  }
+);
+
+document.addEventListener('paste', event => {
+  if (
+    !moodboardEditorPanel.hidden
+    && !event.defaultPrevented
+  ) {
+    const images =
+      clipboardImageFiles(
+        event.clipboardData
+      );
+
+    if (!images.length) return;
+
+    event.preventDefault();
+    addMoodboardImages(images);
+  }
 });
 
 window.addEventListener('resize', () => {

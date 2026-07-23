@@ -343,10 +343,15 @@
     selectedCalendarFile = null;
   }
 
-  function previewCalendarPhoto() {
+  function previewCalendarPhoto(
+    source
+  ) {
     const file =
-      calendarPhotoInput
-        .files?.[0];
+      source?.type
+        ?.startsWith('image/')
+        ? source
+        : calendarPhotoInput
+          .files?.[0];
 
     if (!file) return;
 

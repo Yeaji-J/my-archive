@@ -25,6 +25,240 @@ const STORAGE_KEY = 'archive.data.v1';
     '#d9d5ef'
   ];
 
+  /* ---------------- Image input helpers ---------------- */
+
+  function clipboardImageFiles(clipboardData) {
+    return [
+      ...(clipboardData?.items || [])
+    ]
+      .filter(
+        item =>
+          item.kind === 'file'
+          && item.type.startsWith('image/')
+      )
+      .map(item => item.getAsFile())
+      .filter(Boolean);
+  }
+
+  function imageMimeFromUrl(url) {
+    const extension = String(url)
+      .split(/[?#]/)[0]
+      .split('.')
+      .pop()
+      .toLowerCase();
+
+    return {
+      png: 'image/png',
+      jpg: 'image/jpeg',
+      jpeg: 'image/jpeg',
+      webp: 'image/webp',
+      gif: 'image/gif',
+      avif: 'image/avif'
+    }[extension] || '';
+  }
+
+  function draggedImageUrls(dataTransfer) {
+    const urls = [];
+    const html =
+      dataTransfer?.getData('text/html')
+      || '';
+
+    if (html) {
+      const documentFragment =
+        new DOMParser()
+          .parseFromString(
+            html,
+            'text/html'
+          );
+
+      documentFragment
+        .querySelectorAll('img[src]')
+        .forEach(image => {
+          urls.push(
+            image.getAttribute('src')
+          );
+        });
+    }
+
+    const uriList =
+      dataTransfer
+        ?.getData('text/uri-list')
+        ?.split(/\r?\n/)
+        .filter(
+          value =>
+            value
+            && !value.startsWith('#')
+        )
+      || [];
+
+    urls.push(...uriList);
+
+    const plain =
+      dataTransfer
+        ?.getData('text/plain')
+        ?.trim();
+
+    if (
+      plain
+      && /^(https?:|data:image\/|blob:)/i
+        .test(plain)
+    ) {
+      urls.push(plain);
+    }
+
+    return [
+      ...new Set(
+        urls
+          .filter(Boolean)
+          .map(url => {
+            try {
+              return new URL(
+                url,
+                location.href
+              ).href;
+            } catch (_error) {
+              return '';
+            }
+          })
+          .filter(Boolean)
+      )
+    ];
+  }
+
+  async function imageFileFromUrl(
+    url,
+    index = 0
+  ) {
+    const response = await fetch(
+      url,
+      {
+        mode: 'cors',
+        credentials: 'omit'
+      }
+    );
+
+    if (!response.ok) {
+      throw new Error(
+        `Image request failed: ${response.status}`
+      );
+    }
+
+    const blob = await response.blob();
+    const type =
+      blob.type.startsWith('image/')
+        ? blob.type
+        : imageMimeFromUrl(url);
+
+    if (!type) {
+      throw new Error(
+        'Dropped URL is not an image.'
+      );
+    }
+
+    const extension =
+      type.split('/')[1]
+        .replace('jpeg', 'jpg')
+        .replace(/[^a-z0-9]/gi, '')
+      || 'jpg';
+
+    return new File(
+      [blob],
+      `dragged-image-${Date.now()}-${index}.${extension}`,
+      { type }
+    );
+  }
+
+  async function droppedImageFiles(
+    dataTransfer
+  ) {
+    const localFiles = [
+      ...(dataTransfer?.files || [])
+    ].filter(
+      file =>
+        file.type.startsWith('image/')
+    );
+
+    if (localFiles.length) {
+      return localFiles;
+    }
+
+    const urls =
+      draggedImageUrls(dataTransfer);
+
+    const results =
+      await Promise.allSettled(
+        urls.map(imageFileFromUrl)
+      );
+
+    return results
+      .filter(
+        result =>
+          result.status === 'fulfilled'
+      )
+      .map(result => result.value);
+  }
+
+  function bindImageDropTarget(
+    target,
+    onImages,
+    options = {}
+  ) {
+    const activeClass =
+      options.activeClass
+      || 'image-drag-over';
+
+    target.addEventListener(
+      'dragover',
+      event => {
+        event.preventDefault();
+        event.dataTransfer.dropEffect =
+          'copy';
+        target.classList.add(
+          activeClass
+        );
+      }
+    );
+
+    target.addEventListener(
+      'dragleave',
+      event => {
+        if (
+          !target.contains(
+            event.relatedTarget
+          )
+        ) {
+          target.classList.remove(
+            activeClass
+          );
+        }
+      }
+    );
+
+    target.addEventListener(
+      'drop',
+      async event => {
+        event.preventDefault();
+        target.classList.remove(
+          activeClass
+        );
+
+        const files =
+          await droppedImageFiles(
+            event.dataTransfer
+          );
+
+        if (!files.length) {
+          options.onError?.(
+            '이 사이트의 사진은 직접 가져올 수 없어요. 이미지를 복사해 Ctrl+V로 붙여넣거나 파일로 저장한 뒤 다시 시도해주세요.'
+          );
+          return;
+        }
+
+        await onImages(files, event);
+      }
+    );
+  }
+
   /* ---------------- Data layer ---------------- */
 
   function loadData() {

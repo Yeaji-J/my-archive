@@ -770,6 +770,7 @@
 }
 
 .moodboard-canvas-wrap.drag-over { outline: 2px dashed #91aecb; outline-offset: -10px; }
+.moodboard-canvas-wrap:focus { outline: none; }
 .moodboard-guide { position: absolute; inset: 0; display: grid; place-items: center; color: #bec1c5; font-size: 12px; pointer-events: none; }
 .moodboard-items { position: absolute; inset: 0; z-index: 2; }
 #moodboardDrawingCanvas { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; pointer-events: none; touch-action: none; }
@@ -814,6 +815,12 @@
 .collection-cover-label { position: sticky; top: 0; display: grid; min-height: 360px; place-items: center; overflow: hidden; border: 1px dashed rgba(84,96,113,.18); border-radius: 14px; background: #f7f7f4; color: #a8adb3; font-size: 11px; cursor: pointer; }
 .collection-cover-label img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
 .collection-cover-label span { position: relative; z-index: 1; }
+.collection-cover-label.image-drag-over,
+.memo-editor-skin.image-drag-over {
+  outline: 2px dashed #91aecb;
+  outline-offset: -8px;
+  background-color: #f3f7fb;
+}
 .collection-form-area { display: flex; flex-direction: column; gap: 16px; }
 .collection-type-row { display: flex; flex-wrap: wrap; gap: 6px; }
 .collection-type-row button { padding: 7px 12px; border: 1px solid rgba(84,96,113,.1); border-radius: 999px; background: #fff; color: #858b93; font-size: 10px; cursor: pointer; }

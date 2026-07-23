@@ -411,6 +411,17 @@ noteContent.addEventListener('input', () => {
   scheduleMemoSave();
 });
 noteContent.addEventListener('paste', event => {
+  const images =
+    clipboardImageFiles(
+      event.clipboardData
+    );
+
+  if (images.length) {
+    event.preventDefault();
+    insertMemoImages(images);
+    return;
+  }
+
   event.preventDefault();
   document.execCommand(
     'insertText',
@@ -423,3 +434,34 @@ $('#memoImageInput').addEventListener('change', event => {
   insertMemoImages([...event.target.files]);
   event.target.value = '';
 });
+
+bindImageDropTarget(
+  $('#memoEditorSkin'),
+  (files, event) => {
+    const range =
+      document.caretRangeFromPoint
+        ?.(
+          event.clientX,
+          event.clientY
+        );
+
+    if (
+      range
+      && noteContent.contains(
+        range.startContainer
+      )
+    ) {
+      const selection =
+        window.getSelection();
+      selection.removeAllRanges();
+      selection.addRange(range);
+      saveMemoSelection();
+    }
+
+    return insertMemoImages(files);
+  },
+  {
+    onError: message =>
+      alert(message)
+  }
+);

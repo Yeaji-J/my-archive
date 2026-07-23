@@ -215,9 +215,37 @@ function renderTemplatePreview(template) {
     }
   };
   const item = templates[template];
+  const recentNotes = state.notes
+    .filter(note => (note.template || 'memo') === template)
+    .slice()
+    .sort((first, second) => second.updatedAt - first.updatedAt)
+    .slice(0, 3);
   const todoItems = template === 'todo'
     ? `<ul class="template-preview-list">${todos.slice(0, 4).map(todo => `<li>${escapeHtml(todo.text)}</li>`).join('') || '<li>아직 등록된 할 일이 없어요.</li>'}</ul>`
     : '';
+  const recentHtml = recentNotes.length
+    ? `
+      <div class="template-preview-recent">
+        <div class="template-preview-recent-head">
+          <strong>최근 ${item.title.replace('하기', '')}</strong>
+          <span>${recentNotes.length}개</span>
+        </div>
+        <div class="template-preview-cards">
+          ${recentNotes.map(note => `
+            <button class="template-preview-card" type="button" data-preview-note-id="${note.id}">
+              <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+              <span>${escapeHtml(noteCardPreview(note) || '내용 없음')}</span>
+              <small>${formatDate(note.updatedAt)}</small>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+    `
+    : `
+      <div class="template-preview-empty">
+        아직 이 템플릿으로 작성한 자료가 없어요.
+      </div>
+    `;
 
   preview.innerHTML = `
     <span class="template-preview-kicker">${item.kicker}</span>
@@ -225,6 +253,7 @@ function renderTemplatePreview(template) {
     <p class="template-preview-desc">${item.desc}</p>
     ${todoItems}
     <button class="template-preview-action" type="button" data-command="${item.command}">${item.action}</button>
+    ${recentHtml}
   `;
 
   preview.querySelector('[data-command]').addEventListener('click', event => {
@@ -234,6 +263,10 @@ function renderTemplatePreview(template) {
     if (command === 'moodboard') createNote('moodboard');
     if (command === 'links') createNote('links');
     if (command === 'collection') createNote('collection');
+  });
+
+  preview.querySelectorAll('[data-preview-note-id]').forEach(button => {
+    button.addEventListener('click', () => openNoteView(button.dataset.previewNoteId));
   });
 }
 

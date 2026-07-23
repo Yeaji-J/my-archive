@@ -69,15 +69,14 @@
 }
 
 .note-card-template {
-  display: inline-block;
-  margin-bottom: 8px;
-  padding: 4px 7px;
-  border-radius: 999px;
-  background: rgba(130, 165, 207, .1);
-  color: #7798bc;
-  font-size: 8px;
-  font-weight: 650;
-  letter-spacing: .04em;
+  display: block;
+  margin-bottom: 9px;
+  padding: 0;
+  background: transparent;
+  color: #5e83ad;
+  font-size: 8.5px;
+  font-weight: 750;
+  letter-spacing: .08em;
 }
 
 .folder-grid {

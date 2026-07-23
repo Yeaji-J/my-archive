@@ -294,28 +294,6 @@
           </aside>
         </div>
 
-        <button class="quick-chat-button" id="quickChatButton" type="button" aria-label="빠른 채팅 열기">
-          <svg viewBox="0 0 24 24"><path d="M5 18.5l-2 2v-5A8 8 0 1111 20H6.5A1.5 1.5 0 015 18.5z" stroke-linejoin="round" stroke-width="1.7" /></svg>
-        </button>
-
-        <section class="quick-chat-note" id="quickChatNote" hidden aria-label="빠른 채팅">
-          <div class="quick-chat-tape"></div>
-          <header>
-            <div>
-              <span>QUICK NOTE</span>
-              <strong id="quickChatTitle">친구에게 메모 남기기</strong>
-            </div>
-            <button id="quickChatClose" type="button" aria-label="닫기">×</button>
-          </header>
-          <div class="quick-chat-rooms" id="quickChatRooms"></div>
-          <div class="quick-chat-lines" id="quickChatLines">
-            <p>로그인한 뒤 친구를 선택하면<br>이곳에서 바로 대화할 수 있어요.</p>
-          </div>
-          <form class="quick-chat-form" id="quickChatForm">
-            <textarea id="quickChatInput" rows="1" maxlength="2000" placeholder="메모하듯 메시지를 적어보세요"></textarea>
-            <button type="submit">보내기</button>
-          </form>
-        </section>
       </section>
 
       <!-- Folder grid -->
@@ -1151,6 +1129,30 @@
       </button>
     </div>
   </div>
+
+  <!-- Global quick chat: available from every view -->
+  <button class="quick-chat-button" id="quickChatButton" type="button" aria-label="빠른 채팅 열기">
+    <svg viewBox="0 0 24 24"><path d="M5 18.5l-2 2v-5A8 8 0 1111 20H6.5A1.5 1.5 0 015 18.5z" stroke-linejoin="round" stroke-width="1.7" /></svg>
+  </button>
+
+  <section class="quick-chat-note" id="quickChatNote" hidden aria-label="빠른 채팅">
+    <div class="quick-chat-tape"></div>
+    <header>
+      <div>
+        <span>QUICK NOTE</span>
+        <strong id="quickChatTitle">친구에게 메모 남기기</strong>
+      </div>
+      <button id="quickChatClose" type="button" aria-label="닫기">×</button>
+    </header>
+    <div class="quick-chat-rooms" id="quickChatRooms"></div>
+    <div class="quick-chat-lines" id="quickChatLines">
+      <p>로그인한 뒤 친구를 선택하면<br>이곳에서 바로 대화할 수 있어요.</p>
+    </div>
+    <form class="quick-chat-form" id="quickChatForm">
+      <textarea id="quickChatInput" rows="1" maxlength="2000" placeholder="메모하듯 메시지를 적어보세요"></textarea>
+      <button type="submit">보내기</button>
+    </form>
+  </section>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/core.js"></script>

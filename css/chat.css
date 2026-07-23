@@ -170,7 +170,11 @@
   min-width: 0;
   min-height: 0;
   overflow: hidden;
-  background: var(--panel);
+  background:
+    linear-gradient(rgba(99, 119, 143, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(99, 119, 143, .07) 1px, transparent 1px),
+    #fbfcfd;
+  background-size: 24px 24px;
 }
 
 .chat-empty-conversation {
@@ -222,8 +226,8 @@
 }
 
 .chat-conversation-header {
-  height: 70px;
-  padding: 12px 22px;
+  height: 60px;
+  padding: 9px 20px;
   display: flex;
   align-items: center;
   gap: 11px;
@@ -255,10 +259,10 @@
 .chat-messages {
   flex: 1 1 0;
   min-height: 0;
-  padding: 18px 24px;
+  padding: 13px 22px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 5px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -266,8 +270,8 @@
 .message-row {
   max-width: 76%;
   display: flex;
-  align-items: baseline;
-  gap: 8px;
+  align-items: center;
+  gap: 7px;
 }
 
 .message-row.mine {
@@ -285,8 +289,8 @@
   background: transparent;
   box-shadow: none;
   color: var(--text);
-  font-size: 13.5px;
-  line-height: 1.55;
+  font-size: 13px;
+  line-height: 1.35;
   white-space: pre-wrap;
   word-break: break-word;
 }
@@ -301,12 +305,12 @@
   flex-shrink: 0;
   color: var(--text-tertiary);
   font-size: 9.5px;
-  line-height: 1.5;
+  line-height: 1;
   white-space: nowrap;
 }
 
 .chat-composer {
-  margin: 0 20px 20px;
+  margin: 0 18px 14px;
   padding: 7px 7px 7px 14px;
   display: flex;
   align-items: flex-end;

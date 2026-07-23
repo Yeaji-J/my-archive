@@ -262,16 +262,17 @@
   padding: 13px 22px;
   display: flex;
   flex-direction: column;
-  gap: 5px;
+  gap: 6px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .message-row {
   max-width: 76%;
+  min-height: 24px;
   display: flex;
   align-items: center;
-  gap: 7px;
+  gap: 8px;
 }
 
 .message-row.mine {
@@ -283,14 +284,14 @@
 
 .message-bubble,
 .message-row.mine .message-bubble {
-  padding: 2px 0;
+  padding: 0;
   border: 0;
   border-radius: 0;
   background: transparent;
   box-shadow: none;
   color: var(--text);
-  font-size: 13px;
-  line-height: 1.35;
+  font-size: 18px;
+  line-height: 24px;
   white-space: pre-wrap;
   word-break: break-word;
 }

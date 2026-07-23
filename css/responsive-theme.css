@@ -35,7 +35,12 @@
 
   .calendar-day {
     min-height: 104px;
-    padding: 7px;
+    padding: 38px 7px 7px;
+  }
+
+  .calendar-day-number {
+    top: 7px;
+    left: 7px;
   }
 
   .calendar-day-photo {
@@ -269,8 +274,8 @@ body {
   background:
     color-mix(
       in srgb,
-      var(--folder-color, #b9d8ef) 66%,
-      #ffffff 34%
+      var(--folder-color, #b9d8ef) 52%,
+      #ffffff 48%
     );
 }
 
@@ -282,10 +287,10 @@ body {
 /* 사이드바와 게시글 하단의 작은 폴더 표시 */
 .folder-dot,
 .note-card-folder-dot {
-  opacity: 0.9;
+  opacity: 0.76;
   filter:
-    saturate(0.95)
-    brightness(1.01);
+    saturate(0.78)
+    brightness(1.05);
 }
 
 /* 폴더 카드의 삭제 버튼도 부드럽게 */
@@ -311,15 +316,15 @@ body {
   background:
     color-mix(
       in srgb,
-      var(--folder-color, #dce8f3) 16%,
-      #ffffff 84%
+      var(--folder-color, #dce8f3) 12%,
+      #ffffff 88%
     );
 
   border-color:
     color-mix(
       in srgb,
-      var(--folder-color, #dce8f3) 32%,
-      rgba(62, 75, 94, 0.14) 68%
+      var(--folder-color, #dce8f3) 24%,
+      rgba(62, 75, 94, 0.12) 76%
     );
 
   box-shadow:

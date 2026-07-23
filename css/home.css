@@ -471,6 +471,11 @@
   cursor: pointer;
 }
 
+body.chat-view-active .quick-chat-button,
+body.chat-view-active .quick-chat-note {
+  display: none !important;
+}
+
 .quick-chat-note {
   position: fixed;
   z-index: 39;

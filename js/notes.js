@@ -5,6 +5,14 @@
   function render() {
     renderSidebarFolders();
     renderCounts();
+    document.body.classList.toggle(
+      'chat-view-active',
+      currentView === 'chat'
+    );
+
+    if (currentView === 'chat') {
+      $('#quickChatNote').hidden = true;
+    }
 
     if (currentView === 'home') {
       noteDetailView.hidden = true;
@@ -166,6 +174,14 @@
       pushArchiveRoute(routeForView(view));
     }
     currentView = view;
+    document.body.classList.toggle(
+      'chat-view-active',
+      view === 'chat'
+    );
+
+    if (view === 'chat') {
+      $('#quickChatNote').hidden = true;
+    }
     if (view !== 'all') {
       browseMode = 'folder';
     }

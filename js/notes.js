@@ -13,6 +13,12 @@
 
     if (currentView === 'chat') {
       $('#quickChatNote').hidden = true;
+      if (
+        typeof closeQuickChatSubscription
+        === 'function'
+      ) {
+        closeQuickChatSubscription();
+      }
     }
 
     if (currentView === 'home') {
@@ -213,6 +219,12 @@
 
     if (view === 'chat') {
       $('#quickChatNote').hidden = true;
+      if (
+        typeof closeQuickChatSubscription
+        === 'function'
+      ) {
+        closeQuickChatSubscription();
+      }
     }
     if (view !== 'all') {
       browseMode = 'folder';

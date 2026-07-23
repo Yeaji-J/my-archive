@@ -420,10 +420,16 @@
 }
 
 .image-message-row {
-  margin-block: 10px;
+  width: fit-content;
+  min-height: 132px;
+  margin-block: 12px;
+  flex: 0 0 auto;
+  align-items: flex-end;
 }
 
 .message-bubble-image {
+  min-width: 132px;
+  min-height: 104px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -444,6 +450,9 @@
 .chat-image-thumb {
   width: 132px;
   height: 104px;
+  min-width: 132px;
+  min-height: 104px;
+  flex: 0 0 104px;
   padding: 0;
   display: block;
   overflow: hidden;
@@ -459,6 +468,22 @@
   height: 100%;
   display: block;
   object-fit: cover;
+}
+
+.chat-image-failed {
+  width: 132px;
+  min-height: 104px;
+  display: grid;
+  place-items: center;
+  padding: 14px;
+  border: 1px solid rgba(72, 86, 105, .12);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .78);
+  color: var(--text-tertiary);
+  font-family: "Pretendard", sans-serif;
+  font-size: 10px;
+  line-height: 1.5;
+  text-align: center;
 }
 
 .chat-image-loading {

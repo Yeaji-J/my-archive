@@ -22,6 +22,22 @@ function parseChatMedia(body) {
         return {
           image: data.image,
           path: '',
+          bucket: '',
+          text: String(data.text || '')
+        };
+      }
+
+      if (
+        typeof data.path === 'string'
+        && data.path
+      ) {
+        return {
+          image: '',
+          path: data.path,
+          bucket:
+            data.bucket === 'chat-images'
+              ? 'chat-images'
+              : 'calendar-images',
           text: String(data.text || '')
         };
       }
@@ -35,7 +51,12 @@ function parseChatMedia(body) {
 
   const path = chatImagePath(value);
   return path
-    ? { image: '', path, text: '' }
+    ? {
+        image: '',
+        path,
+        bucket: 'calendar-images',
+        text: ''
+      }
     : null;
 }
 
@@ -53,17 +74,20 @@ function chatMessagePreview(body) {
     : '사진';
 }
 
-async function getChatImageUrl(path) {
+async function getChatImageUrl(
+  path,
+  bucket = 'calendar-images'
+) {
   const { data, error } =
     await cloud.storage
-      .from('calendar-images')
+      .from(bucket)
       .createSignedUrl(path, 3600);
 
   if (error) {
     console.error('Chat image URL failed', error);
     const { data: publicData } =
       cloud.storage
-        .from('calendar-images')
+        .from(bucket)
         .getPublicUrl(path);
     return publicData?.publicUrl || '';
   }
@@ -634,7 +658,10 @@ function openChatImageLightbox(url) {
 
     if (media) {
       const url = media.image
-        || await getChatImageUrl(media.path);
+        || await getChatImageUrl(
+          media.path,
+          media.bucket
+        );
       const bubble =
         row.querySelector('.message-bubble');
 
@@ -652,6 +679,25 @@ function openChatImageLightbox(url) {
           document.createElement('img');
         image.src = url;
         image.alt = '채팅 첨부 이미지';
+        image.addEventListener(
+          'error',
+          () => {
+            button.replaceWith(
+              Object.assign(
+                document.createElement(
+                  'span'
+                ),
+                {
+                  className:
+                    'chat-image-failed',
+                  textContent:
+                    '사진을 불러오지 못했어요.'
+                }
+              )
+            );
+          },
+          { once: true }
+        );
         button.appendChild(image);
         button.addEventListener(
           'click',
@@ -736,51 +782,119 @@ function openChatImageLightbox(url) {
       return;
     }
 
+    if (
+      pendingChatImage
+      && body.length > 1600
+    ) {
+      alert(
+        '사진과 함께 보내는 글은 1,600자 이하로 작성해주세요.'
+      );
+      return;
+    }
+
     const outgoingImage =
       pendingChatImage;
-    const outgoingBody =
-      outgoingImage
-        ? `${CHAT_MEDIA_PREFIX}${JSON.stringify({
-            image: outgoingImage,
-            text: body
-          })}`
-        : body;
+    const sendButton =
+      $('#chatForm button[type="submit"]');
 
-    chatInput.value = '';
-    chatInput.style.height = 'auto';
-    clearPendingChatImage();
+    sendButton.disabled = true;
+    $('.chat-photo-btn')
+      .classList.add('uploading');
 
-    const { data, error } =
-      await cloud
-        .from('messages')
-        .insert({
-          room_id: activeRoomId,
-          user_id: currentUser.id,
-          body: outgoingBody
-        })
-        .select()
-        .single();
+    let uploadedPath = '';
 
-    if (error) {
+    try {
+      if (outgoingImage) {
+        uploadedPath =
+          await uploadChatImage(
+            outgoingImage
+          );
+      }
+
+      const outgoingBody =
+        uploadedPath
+          ? `${CHAT_MEDIA_PREFIX}${JSON.stringify({
+              path: uploadedPath,
+              bucket: 'chat-images',
+              text: body
+            })}`
+          : body;
+
+      const { data, error } =
+        await cloud
+          .from('messages')
+          .insert({
+            room_id: activeRoomId,
+            user_id: currentUser.id,
+            body: outgoingBody
+          })
+          .select()
+          .single();
+
+      if (error) throw error;
+
+      chatInput.value = '';
+      chatInput.style.height = 'auto';
+      clearPendingChatImage();
+
+      appendMessage(data);
+      scrollChatToBottom();
+      loadChatRooms();
+    } catch (error) {
       console.error(
         'Message send failed',
         error
       );
 
       alert(
-        '메시지를 보내지 못했어요. 잠시 후 다시 시도해주세요.'
+        error?.message
+          ?.includes('Bucket not found')
+          ? '채팅 사진 저장공간 설정이 필요해요. 함께 드린 SQL 파일을 Supabase에서 한 번 실행해주세요.'
+          : (
+              outgoingImage
+                ? '사진을 보내지 못했어요. 잠시 후 다시 시도해주세요.'
+                : '메시지를 보내지 못했어요. 잠시 후 다시 시도해주세요.'
+            )
       );
 
-      chatInput.value = body;
-      if (outgoingImage) {
-        setPendingChatImage(outgoingImage);
+      if (uploadedPath) {
+        await cloud.storage
+          .from('chat-images')
+          .remove([uploadedPath]);
       }
-      return;
+    } finally {
+      sendButton.disabled = false;
+      $('.chat-photo-btn')
+        .classList.remove('uploading');
     }
+  }
 
-    appendMessage(data);
-    scrollChatToBottom();
-    loadChatRooms();
+  async function uploadChatImage(
+    dataUrl
+  ) {
+    const response =
+      await fetch(dataUrl);
+    const blob =
+      await response.blob();
+    const path =
+      `${currentUser.id}/`
+      + `${activeRoomId}/`
+      + `${Date.now()}-${uid()}.jpg`;
+
+    const { error } =
+      await cloud.storage
+        .from('chat-images')
+        .upload(
+          path,
+          blob,
+          {
+            contentType: 'image/jpeg',
+            upsert: false
+          }
+        );
+
+    if (error) throw error;
+    return path;
   }
 
   function resizeChatImage(file) {
@@ -794,7 +908,7 @@ function openChatImageLightbox(url) {
       reader.onload = () => {
         const image = new Image();
         image.onload = () => {
-          const maxSize = 800;
+          const maxSize = 1280;
           const scale = Math.min(
             1,
             maxSize / Math.max(
@@ -824,7 +938,7 @@ function openChatImageLightbox(url) {
           resolve(
             canvas.toDataURL(
               'image/jpeg',
-              .68
+              .78
             )
           );
         };

@@ -396,7 +396,10 @@ async function appendQuickChatMessage(message) {
   $('#quickChatLines').appendChild(row);
 
   const url = media.image
-    || await getChatImageUrl(media.path);
+    || await getChatImageUrl(
+      media.path,
+      media.bucket
+    );
   if (!url) {
     row.textContent = '사진을 불러오지 못했어요.';
     return;
@@ -409,6 +412,23 @@ async function appendQuickChatMessage(message) {
   const image = document.createElement('img');
   image.src = url;
   image.alt = '채팅 첨부 이미지';
+  image.addEventListener(
+    'error',
+    () => {
+      button.replaceWith(
+        Object.assign(
+          document.createElement('span'),
+          {
+            className:
+              'quick-chat-image-failed',
+            textContent:
+              '사진을 불러오지 못했어요.'
+          }
+        )
+      );
+    },
+    { once: true }
+  );
   button.appendChild(image);
   button.addEventListener(
     'click',

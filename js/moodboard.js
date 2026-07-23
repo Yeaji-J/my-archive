@@ -31,6 +31,8 @@ function setEditorTemplate(template, updateNote = true) {
   memoEditorPanel.hidden = template !== 'memo';
   todoEditorPanel.hidden = template !== 'todo';
   moodboardEditorPanel.hidden = template !== 'moodboard';
+  linkEditorPanel.hidden = template !== 'links';
+  collectionEditorPanel.hidden = template !== 'collection';
   editorTemplateMessage.hidden = !template.startsWith('blank');
 
   if (template.startsWith('blank')) {
@@ -57,6 +59,10 @@ function setEditorTemplate(template, updateNote = true) {
     ensureMoodboard(note);
     requestAnimationFrame(renderMoodboard);
   }
+
+  if (template === 'links') renderLinkEditor();
+  if (template === 'collection') renderCollectionEditor();
+  renderTemplateLibraryBar(template);
 }
 
 function renderEditorTodos() {

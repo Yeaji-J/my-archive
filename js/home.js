@@ -199,19 +199,19 @@ function renderTemplatePreview(template) {
       action: '새 무드보드 만들기',
       command: 'moodboard'
     },
-    blank4: {
-      kicker: '04 · COMING SOON',
-      title: '어떤 기록이 어울릴까요?',
-      desc: '네 번째 템플릿을 위한 자리예요. 용도가 정해지면 이 인덱스에 연결할 수 있어요.',
-      action: '준비 중',
-      command: 'pending'
+    links: {
+      kicker: '04 · LINKS',
+      title: '유용한 사이트 모아두기',
+      desc: '사이트 주소와 간단한 설명을 함께 저장하고 카테고리별로 빠르게 찾아보세요.',
+      action: '새 링크 저장',
+      command: 'links'
     },
-    blank5: {
-      kicker: '05 · COMING SOON',
-      title: '마지막 한 칸은 비워둘게요.',
-      desc: '지금의 사용 방식을 충분히 지켜본 뒤 가장 필요한 템플릿을 추가해요.',
-      action: '준비 중',
-      command: 'pending'
+    collection: {
+      kicker: '05 · COLLECTION',
+      title: '좋아한 것들을 수집하기',
+      desc: '책, 영화, 음악, 맛집을 이미지와 한 줄 평, 나만의 정보와 함께 기록해요.',
+      action: '새 컬렉션 추가',
+      command: 'collection'
     }
   };
   const item = templates[template];
@@ -232,6 +232,8 @@ function renderTemplatePreview(template) {
     if (command === 'memo') createNote();
     if (command === 'todo') createNote('todo');
     if (command === 'moodboard') createNote('moodboard');
+    if (command === 'links') createNote('links');
+    if (command === 'collection') createNote('collection');
   });
 }
 

@@ -329,6 +329,8 @@ const STORAGE_KEY = 'archive.data.v1';
   const memoEditorPanel = $('#memoEditorPanel');
   const todoEditorPanel = $('#todoEditorPanel');
   const moodboardEditorPanel = $('#moodboardEditorPanel');
+  const linkEditorPanel = $('#linkEditorPanel');
+  const collectionEditorPanel = $('#collectionEditorPanel');
   const editorTemplateMessage = $('#editorTemplateMessage');
 
   const folderSelect =

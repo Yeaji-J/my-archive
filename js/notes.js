@@ -701,6 +701,12 @@
       moodboard: template === 'moodboard'
         ? { items: [], drawing: '' }
         : undefined,
+      linkData: template === 'links'
+        ? { url: '', siteName: '', description: '', memo: '', category: '' }
+        : undefined,
+      collectionData: template === 'collection'
+        ? { type: '책', cover: '', oneLine: '', tags: [], content: '', fields: [] }
+        : undefined,
       folderId,
       starred: false,
       createdAt: Date.now(),

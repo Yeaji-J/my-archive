@@ -280,8 +280,8 @@
               <button class="template-tab active" data-template="memo" type="button"><span>01</span>메모</button>
               <button class="template-tab" data-template="todo" type="button"><span>02</span>할 일</button>
               <button class="template-tab" data-template="moodboard" type="button"><span>03</span>무드보드</button>
-              <button class="template-tab pending" data-template="blank4" type="button"><span>04</span>준비 중</button>
-              <button class="template-tab pending" data-template="blank5" type="button"><span>05</span>준비 중</button>
+              <button class="template-tab" data-template="links" type="button"><span>04</span>링크</button>
+              <button class="template-tab" data-template="collection" type="button"><span>05</span>컬렉션</button>
             </div>
             <div class="template-paper" id="templatePreview"></div>
           </section>
@@ -630,8 +630,8 @@
             <button type="button" class="editor-template-tab active" data-editor-template="memo"><span>01</span>메모</button>
             <button type="button" class="editor-template-tab" data-editor-template="todo"><span>02</span>할 일</button>
             <button type="button" class="editor-template-tab" data-editor-template="moodboard"><span>03</span>무드보드</button>
-            <button type="button" class="editor-template-tab pending" data-editor-template="blank4"><span>04</span>준비 중</button>
-            <button type="button" class="editor-template-tab pending" data-editor-template="blank5"><span>05</span>준비 중</button>
+            <button type="button" class="editor-template-tab" data-editor-template="links"><span>04</span>링크</button>
+            <button type="button" class="editor-template-tab" data-editor-template="collection"><span>05</span>컬렉션</button>
           </nav>
 
           <div class="editor-paper">
@@ -649,6 +649,15 @@
                   <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" /></svg>
                 </button>
               </div>
+            </div>
+
+            <div class="editor-library-bar">
+              <div class="editor-library-search">
+                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke-width="1.6" /><path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" /></svg>
+                <input type="search" id="editorTemplateSearch" placeholder="이 템플릿 안에서 검색">
+              </div>
+              <select id="editorTemplateFilter" aria-label="필터"><option value="all">전체</option></select>
+              <div class="editor-library-results" id="editorLibraryResults"></div>
             </div>
 
             <div class="editor-heading">
@@ -697,6 +706,44 @@
                 </div>
                 <div class="moodboard-items" id="moodboardItems"></div>
                 <canvas id="moodboardDrawingCanvas"></canvas>
+              </div>
+            </div>
+
+            <div class="editor-template-panel link-editor-panel" id="linkEditorPanel" hidden>
+              <div class="template-form-grid">
+                <label class="template-field full"><span>URL</span><input type="url" id="linkUrlInput" placeholder="https://example.com"></label>
+                <label class="template-field"><span>카테고리</span><input type="text" id="linkCategoryInput" list="linkCategoryList" placeholder="디자인, 업무, 공부…"></label>
+                <label class="template-field"><span>사이트 이름</span><input type="text" id="linkSiteNameInput" placeholder="사이트 이름"></label>
+                <label class="template-field full"><span>한 줄 메모</span><input type="text" id="linkDescriptionInput" maxlength="160" placeholder="어떤 사이트인지 간단하게 적어보세요"></label>
+                <label class="template-field full"><span>상세 메모</span><textarea id="linkMemoInput" placeholder="이 사이트를 언제, 어떻게 활용하는지 적어보세요"></textarea></label>
+              </div>
+              <datalist id="linkCategoryList"><option value="디자인"><option value="개발"><option value="레퍼런스"><option value="업무"><option value="공부"><option value="쇼핑"><option value="기타"></datalist>
+              <a class="link-preview-card" id="linkPreviewCard" href="#" target="_blank" rel="noopener">
+                <img id="linkPreviewFavicon" alt=""><span><strong id="linkPreviewTitle">링크를 입력해보세요</strong><small id="linkPreviewDomain"></small></span><b>새 창으로 열기 ↗</b>
+              </a>
+            </div>
+
+            <div class="editor-template-panel collection-editor-panel" id="collectionEditorPanel" hidden>
+              <div class="collection-editor-layout">
+                <div class="collection-cover-area">
+                  <label class="collection-cover-label">
+                    <img id="collectionCoverPreview" alt="">
+                    <span id="collectionCoverEmpty">대표 이미지 추가</span>
+                    <input type="file" id="collectionCoverInput" accept="image/*" hidden>
+                  </label>
+                </div>
+                <div class="collection-form-area">
+                  <div class="collection-type-row" id="collectionTypeRow">
+                    <button type="button" data-collection-type="책">책</button><button type="button" data-collection-type="영화">영화</button><button type="button" data-collection-type="음악">음악</button><button type="button" data-collection-type="맛집">맛집</button><button type="button" data-collection-type="기타">기타</button>
+                  </div>
+                  <label class="template-field"><span>한 줄 평</span><input type="text" id="collectionOneLineInput" maxlength="160" placeholder="한 줄로 남겨보세요"></label>
+                  <label class="template-field"><span>태그</span><input type="text" id="collectionTagsInput" placeholder="쉼표로 구분해 입력"></label>
+                  <div class="collection-custom-fields">
+                    <div class="collection-custom-head"><span>간단한 정보</span><button type="button" id="collectionAddField">+ 정보 추가</button></div>
+                    <div id="collectionFields"></div>
+                  </div>
+                  <label class="template-field"><span>내용</span><textarea id="collectionContentInput" placeholder="기억하고 싶은 내용을 자유롭게 적어보세요"></textarea></label>
+                </div>
               </div>
             </div>
 
@@ -1071,6 +1118,7 @@
   <script src="js/calendar.js"></script>
   <script src="js/home.js"></script>
   <script src="js/moodboard.js"></script>
+  <script src="js/templates.js"></script>
   <script src="js/events.js"></script>
 </body>
 

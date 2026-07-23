@@ -175,7 +175,7 @@ function renderTemplateLibraryBar(template) {
   wrap.querySelectorAll('[data-result-note]').forEach(button => {
     button.addEventListener('click', () => {
       persistCurrentNote();
-      openEditor(button.dataset.resultNote);
+      openNoteView(button.dataset.resultNote);
     });
   });
 }

@@ -273,6 +273,8 @@ const STORAGE_KEY = 'archive.data.v1';
 
   let currentView = 'home';
   let currentNoteId = null;
+  let currentNoteViewId = null;
+  let editorReturnsToView = false;
   let searchTerm = '';
   let gridMode = true;
   let pendingFolderColor =
@@ -321,6 +323,7 @@ const STORAGE_KEY = 'archive.data.v1';
 
   const chatView = $('#chatView');
   const editorView = $('#editorView');
+  const noteDetailView = $('#noteDetailView');
 
   const noteTitle = $('#noteTitle');
   const noteContent = $('#noteContent');

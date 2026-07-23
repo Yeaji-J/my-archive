@@ -751,6 +751,34 @@
           </div>
         </div>
       </section>
+
+      <!-- Read-only note view -->
+      <section class="view view--note-detail" id="noteDetailView" hidden>
+        <article class="note-detail-shell">
+          <header class="note-detail-toolbar">
+            <button class="text-btn" id="noteViewBackBtn" type="button">
+              <svg viewBox="0 0 24 24"><path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" /></svg>
+              목록
+            </button>
+            <div class="note-detail-actions">
+              <select id="noteViewFolderSelect" class="folder-select" aria-label="폴더 이동"></select>
+              <button class="icon-btn" id="noteViewStarBtn" type="button" title="즐겨찾기" aria-label="즐겨찾기">
+                <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z" /></svg>
+              </button>
+              <button class="note-view-edit-btn" id="noteViewEditBtn" type="button">수정</button>
+              <button class="icon-btn danger" id="noteViewDeleteBtn" type="button" title="삭제" aria-label="삭제">
+                <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" /></svg>
+              </button>
+            </div>
+          </header>
+          <div class="note-detail-paper">
+            <div class="note-detail-type" id="noteViewType"></div>
+            <h1 id="noteViewTitle"></h1>
+            <div class="note-detail-meta" id="noteViewMeta"></div>
+            <div class="note-detail-content" id="noteViewContent"></div>
+          </div>
+        </article>
+      </section>
     </main>
   </div>
 
@@ -1119,6 +1147,7 @@
   <script src="js/home.js"></script>
   <script src="js/moodboard.js"></script>
   <script src="js/templates.js"></script>
+  <script src="js/note-view.js"></script>
   <script src="js/events.js"></script>
 </body>
 

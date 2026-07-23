@@ -7,6 +7,7 @@
     renderCounts();
 
     if (currentView === 'home') {
+      noteDetailView.hidden = true;
       folderGridView.hidden = true;
       editorView.hidden = true;
       chatView.hidden = true;
@@ -21,6 +22,7 @@
     homeView.hidden = true;
 
     if (currentView === 'chat') {
+      noteDetailView.hidden = true;
       folderGridView.hidden = true;
       editorView.hidden = true;
       calendarView.hidden = true;
@@ -34,6 +36,7 @@
     }
 
     if (currentView === 'calendar') {
+      noteDetailView.hidden = true;
       folderGridView.hidden = true;
       editorView.hidden = true;
       chatView.hidden = true;
@@ -47,6 +50,7 @@
     }
 
     if (currentView === 'todo') {
+      noteDetailView.hidden = true;
       folderGridView.hidden = true;
       editorView.hidden = true;
       chatView.hidden = true;
@@ -159,6 +163,8 @@
 
   function setView(view) {
     currentView = view;
+    currentNoteViewId = null;
+    noteDetailView.hidden = true;
     closeEditor(false);
 
     document
@@ -491,7 +497,7 @@
 
       card.addEventListener(
         'click',
-        () => openEditor(note.id)
+        () => openNoteView(note.id)
       );
 
       noteGrid.appendChild(card);
@@ -535,8 +541,10 @@
 
   /* ---------------- Editor ---------------- */
 
-  function openEditor(noteId) {
+  function openEditor(noteId, returnToView = false) {
     currentNoteId = noteId;
+    currentNoteViewId = null;
+    editorReturnsToView = returnToView;
 
     const note =
       state.notes.find(
@@ -558,6 +566,7 @@
     );
 
     folderGridView.hidden = true;
+    noteDetailView.hidden = true;
     homeView.hidden = true;
     chatView.hidden = true;
     calendarView.hidden = true;
@@ -604,14 +613,23 @@
   function closeEditor(
     rerender = true
   ) {
+    const closingNoteId = currentNoteId;
+    const shouldReturnToView = editorReturnsToView && rerender;
+
     if (currentNoteId) {
       persistCurrentNote();
     }
 
     currentNoteId = null;
+    editorReturnsToView = false;
 
     editorView.hidden = true;
     editorView.style.display = 'none';
+
+    if (shouldReturnToView && closingNoteId) {
+      openNoteView(closingNoteId);
+      return;
+    }
 
     if (
       currentView !== 'home'
@@ -732,6 +750,8 @@
     saveData();
 
     currentNoteId = null;
+    currentNoteViewId = null;
+    editorReturnsToView = false;
     editorView.hidden = true;
     editorView.style.display = 'none';
     folderGridView.hidden = false;

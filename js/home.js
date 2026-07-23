@@ -89,7 +89,7 @@ function renderHomeLibraryStrip() {
   });
 
   noteWrap.querySelectorAll('[data-note-id]').forEach(button => {
-    button.addEventListener('click', () => openEditor(button.dataset.noteId));
+    button.addEventListener('click', () => openNoteView(button.dataset.noteId));
   });
 
   homeStripPosition = 0;

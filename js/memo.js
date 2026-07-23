@@ -300,23 +300,44 @@ function renderMemoAlbum(notes) {
     .slice(start, start + MEMO_PAGE_SIZE)
     .forEach(note => {
       const memo = ensureMemoData(note);
-      const card = document.createElement('button');
-      card.type = 'button';
+      const card = document.createElement('article');
       card.className =
         `memo-album-card memo-skin-${memo.skin}`;
       card.innerHTML = `
-        <span class="memo-album-preview">
-          ${memoPreviewHtml(note)}
-        </span>
-        <span class="memo-album-copy">
-          <strong>${escapeHtml(note.title || '제목 없음')}</strong>
-          <small>수정 ${formatDate(note.updatedAt)}</small>
-        </span>
+        <button class="memo-album-open" type="button">
+          <span class="memo-album-preview">
+            ${memoPreviewHtml(note)}
+          </span>
+          <span class="memo-album-copy">
+            <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+            <small>${formatDate(note.updatedAt)}</small>
+          </span>
+        </button>
+        <button
+          class="memo-album-star ${note.starred ? 'active' : ''}"
+          type="button"
+          aria-label="${note.starred ? '즐겨찾기 해제' : '즐겨찾기 추가'}"
+          title="${note.starred ? '즐겨찾기 해제' : '즐겨찾기 추가'}"
+        >
+          <svg viewBox="0 0 24 24">
+            <path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z" />
+          </svg>
+        </button>
       `;
-      card.addEventListener(
+      card
+        .querySelector('.memo-album-open')
+        .addEventListener(
         'click',
         () => openNoteView(note.id)
       );
+      card
+        .querySelector('.memo-album-star')
+        .addEventListener('click', () => {
+          note.starred = !note.starred;
+          saveData();
+          renderCounts();
+          renderFolderGridView();
+        });
       noteGrid.appendChild(card);
     });
 

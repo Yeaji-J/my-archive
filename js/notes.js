@@ -4,6 +4,7 @@
 
   function render() {
     renderSidebarFolders();
+    renderSidebarTemplateLinks();
     renderCounts();
     document.body.classList.toggle(
       'chat-view-active',
@@ -12,6 +13,12 @@
 
     if (currentView === 'chat') {
       $('#quickChatNote').hidden = true;
+      if (
+        typeof closeQuickChatSubscription
+        === 'function'
+      ) {
+        closeQuickChatSubscription();
+      }
     }
 
     if (currentView === 'home') {
@@ -169,6 +176,37 @@
     });
   }
 
+  function renderSidebarTemplateLinks() {
+    document
+      .querySelectorAll('[data-sidebar-template]')
+      .forEach(button => {
+        const template =
+          button.dataset.sidebarTemplate;
+        const count =
+          state.notes.filter(
+            note =>
+              (note.template || 'memo')
+              === template
+          ).length;
+
+        const countElement =
+          button.querySelector(
+            `[data-template-count="${template}"]`
+          );
+
+        if (countElement) {
+          countElement.textContent = count;
+        }
+
+        button.classList.toggle(
+          'active',
+          currentView === 'all'
+          && browseMode === 'template'
+          && browseTemplate === template
+        );
+      });
+  }
+
   function setView(view, updateHistory = true) {
     if (updateHistory && typeof pushArchiveRoute === 'function') {
       pushArchiveRoute(routeForView(view));
@@ -181,6 +219,12 @@
 
     if (view === 'chat') {
       $('#quickChatNote').hidden = true;
+      if (
+        typeof closeQuickChatSubscription
+        === 'function'
+      ) {
+        closeQuickChatSubscription();
+      }
     }
     if (view !== 'all') {
       browseMode = 'folder';
@@ -199,6 +243,7 @@
       });
 
     renderSidebarFolders();
+    renderSidebarTemplateLinks();
 
     if (view === 'home') {
       editorView.hidden = true;
@@ -397,6 +442,8 @@
         archiveSecondaryFilters.appendChild(button);
       });
     }
+
+    renderSidebarTemplateLinks();
   }
 
   function noteCardPreview(note) {
@@ -568,11 +615,32 @@
       });
     }
 
-    const notes = getFilteredNotes();
+    let notes = getFilteredNotes();
     const memoAlbumMode =
       currentView === 'all'
       && browseMode === 'template'
       && browseTemplate === 'memo';
+
+    $('#memoAlbumBar').hidden =
+      !memoAlbumMode;
+
+    if (memoAlbumMode) {
+      const query =
+        memoAlbumSearchTerm
+          .trim()
+          .toLowerCase();
+
+      if (query) {
+        notes = notes.filter(note =>
+          `${note.title || ''} ${note.content || ''}`
+            .toLowerCase()
+            .includes(query)
+        );
+      }
+
+      $('#memoAlbumResultCount').textContent =
+        `${notes.length}개의 메모`;
+    }
 
     noteGrid.classList.toggle(
       'list-mode',

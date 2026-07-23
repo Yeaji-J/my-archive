@@ -2,6 +2,40 @@
 
 /* ---------------- 1:1 Chat ---------------- */
 
+const CHAT_IMAGE_PREFIX = '__ARCHIVE_IMAGE__:';
+
+function chatImagePath(body) {
+  return String(body || '').startsWith(CHAT_IMAGE_PREFIX)
+    ? String(body).slice(CHAT_IMAGE_PREFIX.length)
+    : '';
+}
+
+function chatMessagePreview(body) {
+  return chatImagePath(body)
+    ? '사진'
+    : String(body || '');
+}
+
+async function getChatImageUrl(path) {
+  const { data, error } =
+    await cloud.storage
+      .from('calendar-images')
+      .createSignedUrl(path, 3600);
+
+  if (error) {
+    console.error('Chat image URL failed', error);
+    return '';
+  }
+
+  return data?.signedUrl || '';
+}
+
+function openChatImageLightbox(url) {
+  if (!url) return;
+  $('#chatImageLightboxImage').src = url;
+  $('#chatImageLightbox').hidden = false;
+}
+
   function initials(name) {
     return String(name || '?')
       .trim()
@@ -364,10 +398,12 @@
 
           <span class="chat-room-preview">
             ${
-              escapeHtml(
-                room.latest?.body
-                || '새로운 대화를 시작해보세요.'
-              )
+                  escapeHtml(
+                    chatMessagePreview(
+                      room.latest?.body
+                    )
+                    || '새로운 대화를 시작해보세요.'
+                  )
             }
           </span>
         </span>
@@ -457,6 +493,13 @@
       .classList.add(
         'mobile-conversation'
       );
+    chatConversation
+      .parentElement
+      .classList.remove(
+        'list-wing-open'
+      );
+    $('#chatWingToggle')
+      .setAttribute('aria-expanded', 'false');
 
     chatMessages.innerHTML = `
       <p class="search-guide">
@@ -502,7 +545,7 @@
     subscribeToMessages(roomId);
   }
 
-  function appendMessage(message) {
+  async function appendMessage(message) {
     const messageId =
       String(message.id);
 
@@ -526,9 +569,12 @@
           : ''
       );
 
+    const imagePath =
+      chatImagePath(message.body);
+
     row.innerHTML = `
-      <div class="message-bubble">
-        ${escapeHtml(message.body)}
+      <div class="message-bubble ${imagePath ? 'message-bubble-image' : ''}">
+        ${imagePath ? '<span class="chat-image-loading">사진 불러오는 중…</span>' : escapeHtml(message.body)}
       </div>
 
       <time class="message-time">
@@ -537,6 +583,39 @@
     `;
 
     chatMessages.appendChild(row);
+
+    if (imagePath) {
+      const url =
+        await getChatImageUrl(imagePath);
+      const bubble =
+        row.querySelector('.message-bubble');
+
+      if (url) {
+        bubble.innerHTML = '';
+        const button =
+          document.createElement('button');
+        button.type = 'button';
+        button.className = 'chat-image-thumb';
+        button.setAttribute(
+          'aria-label',
+          '사진 크게 보기'
+        );
+        const image =
+          document.createElement('img');
+        image.src = url;
+        image.alt = '채팅 첨부 이미지';
+        button.appendChild(image);
+        button.addEventListener(
+          'click',
+          () => openChatImageLightbox(url)
+        );
+        bubble.appendChild(button);
+        scrollChatToBottom();
+      } else {
+        bubble.textContent =
+          '사진을 불러오지 못했어요.';
+      }
+    }
   }
 
   function scrollChatToBottom() {
@@ -631,6 +710,131 @@
     appendMessage(data);
     scrollChatToBottom();
     loadChatRooms();
+  }
+
+  function resizeChatImage(file) {
+    return new Promise((resolve, reject) => {
+      if (!file.type.startsWith('image/')) {
+        reject(new Error('이미지 파일이 아닙니다.'));
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onload = () => {
+        const image = new Image();
+        image.onload = () => {
+          const maxSize = 1400;
+          const scale = Math.min(
+            1,
+            maxSize / Math.max(
+              image.width,
+              image.height
+            )
+          );
+          const canvas =
+            document.createElement('canvas');
+          canvas.width = Math.max(
+            1,
+            Math.round(image.width * scale)
+          );
+          canvas.height = Math.max(
+            1,
+            Math.round(image.height * scale)
+          );
+          canvas
+            .getContext('2d')
+            .drawImage(
+              image,
+              0,
+              0,
+              canvas.width,
+              canvas.height
+            );
+          canvas.toBlob(
+            blob => blob
+              ? resolve(blob)
+              : reject(
+                  new Error('사진 변환 실패')
+                ),
+            'image/jpeg',
+            .82
+          );
+        };
+        image.onerror = reject;
+        image.src = reader.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  }
+
+  async function sendChatPhoto(file) {
+    if (
+      !file
+      || !activeRoomId
+      || !currentUser
+    ) {
+      return;
+    }
+
+    const photoButton =
+      document.querySelector(
+        '.chat-photo-btn'
+      );
+    photoButton.classList.add('uploading');
+
+    try {
+      const blob =
+        await resizeChatImage(file);
+      const path =
+        `${currentUser.id}/chat/`
+        + `${activeRoomId}/`
+        + `${Date.now()}-${uid()}.jpg`;
+
+      const { error: uploadError } =
+        await cloud.storage
+          .from('calendar-images')
+          .upload(path, blob, {
+            contentType: 'image/jpeg',
+            upsert: false
+          });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const { data, error } =
+        await cloud
+          .from('messages')
+          .insert({
+            room_id: activeRoomId,
+            user_id: currentUser.id,
+            body: `${CHAT_IMAGE_PREFIX}${path}`
+          })
+          .select()
+          .single();
+
+      if (error) {
+        throw error;
+      }
+
+      appendMessage(data);
+      scrollChatToBottom();
+      loadChatRooms();
+    } catch (error) {
+      console.error(
+        'Chat photo failed',
+        error
+      );
+      alert(
+        '사진을 보내지 못했어요. 잠시 후 다시 시도해주세요.'
+      );
+    } finally {
+      photoButton.classList.remove(
+        'uploading'
+      );
+      $('#chatPhotoInput').value = '';
+    }
   }
 
   function openNewChat() {

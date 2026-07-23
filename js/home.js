@@ -25,6 +25,8 @@ let homeQuoteIndex = 0;
 let homeQuoteTimer = null;
 let activeTemplate = 'memo';
 let quickChatRoomId = null;
+let quickChatSubscription = null;
+const quickRenderedMessageIds = new Set();
 let homeStripPosition = 0;
 
 function renderHomeDashboard() {
@@ -298,6 +300,16 @@ async function openQuickChatNote() {
   }
 
   renderQuickChatRooms();
+
+  const selectedRoom =
+    chatRooms.find(
+      room => room.id === quickChatRoomId
+    )
+    || chatRooms[0];
+
+  if (selectedRoom) {
+    await loadQuickChatRoom(selectedRoom);
+  }
 }
 
 function renderQuickChatRooms() {
@@ -321,6 +333,7 @@ function renderQuickChatRooms() {
 
 async function loadQuickChatRoom(room) {
   quickChatRoomId = room.id;
+  quickRenderedMessageIds.clear();
   $('#quickChatTitle').textContent = `${room.profile.display_name}에게 메모 남기기`;
   renderQuickChatRooms();
   $('#quickChatLines').innerHTML = '<p>메모를 불러오는 중…</p>';
@@ -337,10 +350,109 @@ async function loadQuickChatRoom(room) {
     return;
   }
 
-  $('#quickChatLines').innerHTML = (data || []).map(message =>
-    `<p class="${message.user_id === currentUser.id ? 'mine' : ''}">${escapeHtml(message.body)}</p>`
-  ).join('') || '<p>아직 적힌 메모가 없어요.</p>';
-  $('#quickChatLines').scrollTop = $('#quickChatLines').scrollHeight;
+  $('#quickChatLines').innerHTML = '';
+
+  if (!data?.length) {
+    $('#quickChatLines').innerHTML =
+      '<p class="quick-chat-empty">아직 적힌 메모가 없어요.</p>';
+  } else {
+    data.forEach(appendQuickChatMessage);
+  }
+
+  subscribeQuickChat(room.id);
+  scrollQuickChatToBottom();
+}
+
+async function appendQuickChatMessage(message) {
+  const messageId = String(message.id);
+  if (
+    quickRenderedMessageIds.has(messageId)
+  ) {
+    return;
+  }
+
+  quickRenderedMessageIds.add(messageId);
+  $('#quickChatLines')
+    .querySelector('.quick-chat-empty')
+    ?.remove();
+
+  const row = document.createElement('p');
+  row.className =
+    message.user_id === currentUser?.id
+      ? 'mine'
+      : '';
+  const imagePath =
+    chatImagePath(message.body);
+
+  if (!imagePath) {
+    row.textContent = message.body;
+    $('#quickChatLines').appendChild(row);
+    scrollQuickChatToBottom();
+    return;
+  }
+
+  row.classList.add('image');
+  row.textContent = '사진 불러오는 중…';
+  $('#quickChatLines').appendChild(row);
+
+  const url = await getChatImageUrl(imagePath);
+  if (!url) {
+    row.textContent = '사진을 불러오지 못했어요.';
+    return;
+  }
+
+  row.innerHTML = '';
+  const button = document.createElement('button');
+  button.type = 'button';
+  button.className = 'quick-chat-image';
+  const image = document.createElement('img');
+  image.src = url;
+  image.alt = '채팅 첨부 이미지';
+  button.appendChild(image);
+  button.addEventListener(
+    'click',
+    () => openChatImageLightbox(url)
+  );
+  row.appendChild(button);
+  scrollQuickChatToBottom();
+}
+
+function scrollQuickChatToBottom() {
+  requestAnimationFrame(() => {
+    const lines = $('#quickChatLines');
+    lines.scrollTop = lines.scrollHeight;
+  });
+}
+
+function closeQuickChatSubscription() {
+  if (!quickChatSubscription) return;
+  cloud.removeChannel(quickChatSubscription);
+  quickChatSubscription = null;
+}
+
+function subscribeQuickChat(roomId) {
+  closeQuickChatSubscription();
+  quickChatSubscription = cloud
+    .channel(`quick-room:${roomId}`)
+    .on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'messages',
+        filter: `room_id=eq.${roomId}`
+      },
+      payload => {
+        if (
+          quickChatRoomId !== roomId
+          || $('#quickChatNote').hidden
+        ) {
+          return;
+        }
+        appendQuickChatMessage(payload.new);
+      }
+    )
+    .subscribe();
 }
 
 async function sendQuickChatMessage(event) {
@@ -355,19 +467,22 @@ async function sendQuickChatMessage(event) {
   if (!quickChatRoomId || !body) return;
 
   input.value = '';
-  const { error } = await cloud.from('messages').insert({
-    room_id: quickChatRoomId,
-    user_id: currentUser.id,
-    body
-  });
+  const { data, error } = await cloud
+    .from('messages')
+    .insert({
+      room_id: quickChatRoomId,
+      user_id: currentUser.id,
+      body
+    })
+    .select()
+    .single();
 
   if (error) {
     input.value = body;
     return;
   }
 
-  const room = chatRooms.find(item => item.id === quickChatRoomId);
-  if (room) await loadQuickChatRoom(room);
+  appendQuickChatMessage(data);
   loadChatRooms();
 }
 
@@ -381,5 +496,8 @@ $('#homeStripPrev').addEventListener('click', () => moveHomeStrip(-1));
 $('#homeStripNext').addEventListener('click', () => moveHomeStrip(1));
 window.addEventListener('resize', updateHomeStripPosition);
 $('#quickChatButton').addEventListener('click', openQuickChatNote);
-$('#quickChatClose').addEventListener('click', () => { $('#quickChatNote').hidden = true; });
+$('#quickChatClose').addEventListener('click', () => {
+  $('#quickChatNote').hidden = true;
+  closeQuickChatSubscription();
+});
 $('#quickChatForm').addEventListener('submit', sendQuickChatMessage);

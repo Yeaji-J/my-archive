@@ -364,6 +364,57 @@ svg {
   overflow-y: auto;
 }
 
+.sidebar-section--templates {
+  flex: 0 0 auto;
+  max-height: 230px;
+  margin-top: 8px;
+  overflow-y: auto;
+}
+
+.sidebar-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.sidebar-template-list button {
+  width: 100%;
+  min-height: 32px;
+  padding: 5px 9px;
+  display: grid;
+  grid-template-columns: 25px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 12px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.sidebar-template-list button:hover {
+  background: rgba(130, 165, 207, .07);
+}
+
+.sidebar-template-list button.active {
+  background: rgba(195, 194, 217, .26);
+  color: #5c3621;
+}
+
+.sidebar-template-index {
+  color: #9ca078;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .06em;
+}
+
+.sidebar-template-list small {
+  color: var(--text-tertiary);
+  font-size: 9px;
+}
+
 .sidebar-section-header {
   padding: 6px 9px;
   display: flex;

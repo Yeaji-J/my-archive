@@ -163,6 +163,9 @@
 
   function setView(view) {
     currentView = view;
+    if (view !== 'all') {
+      browseMode = 'folder';
+    }
     currentNoteViewId = null;
     noteDetailView.hidden = true;
     closeEditor(false);
@@ -273,7 +276,22 @@
   function getFilteredNotes() {
     let notes = state.notes.slice();
 
-    if (currentView === 'starred') {
+    if (
+      currentView === 'all'
+      && browseMode === 'template'
+    ) {
+      if (browseTemplate !== 'all') {
+        notes = notes.filter(
+          note => (note.template || 'memo') === browseTemplate
+        );
+      }
+
+      if (browseSecondaryFilter !== 'all') {
+        notes = notes.filter(
+          note => getBrowseSecondaryValue(note) === browseSecondaryFilter
+        );
+      }
+    } else if (currentView === 'starred') {
       notes =
         notes.filter(
           note => note.starred
@@ -294,14 +312,12 @@
           .trim()
           .toLowerCase();
 
-      notes = notes.filter(note =>
-        note.title
-          .toLowerCase()
-          .includes(term)
-        || note.content
-          .toLowerCase()
-          .includes(term)
-      );
+      notes = notes.filter(note => {
+        const searchable = typeof templateSearchText === 'function'
+          ? templateSearchText(note)
+          : `${note.title || ''} ${note.content || ''}`.toLowerCase();
+        return searchable.includes(term);
+      });
     }
 
     return notes.sort(
@@ -311,12 +327,97 @@
     );
   }
 
+  function getBrowseSecondaryValue(note) {
+    if ((note.template || 'memo') === 'collection') {
+      return note.collectionData?.type || '기타';
+    }
+    if ((note.template || 'memo') === 'links') {
+      return note.linkData?.category || '미분류';
+    }
+    return 'all';
+  }
+
+  function renderArchiveBrowserControls() {
+    archiveViewSwitch
+      .querySelectorAll('[data-browse-mode]')
+      .forEach(button => {
+        button.classList.toggle('active', button.dataset.browseMode === browseMode);
+      });
+
+    archiveTemplateFilters.hidden = browseMode !== 'template';
+    archiveTemplateFilters
+      .querySelectorAll('[data-template-filter]')
+      .forEach(button => {
+        button.classList.toggle('active', button.dataset.templateFilter === browseTemplate);
+      });
+
+    const supportsSecondary =
+      browseMode === 'template'
+      && ['links', 'collection'].includes(browseTemplate);
+
+    archiveSecondaryFilters.hidden = !supportsSecondary;
+    archiveSecondaryFilters.innerHTML = '';
+
+    if (supportsSecondary) {
+      const values = [...new Set(
+        state.notes
+          .filter(note => (note.template || 'memo') === browseTemplate)
+          .map(getBrowseSecondaryValue)
+      )];
+
+      ['all', ...values].forEach(value => {
+        const button = document.createElement('button');
+        button.type = 'button';
+        button.dataset.secondaryFilter = value;
+        button.classList.toggle('active', value === browseSecondaryFilter);
+        button.textContent = value === 'all' ? '전체' : value;
+        button.addEventListener('click', () => {
+          browseSecondaryFilter = value;
+          renderFolderGridView();
+        });
+        archiveSecondaryFilters.appendChild(button);
+      });
+    }
+  }
+
+  function noteCardPreview(note) {
+    const template = note.template || 'memo';
+    if (template === 'todo') {
+      const remaining = todos.filter(todo => !todo.done).length;
+      return `남은 할 일 ${remaining}개 · 전체 ${todos.length}개`;
+    }
+    if (template === 'moodboard') {
+      const board = note.moodboard || { items: [] };
+      return `이미지와 텍스트 ${board.items?.length || 0}개가 담긴 무드보드`;
+    }
+    if (template === 'links') {
+      return note.linkData?.description || note.linkData?.url || '저장된 링크';
+    }
+    if (template === 'collection') {
+      return note.collectionData?.oneLine || note.collectionData?.content || '컬렉션 기록';
+    }
+    return note.content || '';
+  }
+
+  function templateCardLabel(note) {
+    return ({
+      memo: 'MEMO',
+      todo: 'TO DO',
+      moodboard: 'MOODBOARD',
+      links: 'LINK',
+      collection: note.collectionData?.type?.toUpperCase?.() || 'COLLECTION'
+    })[note.template || 'memo'];
+  }
+
   function renderFolderGridView() {
+    renderArchiveBrowserControls();
+
     breadcrumb.textContent =
       currentBreadcrumb();
 
     const showFolders =
       currentView === 'all'
+      && browseMode === 'folder'
       && !searchTerm.trim();
 
     folderGrid.style.display =
@@ -329,7 +430,16 @@
       showFolders
       && state.folders.length
         ? 'flex'
-        : 'none';
+        : browseMode === 'template'
+          ? 'flex'
+          : 'none';
+
+    notesDividerWrap.querySelector('span').textContent =
+      browseMode === 'template'
+        ? browseTemplate === 'all'
+          ? '모든 템플릿'
+          : templateCardLabel({ template: browseTemplate })
+        : '모든 자료';
 
     folderGrid.innerHTML = '';
 
@@ -443,6 +553,7 @@
       );
 
       card.innerHTML = `
+        <span class="note-card-template">${escapeHtml(templateCardLabel(note))}</span>
         <div class="note-card-top">
           <div class="note-card-title">
             ${escapeHtml(
@@ -467,7 +578,7 @@
 
         <div class="note-card-snippet">
           ${
-            escapeHtml(note.content || '')
+            escapeHtml(noteCardPreview(note))
             || '<span style="opacity:.5">내용 없음</span>'
           }
         </div>

@@ -50,6 +50,11 @@ function renderNoteView(note = getViewedNote()) {
 
   const content = $('#noteViewContent');
   content.innerHTML = '';
+  const paper = content.closest('.note-detail-paper');
+  paper.className = `note-detail-paper detail-template-${note.template || 'memo'}`;
+  paper.dataset.collectionType = note.template === 'collection'
+    ? ensureCollectionData(note).type || '기타'
+    : '';
 
   if (note.template === 'todo') renderTodoNoteView(content);
   else if (note.template === 'moodboard') renderMoodboardNoteView(content, note);
@@ -73,6 +78,17 @@ function renderMemoNoteView(content, note) {
 }
 
 function renderTodoNoteView(content) {
+  const completed = todos.filter(todo => todo.done).length;
+  const percent = todos.length ? Math.round(completed / todos.length * 100) : 0;
+  const summary = document.createElement('div');
+  summary.className = 'note-view-todo-summary';
+  summary.innerHTML = `
+    <div><span>오늘의 진행률</span><strong>${completed} / ${todos.length}</strong></div>
+    <div class="note-view-progress"><i style="width:${percent}%"></i></div>
+    <small>${percent}% 완료</small>
+  `;
+  content.appendChild(summary);
+
   const list = document.createElement('ul');
   list.className = 'note-view-todos';
 
@@ -148,6 +164,7 @@ function renderLinkNoteView(content, note) {
   wrap.innerHTML = `
     ${data.category ? `<span class="note-view-category">${escapeHtml(data.category)}</span>` : ''}
     ${data.description ? `<p class="note-view-link-summary">${escapeHtml(data.description)}</p>` : ''}
+    <div class="note-view-browser-bar"><i></i><i></i><i></i><span>${escapeHtml(parsed?.hostname || 'saved link')}</span></div>
     <a class="note-view-link-card" href="${parsed ? escapeHtml(parsed.href) : '#'}" ${parsed ? 'target="_blank" rel="noopener"' : ''}>
       ${parsed ? `<img src="${escapeHtml(parsed.origin)}/favicon.ico" alt="">` : ''}
       <span><strong>${escapeHtml(data.siteName || note.title || '저장된 링크')}</strong><small>${escapeHtml(parsed?.hostname || data.url || '')}</small></span>

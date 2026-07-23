@@ -10,8 +10,8 @@
 
   /* ---------------- Event wiring ---------------- */
 
-  document
-    .querySelectorAll('.nav-item')
+      document
+        .querySelectorAll('.nav-item')
     .forEach(button => {
       button.addEventListener(
         'click',
@@ -20,7 +20,32 @@
             button.dataset.view
           )
       );
-    });
+        });
+
+      archiveViewSwitch
+        .querySelectorAll('[data-browse-mode]')
+        .forEach(button => {
+          button.addEventListener('click', () => {
+            browseMode = button.dataset.browseMode;
+            browseSecondaryFilter = 'all';
+            if (currentView !== 'all') {
+              setView('all');
+            } else {
+              renderFolderGridView();
+            }
+          });
+        });
+
+      archiveTemplateFilters
+        .querySelectorAll('[data-template-filter]')
+        .forEach(button => {
+          button.addEventListener('click', () => {
+            browseMode = 'template';
+            browseTemplate = button.dataset.templateFilter;
+            browseSecondaryFilter = 'all';
+            renderFolderGridView();
+          });
+        });
 
   $('#collapseBtn')
     .addEventListener(

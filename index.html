@@ -287,6 +287,7 @@
           </section>
 
           <aside class="quote-note paper-card">
+            <div class="quote-tape"></div>
             <span class="home-section-label">A NOTE FOR TODAY</span>
             <div class="quote-copy" id="quoteCopy"></div>
             <div class="quote-dots" id="quoteDots" aria-hidden="true"></div>
@@ -323,6 +324,22 @@
         id="folderGridView"
         hidden
       >
+        <div class="archive-browser-head">
+          <div class="archive-view-switch" id="archiveViewSwitch">
+            <button type="button" class="active" data-browse-mode="folder">폴더별</button>
+            <button type="button" data-browse-mode="template">템플릿별</button>
+          </div>
+          <div class="archive-template-filters" id="archiveTemplateFilters" hidden>
+            <button type="button" class="active" data-template-filter="all">전체</button>
+            <button type="button" data-template-filter="memo">메모</button>
+            <button type="button" data-template-filter="todo">할 일</button>
+            <button type="button" data-template-filter="moodboard">무드보드</button>
+            <button type="button" data-template-filter="links">링크</button>
+            <button type="button" data-template-filter="collection">컬렉션</button>
+          </div>
+          <div class="archive-secondary-filters" id="archiveSecondaryFilters" hidden></div>
+        </div>
+
         <div class="folder-grid" id="folderGrid"></div>
 
         <div

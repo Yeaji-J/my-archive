@@ -277,6 +277,9 @@ const STORAGE_KEY = 'archive.data.v1';
   let editorReturnsToView = false;
   let searchTerm = '';
   let gridMode = true;
+  let browseMode = 'folder';
+  let browseTemplate = 'all';
+  let browseSecondaryFilter = 'all';
   let pendingFolderColor =
     FOLDER_COLORS[0];
 
@@ -307,6 +310,9 @@ const STORAGE_KEY = 'archive.data.v1';
   const folderGrid = $('#folderGrid');
   const noteGrid = $('#noteGrid');
   const emptyState = $('#emptyState');
+  const archiveViewSwitch = $('#archiveViewSwitch');
+  const archiveTemplateFilters = $('#archiveTemplateFilters');
+  const archiveSecondaryFilters = $('#archiveSecondaryFilters');
 
   const notesDividerWrap =
     $('#notesDividerWrap');

@@ -9,6 +9,77 @@
 
 /* ---------- Folder grid ---------- */
 
+.archive-browser-head {
+  display: flex;
+  min-height: 38px;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 24px;
+  overflow-x: auto;
+}
+
+.archive-view-switch,
+.archive-template-filters,
+.archive-secondary-filters {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 5px;
+}
+
+.archive-view-switch {
+  padding: 3px;
+  border-radius: 10px;
+  background: #f0f2f5;
+}
+
+.archive-view-switch button,
+.archive-template-filters button,
+.archive-secondary-filters button {
+  padding: 7px 11px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8b9199;
+  font-size: 10px;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.archive-view-switch button.active {
+  background: #fff;
+  color: #6689b0;
+  box-shadow: 0 2px 8px rgba(67, 79, 96, .08);
+}
+
+.archive-template-filters {
+  padding-left: 12px;
+  border-left: 1px solid rgba(84, 96, 113, .09);
+}
+
+.archive-template-filters button.active,
+.archive-secondary-filters button.active {
+  background: #eaf1f7;
+  color: #6e91b7;
+}
+
+.archive-secondary-filters {
+  padding-left: 10px;
+  border-left: 1px solid rgba(84, 96, 113, .09);
+}
+
+.note-card-template {
+  display: inline-block;
+  margin-bottom: 8px;
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: rgba(130, 165, 207, .1);
+  color: #7798bc;
+  font-size: 8px;
+  font-weight: 650;
+  letter-spacing: .04em;
+}
+
 .folder-grid {
   margin-bottom: 8px;
   display: grid;
@@ -737,6 +808,7 @@
 #noteViewStarBtn.active svg { fill: currentColor; }
 
 .note-detail-paper {
+  position: relative;
   min-height: 620px;
   padding: clamp(34px, 5vw, 70px);
   border: 1px solid rgba(84, 96, 113, .07);
@@ -744,6 +816,45 @@
   background: #fff;
   box-shadow: 0 22px 58px rgba(69, 79, 95, .075);
 }
+
+.note-detail-paper::before {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 22px;
+  width: 1px;
+  background: rgba(217, 151, 151, .13);
+  content: "";
+}
+
+.detail-template-memo {
+  background:
+    repeating-linear-gradient(180deg, transparent 0 38px, rgba(93, 111, 133, .035) 39px),
+    #fff;
+}
+
+.detail-template-todo {
+  background: linear-gradient(145deg, #fff 0%, #f8fbfd 100%);
+}
+
+.detail-template-moodboard {
+  padding: clamp(24px, 3vw, 42px);
+  background: #f7f5ef;
+}
+.detail-template-moodboard > h1 { margin-top: 6px; font-size: clamp(23px, 2.2vw, 31px); }
+.detail-template-moodboard > .note-detail-meta { margin-bottom: 20px; }
+
+.detail-template-links {
+  background: linear-gradient(160deg, #fff 0%, #f6f9fc 100%);
+}
+
+.detail-template-collection[data-collection-type="책"] { --collection-accent: #9aaec2; --collection-soft: #edf2f6; }
+.detail-template-collection[data-collection-type="영화"] { --collection-accent: #a695b8; --collection-soft: #f1edf5; }
+.detail-template-collection[data-collection-type="음악"] { --collection-accent: #83aaa4; --collection-soft: #ebf3f1; }
+.detail-template-collection[data-collection-type="맛집"] { --collection-accent: #c89b78; --collection-soft: #f7eee8; }
+.detail-template-collection[data-collection-type="기타"] { --collection-accent: #9b9ea5; --collection-soft: #f0f1f3; }
+.detail-template-collection { background: linear-gradient(145deg, #fff 0%, var(--collection-soft, #f5f6f7) 100%); }
+.detail-template-collection .note-view-category { background: var(--collection-soft); color: var(--collection-accent); }
 
 .note-detail-type {
   color: #8ca5c0;
@@ -776,6 +887,12 @@
 }
 
 .note-view-todos { max-width: 880px; margin: 0; padding: 0; list-style: none; }
+.note-view-todo-summary { max-width: 880px; margin-bottom: 28px; padding: 20px 22px; border-radius: 14px; background: #edf4f9; }
+.note-view-todo-summary > div:first-child { display: flex; align-items: center; justify-content: space-between; color: #7b8998; font-size: 11px; }
+.note-view-todo-summary strong { color: #58789b; font-size: 18px; }
+.note-view-progress { height: 7px; margin: 14px 0 8px; overflow: hidden; border-radius: 999px; background: rgba(110, 143, 177, .14); }
+.note-view-progress i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg, #9cb9d6, #789fc5); transition: width .3s ease; }
+.note-view-todo-summary small { color: #9ca7b2; font-size: 9px; }
 .note-view-todo { display: flex; align-items: center; gap: 12px; min-height: 48px; border-bottom: 1px solid rgba(84,96,113,.07); }
 .note-view-todo button { display: grid; width: 20px; height: 20px; place-items: center; border: 1px solid #bdc9d5; border-radius: 6px; background: #fff; color: transparent; cursor: pointer; }
 .note-view-todo.done button { border-color: #8faecc; background: #8faecc; color: #fff; }
@@ -797,8 +914,14 @@
 .note-view-moodboard .view-board-drawing { position: absolute; inset: 0; z-index: 3; width: 100%; height: 100%; object-fit: fill; pointer-events: none; }
 
 .note-view-link { max-width: 900px; }
+.note-view-browser-bar { display: flex; align-items: center; gap: 6px; padding: 10px 13px; border: 1px solid rgba(84,96,113,.08); border-bottom: 0; border-radius: 14px 14px 0 0; background: #eef2f6; }
+.note-view-browser-bar i { width: 7px; height: 7px; border-radius: 50%; background: #d5a6a8; }
+.note-view-browser-bar i:nth-child(2) { background: #dfc18a; }
+.note-view-browser-bar i:nth-child(3) { background: #9fc1a1; }
+.note-view-browser-bar span { min-width: 0; flex: 1; margin-left: 8px; overflow: hidden; color: #969da5; font-size: 9px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
 .note-view-link-summary { margin: 0 0 28px; color: #596069; font-size: 17px; line-height: 1.7; }
-.note-view-link-card { display: flex; align-items: center; gap: 14px; padding: 18px; border: 1px solid rgba(84,96,113,.08); border-radius: 14px; background: #fafbfc; color: inherit; text-decoration: none; }
+.note-view-link-card { display: flex; align-items: center; gap: 14px; padding: 24px 20px; border: 1px solid rgba(84,96,113,.08); border-radius: 0 0 14px 14px; background: #fff; color: inherit; text-decoration: none; transition: transform .2s ease, box-shadow .2s ease; }
+.note-view-link-card:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(71,83,101,.08); }
 .note-view-link-card img { width: 34px; height: 34px; object-fit: contain; border-radius: 7px; }
 .note-view-link-card span { min-width: 0; flex: 1; }
 .note-view-link-card strong, .note-view-link-card small { display: block; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -810,9 +933,11 @@
 
 .note-view-collection { display: grid; grid-template-columns: minmax(220px, 340px) 1fr; gap: clamp(30px, 5vw, 70px); }
 .note-view-collection-cover { min-height: 430px; overflow: hidden; border-radius: 14px; background: #f3f3f0; }
+.note-view-collection-cover { box-shadow: 0 18px 36px rgba(57,65,78,.13); transform: rotate(-.6deg); }
 .note-view-collection-cover img { display: block; width: 100%; height: 100%; object-fit: cover; }
 .note-view-collection-copy { padding-top: 10px; }
 .note-view-collection-copy blockquote { margin: 0 0 28px; color: #454b53; font-size: 20px; font-weight: 500; line-height: 1.65; }
+.note-view-collection-copy blockquote::before { color: var(--collection-accent, #9aaec2); content: "“"; font-size: 35px; line-height: 0; vertical-align: -.2em; }
 .note-view-info { margin: 0 0 30px; }
 .note-view-info div { display: grid; grid-template-columns: 130px 1fr; gap: 12px; padding: 10px 0; border-bottom: 1px solid rgba(84,96,113,.07); }
 .note-view-info dt { color: #9ca1a8; font-size: 10px; }

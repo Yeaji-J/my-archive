@@ -56,6 +56,11 @@ function renderNoteView(note = getViewedNote()) {
   content.innerHTML = '';
   const paper = content.closest('.note-detail-paper');
   paper.className = `note-detail-paper detail-template-${note.template || 'memo'}`;
+  if ((note.template || 'memo') === 'memo') {
+    const memo = ensureMemoData(note);
+    paper.classList.add(`memo-skin-${memo.skin}`);
+    paper.dataset.memoColumns = String(memo.columns || 1);
+  }
   paper.dataset.collectionType = note.template === 'collection'
     ? ensureCollectionData(note).type || '기타'
     : '';
@@ -75,9 +80,12 @@ function populateNoteViewFolderSelect(selectedId) {
 }
 
 function renderMemoNoteView(content, note) {
+  const memo = ensureMemoData(note);
   const body = document.createElement('div');
   body.className = 'note-view-memo';
-  body.textContent = note.content || '아직 작성된 내용이 없어요.';
+  body.classList.toggle('two-columns', Number(memo.columns) === 2);
+  body.innerHTML = sanitizeMemoHtml(memo.html)
+    || '<p>아직 작성된 내용이 없어요.</p>';
   content.appendChild(body);
 }
 

@@ -569,16 +569,31 @@
     }
 
     const notes = getFilteredNotes();
+    const memoAlbumMode =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate === 'memo';
 
     noteGrid.classList.toggle(
       'list-mode',
-      !gridMode
+      !gridMode && !memoAlbumMode
+    );
+    noteGrid.classList.toggle(
+      'memo-album-grid',
+      memoAlbumMode
     );
 
     noteGrid.innerHTML = '';
 
     emptyState.hidden =
       notes.length !== 0;
+
+    if (memoAlbumMode) {
+      renderMemoAlbum(notes);
+      return;
+    }
+
+    $('#memoAlbumPagination').hidden = true;
 
     notes.forEach(note => {
       const folder =
@@ -718,7 +733,6 @@
     editorReturnsToView = returnToView;
 
     noteTitle.value = note.title || '';
-    noteContent.value = note.content || '';
     note.template = note.template || 'memo';
 
     updateEditorMeta(note);
@@ -836,12 +850,21 @@
 
     if (!note) return;
 
+    const previousMemoHtml =
+      note.memoData?.html || '';
+    const previousContent =
+      note.content || '';
+
+    if ((note.template || 'memo') === 'memo') {
+      persistMemoEditor(note);
+    }
+
     const changed =
       note.title !== noteTitle.value
-      || note.content !== noteContent.value;
+      || previousMemoHtml !== (note.memoData?.html || '')
+      || previousContent !== (note.content || '');
 
     note.title = noteTitle.value;
-    note.content = noteContent.value;
 
     if (changed) {
       note.updatedAt = Date.now();
@@ -880,6 +903,13 @@
       title: '',
       content: '',
       template,
+      memoData: template === 'memo'
+        ? {
+            html: '',
+            skin: 'pink-grid',
+            columns: 1
+          }
+        : undefined,
       moodboard: template === 'moodboard'
         ? { items: [], drawing: '' }
         : undefined,

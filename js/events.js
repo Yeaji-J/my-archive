@@ -28,6 +28,7 @@
           button.addEventListener('click', () => {
             browseMode = button.dataset.browseMode;
             browseSecondaryFilter = 'all';
+            memoAlbumPage = 1;
             if (currentView !== 'all') {
               setView('all');
             } else {
@@ -49,6 +50,7 @@
             browseMode = 'template';
             browseTemplate = button.dataset.templateFilter;
             browseSecondaryFilter = 'all';
+            memoAlbumPage = 1;
             renderFolderGridView();
           });
         });

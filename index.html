@@ -344,6 +344,7 @@
         </div>
 
         <div class="note-grid" id="noteGrid"></div>
+        <nav class="memo-album-pagination" id="memoAlbumPagination" hidden aria-label="메모 페이지 이동"></nav>
 
         <div class="empty-state" id="emptyState" hidden>
           <div class="empty-icon"></div>
@@ -676,7 +677,44 @@
             </div>
 
             <div class="editor-template-panel" id="memoEditorPanel">
-              <textarea id="noteContent" class="note-content-input" placeholder="내용을 입력하세요…"></textarea>
+              <div class="memo-format-toolbar" id="memoFormatToolbar">
+                <div class="memo-tool-group" aria-label="문단 형식">
+                  <button type="button" data-memo-command="paragraph" class="active">본문</button>
+                  <button type="button" data-memo-command="subtitle">소제목</button>
+                </div>
+                <div class="memo-tool-group" aria-label="정렬">
+                  <button type="button" data-memo-command="left" title="왼쪽 정렬">왼쪽</button>
+                  <button type="button" data-memo-command="center" title="가운데 정렬">가운데</button>
+                </div>
+                <div class="memo-tool-group" aria-label="입력">
+                  <button type="button" data-memo-command="bullet" title="가운뎃점 입력">· 기호</button>
+                  <label class="memo-image-tool">
+                    사진
+                    <input type="file" id="memoImageInput" accept="image/*" multiple hidden>
+                  </label>
+                </div>
+                <div class="memo-tool-group memo-column-tools" aria-label="단 구성">
+                  <button type="button" data-memo-columns="1" class="active">1단</button>
+                  <button type="button" data-memo-columns="2">2단</button>
+                </div>
+                <div class="memo-skin-picker" id="memoSkinPicker" aria-label="기본 스킨">
+                  <span>SKIN</span>
+                  <button type="button" data-memo-skin="pink-grid" title="핑크 미세 그리드"></button>
+                  <button type="button" data-memo-skin="yellow-line" title="옐로 라인"></button>
+                  <button type="button" data-memo-skin="blue-dot" title="블루 도트"></button>
+                  <button type="button" data-memo-skin="purple-grid" title="퍼플 그리드"></button>
+                </div>
+              </div>
+              <div class="memo-editor-skin memo-skin-pink-grid" id="memoEditorSkin">
+                <div
+                  id="noteContent"
+                  class="note-content-input memo-rich-editor"
+                  contenteditable="true"
+                  role="textbox"
+                  aria-multiline="true"
+                  data-placeholder="내용을 입력하세요…"
+                ></div>
+              </div>
             </div>
 
             <div class="editor-template-panel editor-todo-panel" id="todoEditorPanel" hidden>
@@ -1179,6 +1217,7 @@
   <script src="js/chat.js"></script>
   <script src="js/calendar.js"></script>
   <script src="js/home.js"></script>
+  <script src="js/memo.js"></script>
   <script src="js/moodboard.js"></script>
   <script src="js/templates.js"></script>
   <script src="js/note-view.js"></script>

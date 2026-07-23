@@ -284,6 +284,7 @@ const STORAGE_KEY = 'archive.data.v1';
   let browseMode = 'folder';
   let browseTemplate = 'all';
   let browseSecondaryFilter = 'all';
+  let memoAlbumPage = 1;
   let pendingFolderColor =
     FOLDER_COLORS[0];
 

@@ -55,6 +55,10 @@ function setEditorTemplate(template, updateNote = true) {
     renderEditorTodos();
   }
 
+  if (template === 'memo') {
+    renderMemoEditor(note);
+  }
+
   if (template === 'moodboard') {
     ensureMoodboard(note);
     requestAnimationFrame(renderMoodboard);

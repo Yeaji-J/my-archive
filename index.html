@@ -302,6 +302,22 @@
         id="folderGridView"
         hidden
       >
+        <div class="folder-context" id="folderContext" hidden>
+          <button class="folder-context-back" id="folderContextBack" type="button">
+            <svg viewBox="0 0 24 24">
+              <path d="M15 6l-6 6 6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
+            </svg>
+            <span>전체 자료</span>
+          </button>
+          <div class="folder-context-current">
+            <span class="folder-context-icon" id="folderContextIcon"></span>
+            <span>
+              <strong id="folderContextName"></strong>
+              <small id="folderContextCount"></small>
+            </span>
+          </div>
+        </div>
+
         <div class="archive-browser-head">
           <div class="archive-view-switch" id="archiveViewSwitch">
             <button type="button" class="active" data-browse-mode="folder">폴더별</button>

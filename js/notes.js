@@ -434,6 +434,37 @@
     breadcrumb.textContent =
       currentBreadcrumb();
 
+    const selectedFolder =
+      state.folders.find(
+        folder => folder.id === currentView
+      );
+
+    const folderContext =
+      $('#folderContext');
+
+    folderContext.hidden =
+      !selectedFolder;
+
+    if (selectedFolder) {
+      const selectedCount =
+        state.notes.filter(
+          note =>
+            note.folderId === selectedFolder.id
+        ).length;
+
+      $('#folderContextIcon')
+        .style.setProperty(
+          '--folder-color',
+          selectedFolder.color
+        );
+
+      $('#folderContextName').textContent =
+        selectedFolder.name;
+
+      $('#folderContextCount').textContent =
+        `${selectedCount}개 자료`;
+    }
+
     const showFolders =
       currentView === 'all'
       && browseMode === 'folder'

@@ -2,17 +2,23 @@
 
 .view--calendar {
   padding: 0;
+  overflow: hidden;
   background: #f1f2f4;
 }
 
 .calendar-page {
-  min-height: 100%;
-  padding: 40px clamp(22px, 5vw, 76px) 70px;
+  height: 100%;
+  min-height: 0;
+  padding: 22px clamp(22px, 5vw, 76px) 24px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .calendar-page-head {
+  width: 100%;
   max-width: 1180px;
-  margin: 0 auto 22px;
+  margin: 0 auto 14px;
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
@@ -79,8 +85,13 @@
 }
 
 .apple-calendar-card {
+  width: 100%;
+  min-height: 0;
+  flex: 1;
   max-width: 1180px;
   margin: 0 auto;
+  display: flex;
+  flex-direction: column;
   overflow: hidden;
   border: 1px solid rgba(0, 0, 0, 0.06);
   border-radius: 24px;
@@ -92,6 +103,7 @@
 
 .calendar-weekdays {
   height: 42px;
+  flex: 0 0 42px;
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   align-items: center;
@@ -111,14 +123,18 @@
 }
 
 .calendar-grid {
+  min-height: 0;
+  flex: 1;
   display: grid;
   grid-template-columns:
     repeat(7, minmax(0, 1fr));
+  grid-template-rows:
+    repeat(6, minmax(0, 1fr));
 }
 
 .calendar-day {
   position: relative;
-  min-height: 128px;
+  min-height: 0;
   padding: 43px 10px 10px;
   overflow: hidden;
   border: 0;
@@ -178,7 +194,7 @@
 }
 
 .calendar-day-photo {
-  width: 50px;
+  width: clamp(30px, 5.2vh, 50px);
   aspect-ratio: 1;
   margin: 0 0 6px;
   display: block;

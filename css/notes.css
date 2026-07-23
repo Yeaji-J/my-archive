@@ -18,6 +18,85 @@
   overflow-x: auto;
 }
 
+.folder-context {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.folder-context-back {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 9px 7px 5px;
+  border: 0;
+  border-radius: 9px;
+  background: transparent;
+  color: #6387af;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.folder-context-back:hover {
+  background: var(--accent-soft);
+}
+
+.folder-context-back svg {
+  width: 15px;
+  height: 15px;
+}
+
+.folder-context-current {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.folder-context-current strong,
+.folder-context-current small {
+  display: block;
+  text-align: right;
+}
+
+.folder-context-current strong {
+  color: var(--text);
+  font-size: 13px;
+}
+
+.folder-context-current small {
+  margin-top: 2px;
+  color: var(--text-tertiary);
+  font-size: 9px;
+}
+
+.folder-context-icon {
+  position: relative;
+  width: 32px;
+  height: 25px;
+  border-radius: 3px 6px 6px 6px;
+  background:
+    color-mix(
+      in srgb,
+      var(--folder-color) 52%,
+      #fff 48%
+    );
+}
+
+.folder-context-icon::before {
+  position: absolute;
+  top: -4px;
+  left: 0;
+  width: 15px;
+  height: 6px;
+  border-radius: 4px 4px 0 0;
+  background: inherit;
+  content: "";
+}
+
 .archive-view-switch,
 .archive-template-filters,
 .archive-secondary-filters {

@@ -36,6 +36,12 @@
           });
         });
 
+      $('#folderContextBack')
+        .addEventListener(
+          'click',
+          () => setView('all')
+        );
+
       archiveTemplateFilters
         .querySelectorAll('[data-template-filter]')
         .forEach(button => {

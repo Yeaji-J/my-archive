@@ -30,11 +30,11 @@
 
 @media (max-width: 900px) {
   .calendar-page {
-    padding: 28px 18px 50px;
+    padding: 16px 18px 18px;
   }
 
   .calendar-day {
-    min-height: 104px;
+    min-height: 0;
     padding: 38px 7px 7px;
   }
 
@@ -70,6 +70,10 @@
 
   .view {
     padding: 20px 16px 60px;
+  }
+
+  .view.view--calendar {
+    padding: 0;
   }
 
   .view.view--chat {
@@ -152,17 +156,17 @@
   }
 
   .apple-calendar-card {
-    overflow-x: auto;
+    overflow: hidden;
     border-radius: 18px;
   }
 
   .calendar-weekdays,
   .calendar-grid {
-    min-width: 700px;
+    min-width: 0;
   }
 
   .calendar-day {
-    min-height: 100px;
+    min-height: 0;
   }
 }
 
@@ -316,8 +320,8 @@ body {
   background:
     color-mix(
       in srgb,
-      var(--folder-color, #dce8f3) 12%,
-      #ffffff 88%
+      var(--folder-color, #dce8f3) 8%,
+      #ffffff 92%
     );
 
   border-color:

@@ -70,7 +70,7 @@
     return `
       <span
         class="chat-avatar"
-        style="background:${
+        style="--avatar-gradient:${
           avatarGradient(profile.id)
         }"
       >
@@ -447,8 +447,10 @@
       );
 
     $('#chatHeaderAvatar')
-      .style.background =
-        avatarGradient(room.profile.id);
+      .style.setProperty(
+        '--avatar-gradient',
+        avatarGradient(room.profile.id)
+      );
 
     chatConversation
       .parentElement

@@ -194,6 +194,10 @@
       await ensureChatProfile();
       await loadChatRooms();
       await loadCalendarEntries();
+
+      if (typeof syncArchiveRouteFromLocation === 'function') {
+        syncArchiveRouteFromLocation();
+      }
     }
 
     if (!currentUser) {

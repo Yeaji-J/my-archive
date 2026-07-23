@@ -295,10 +295,10 @@
       createNote
     );
 
-  $('#backBtn')
-    .addEventListener(
-      'click',
-      () => closeEditor()
+      $('#backBtn')
+        .addEventListener(
+          'click',
+          goBackInArchive
     );
 
   $('#deleteBtn')
@@ -481,11 +481,11 @@
           && currentProfile
         ) {
           closeProfileModal();
-        } else if (
-          !editorView.hidden
-        ) {
-          closeEditor();
-        }
+            } else if (
+              !editorView.hidden
+            ) {
+              goBackInArchive();
+            }
       }
 
       if (

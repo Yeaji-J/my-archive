@@ -161,7 +161,10 @@
     });
   }
 
-  function setView(view) {
+  function setView(view, updateHistory = true) {
+    if (updateHistory && typeof pushArchiveRoute === 'function') {
+      pushArchiveRoute(routeForView(view));
+    }
     currentView = view;
     if (view !== 'all') {
       browseMode = 'folder';
@@ -652,17 +655,20 @@
 
   /* ---------------- Editor ---------------- */
 
-  function openEditor(noteId, returnToView = false) {
-    currentNoteId = noteId;
-    currentNoteViewId = null;
-    editorReturnsToView = returnToView;
-
+  function openEditor(noteId, returnToView = false, updateHistory = true) {
     const note =
       state.notes.find(
         item => item.id === noteId
       );
 
     if (!note) return;
+
+    if (updateHistory && typeof pushArchiveRoute === 'function') {
+      pushArchiveRoute(`/note/${encodeURIComponent(noteId)}/edit`);
+    }
+    currentNoteId = noteId;
+    currentNoteViewId = null;
+    editorReturnsToView = returnToView;
 
     noteTitle.value = note.title || '';
     noteContent.value = note.content || '';

@@ -14,9 +14,13 @@ function getViewedNote() {
   return state.notes.find(note => note.id === currentNoteViewId) || null;
 }
 
-function openNoteView(noteId) {
+function openNoteView(noteId, updateHistory = true) {
   const note = state.notes.find(item => item.id === noteId);
   if (!note) return;
+
+  if (updateHistory && typeof pushArchiveRoute === 'function') {
+    pushArchiveRoute(`/note/${encodeURIComponent(noteId)}`);
+  }
 
   if (currentNoteId) persistCurrentNote();
   currentNoteId = null;
@@ -203,9 +207,7 @@ function renderCollectionNoteView(content, note) {
 }
 
 function closeNoteView() {
-  currentNoteViewId = null;
-  noteDetailView.hidden = true;
-  setView(currentView);
+  goBackInArchive();
 }
 
 $('#noteViewBackBtn').addEventListener('click', closeNoteView);

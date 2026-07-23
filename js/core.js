@@ -248,6 +248,10 @@ const STORAGE_KEY = 'archive.data.v1';
       closeEditor(false);
       render();
 
+      if (typeof syncArchiveRouteFromLocation === 'function') {
+        syncArchiveRouteFromLocation();
+      }
+
       setSyncStatus(
         '모든 기기와 동기화됨'
       );

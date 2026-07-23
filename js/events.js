@@ -286,61 +286,8 @@
         chatConversation
           .parentElement
           .classList.remove(
-            'list-wing-open'
+            'mobile-conversation'
           );
-      }
-    );
-
-  $('#chatWingToggle')
-    .addEventListener(
-      'click',
-      event => {
-        const shell =
-          chatConversation.parentElement;
-        const open =
-          shell.classList.toggle(
-            'list-wing-open'
-          );
-        event.currentTarget
-          .setAttribute(
-            'aria-expanded',
-            String(open)
-          );
-      }
-    );
-
-  $('#chatPhotoInput')
-    .addEventListener(
-      'change',
-      event => {
-        sendChatPhoto(
-          event.target.files?.[0]
-        );
-      }
-    );
-
-  function closeChatImageLightbox() {
-    $('#chatImageLightbox').hidden = true;
-    $('#chatImageLightboxImage')
-      .removeAttribute('src');
-  }
-
-  $('#chatImageLightboxClose')
-    .addEventListener(
-      'click',
-      closeChatImageLightbox
-    );
-
-  $('#chatImageLightbox')
-    .addEventListener(
-      'click',
-      event => {
-        if (
-          event.target
-          === event.currentTarget
-        ) {
-          closeChatImageLightbox();
-        }
       }
     );
 
@@ -558,9 +505,7 @@
     'keydown',
     event => {
       if (event.key === 'Escape') {
-        if (!$('#chatImageLightbox').hidden) {
-          closeChatImageLightbox();
-        } else if (!folderModal.hidden) {
+        if (!folderModal.hidden) {
           closeFolderModal();
         } else if (
           !authModal.hidden

@@ -411,18 +411,6 @@
         hidden
       >
         <div class="chat-shell">
-          <button
-            class="chat-wing-toggle"
-            id="chatWingToggle"
-            type="button"
-            aria-label="채팅 목록 열기"
-            aria-expanded="false"
-          >
-            <svg viewBox="0 0 24 24">
-              <path d="M9 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.8" />
-            </svg>
-          </button>
-
           <aside
             class="chat-list-panel"
             id="chatListPanel"
@@ -527,15 +515,6 @@
                 class="chat-composer"
                 id="chatForm"
               >
-                <label class="chat-photo-btn" title="사진 보내기" aria-label="사진 보내기">
-                  <input type="file" id="chatPhotoInput" accept="image/*" hidden>
-                  <svg viewBox="0 0 24 24">
-                    <rect x="3.5" y="5" width="17" height="14" rx="3" stroke-width="1.6" />
-                    <circle cx="9" cy="10" r="1.6" stroke-width="1.4" />
-                    <path d="M5.5 17l4.2-4 3.1 2.8 2.3-2.1 3.4 3.3" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" />
-                  </svg>
-                </label>
-
                 <textarea
                   id="chatInput"
                   rows="1"
@@ -1258,6 +1237,7 @@
   </button>
 
   <section class="quick-chat-note" id="quickChatNote" hidden aria-label="빠른 채팅">
+    <div class="quick-chat-tape"></div>
     <header>
       <div>
         <span>QUICK NOTE</span>
@@ -1274,11 +1254,6 @@
       <button type="submit">보내기</button>
     </form>
   </section>
-
-  <div class="chat-image-lightbox" id="chatImageLightbox" hidden>
-    <button type="button" id="chatImageLightboxClose" aria-label="확대 이미지 닫기">×</button>
-    <img id="chatImageLightboxImage" alt="채팅 첨부 이미지">
-  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/core.js"></script>

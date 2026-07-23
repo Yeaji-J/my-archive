@@ -325,6 +325,144 @@
       clearPendingChatImage
     );
 
+  $('#chatDrawBtn')
+    .addEventListener(
+      'click',
+      openChatDrawing
+    );
+
+  $('#chatDrawingClose')
+    .addEventListener(
+      'click',
+      closeChatDrawing
+    );
+
+  $('#chatDrawingCancel')
+    .addEventListener(
+      'click',
+      closeChatDrawing
+    );
+
+  $('#chatDrawingAttach')
+    .addEventListener(
+      'click',
+      attachChatDrawing
+    );
+
+  $('#chatDrawingClear')
+    .addEventListener(
+      'click',
+      resetChatDrawing
+    );
+
+  $('#chatDrawingEraser')
+    .addEventListener(
+      'click',
+      event => {
+        chatDrawingEraser =
+          !chatDrawingEraser;
+        event.currentTarget
+          .classList.toggle(
+            'active',
+            chatDrawingEraser
+          );
+      }
+    );
+
+  document
+    .querySelectorAll(
+      '[data-chat-draw-color]'
+    )
+    .forEach(button => {
+      button.addEventListener(
+        'click',
+        () => {
+          chatDrawingColor =
+            button.dataset
+              .chatDrawColor;
+          chatDrawingEraser = false;
+          $('#chatDrawingEraser')
+            .classList.remove(
+              'active'
+            );
+          document
+            .querySelectorAll(
+              '[data-chat-draw-color]'
+            )
+            .forEach(item =>
+              item.classList.toggle(
+                'active',
+                item === button
+              )
+            );
+        }
+      );
+    });
+
+  document
+    .querySelectorAll(
+      '[data-chat-draw-width]'
+    )
+    .forEach(button => {
+      button.addEventListener(
+        'click',
+        () => {
+          chatDrawingWidth =
+            Number(
+              button.dataset
+                .chatDrawWidth
+            );
+          document
+            .querySelectorAll(
+              '[data-chat-draw-width]'
+            )
+            .forEach(item =>
+              item.classList.toggle(
+                'active',
+                item === button
+              )
+            );
+        }
+      );
+    });
+
+  const chatDrawingCanvas =
+    $('#chatDrawingCanvas');
+
+  chatDrawingCanvas
+    .addEventListener(
+      'pointerdown',
+      beginChatDrawing
+    );
+  chatDrawingCanvas
+    .addEventListener(
+      'pointermove',
+      continueChatDrawing
+    );
+  chatDrawingCanvas
+    .addEventListener(
+      'pointerup',
+      endChatDrawing
+    );
+  chatDrawingCanvas
+    .addEventListener(
+      'pointercancel',
+      endChatDrawing
+    );
+
+  $('#chatDrawingModal')
+    .addEventListener(
+      'click',
+      event => {
+        if (
+          event.target
+          === event.currentTarget
+        ) {
+          closeChatDrawing();
+        }
+      }
+    );
+
   function closeChatImageLightbox() {
     $('#chatImageLightbox').hidden = true;
     $('#chatImageLightboxImage')
@@ -614,7 +752,12 @@
     'keydown',
     event => {
       if (event.key === 'Escape') {
-        if (!$('#chatImageLightbox').hidden) {
+        if (
+          !$('#chatDrawingModal')
+            .hidden
+        ) {
+          closeChatDrawing();
+        } else if (!$('#chatImageLightbox').hidden) {
           closeChatImageLightbox();
         } else if (!folderModal.hidden) {
           closeFolderModal();

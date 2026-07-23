@@ -541,6 +541,19 @@
                   </svg>
                 </label>
 
+                <button
+                  type="button"
+                  class="chat-draw-btn"
+                  id="chatDrawBtn"
+                  title="그림 그리기"
+                  aria-label="그림 그리기"
+                >
+                  <svg viewBox="0 0 24 24">
+                    <path d="M4 20l4.2-1 10.9-10.9a2.1 2.1 0 00-3-3L5.2 16 4 20z" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" />
+                    <path d="M14.8 6.4l2.9 2.9" stroke-linecap="round" stroke-width="1.6" />
+                  </svg>
+                </button>
+
                 <textarea
                   id="chatInput"
                   rows="1"
@@ -1279,6 +1292,46 @@
       <button type="submit">보내기</button>
     </form>
   </section>
+
+  <div class="chat-drawing-modal" id="chatDrawingModal" hidden>
+    <section class="chat-drawing-card" role="dialog" aria-modal="true" aria-labelledby="chatDrawingTitle">
+      <header>
+        <div>
+          <span>DRAWING NOTE</span>
+          <h3 id="chatDrawingTitle">가볍게 그려 보내기</h3>
+        </div>
+        <button type="button" id="chatDrawingClose" aria-label="그림 창 닫기">×</button>
+      </header>
+
+      <div class="chat-drawing-toolbar" aria-label="그림 도구">
+        <div class="chat-drawing-colors" aria-label="펜 색상">
+          <button type="button" class="active" data-chat-draw-color="#5C3621" style="--draw-color:#5C3621" aria-label="갈색"></button>
+          <button type="button" data-chat-draw-color="#595959" style="--draw-color:#595959" aria-label="회색"></button>
+          <button type="button" data-chat-draw-color="#6F94BC" style="--draw-color:#6F94BC" aria-label="파란색"></button>
+          <button type="button" data-chat-draw-color="#E8A7B9" style="--draw-color:#E8A7B9" aria-label="분홍색"></button>
+          <button type="button" data-chat-draw-color="#D7B95A" style="--draw-color:#D7B95A" aria-label="노란색"></button>
+        </div>
+
+        <div class="chat-drawing-widths" aria-label="펜 굵기">
+          <button type="button" data-chat-draw-width="3">얇게</button>
+          <button type="button" class="active" data-chat-draw-width="6">보통</button>
+          <button type="button" data-chat-draw-width="11">굵게</button>
+        </div>
+
+        <button type="button" class="chat-drawing-eraser" id="chatDrawingEraser">지우개</button>
+        <button type="button" class="chat-drawing-clear" id="chatDrawingClear">전체 지우기</button>
+      </div>
+
+      <div class="chat-drawing-paper">
+        <canvas id="chatDrawingCanvas" width="900" height="560"></canvas>
+      </div>
+
+      <footer>
+        <button type="button" class="chat-drawing-cancel" id="chatDrawingCancel">취소</button>
+        <button type="button" class="chat-drawing-attach" id="chatDrawingAttach">채팅에 첨부</button>
+      </footer>
+    </section>
+  </div>
 
   <div class="chat-image-lightbox" id="chatImageLightbox" hidden>
     <button type="button" id="chatImageLightboxClose" aria-label="확대 이미지 닫기">×</button>

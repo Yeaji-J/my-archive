@@ -5,6 +5,12 @@
 const CHAT_IMAGE_PREFIX = '__ARCHIVE_IMAGE__:';
 const CHAT_MEDIA_PREFIX = '__ARCHIVE_MEDIA__:';
 let pendingChatImage = '';
+let chatDrawingActive = false;
+let chatDrawingLastPoint = null;
+let chatDrawingColor = '#5C3621';
+let chatDrawingWidth = 6;
+let chatDrawingEraser = false;
+let chatDrawingHasContent = false;
 
 function parseChatMedia(body) {
   const value = String(body || '');
@@ -965,6 +971,159 @@ function openChatImageLightbox(url) {
     $('#chatAttachmentPreviewImage')
       .removeAttribute('src');
     $('#chatPhotoInput').value = '';
+  }
+
+  function resetChatDrawing() {
+    const canvas =
+      $('#chatDrawingCanvas');
+    const context =
+      canvas.getContext('2d');
+
+    context.save();
+    context.globalCompositeOperation =
+      'source-over';
+    context.fillStyle = '#fffdf8';
+    context.fillRect(
+      0,
+      0,
+      canvas.width,
+      canvas.height
+    );
+    context.restore();
+
+    chatDrawingHasContent = false;
+  }
+
+  function openChatDrawing() {
+    if (
+      !activeRoomId
+      || !currentUser
+    ) {
+      return;
+    }
+
+    resetChatDrawing();
+    chatDrawingEraser = false;
+    $('#chatDrawingEraser')
+      .classList.remove('active');
+    $('#chatDrawingModal').hidden =
+      false;
+  }
+
+  function closeChatDrawing() {
+    chatDrawingActive = false;
+    chatDrawingLastPoint = null;
+    $('#chatDrawingModal').hidden =
+      true;
+  }
+
+  function chatDrawingPoint(event) {
+    const canvas =
+      $('#chatDrawingCanvas');
+    const bounds =
+      canvas.getBoundingClientRect();
+
+    return {
+      x:
+        (event.clientX - bounds.left)
+        * canvas.width
+        / bounds.width,
+      y:
+        (event.clientY - bounds.top)
+        * canvas.height
+        / bounds.height
+    };
+  }
+
+  function beginChatDrawing(event) {
+    event.preventDefault();
+    chatDrawingActive = true;
+    chatDrawingLastPoint =
+      chatDrawingPoint(event);
+    event.currentTarget
+      .setPointerCapture(
+        event.pointerId
+      );
+  }
+
+  function continueChatDrawing(event) {
+    if (
+      !chatDrawingActive
+      || !chatDrawingLastPoint
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    const canvas =
+      $('#chatDrawingCanvas');
+    const context =
+      canvas.getContext('2d');
+    const point =
+      chatDrawingPoint(event);
+
+    context.beginPath();
+    context.moveTo(
+      chatDrawingLastPoint.x,
+      chatDrawingLastPoint.y
+    );
+    context.lineTo(
+      point.x,
+      point.y
+    );
+    context.strokeStyle =
+      chatDrawingEraser
+        ? '#fffdf8'
+        : chatDrawingColor;
+    context.lineWidth =
+      chatDrawingEraser
+        ? chatDrawingWidth * 3
+        : chatDrawingWidth;
+    context.lineCap = 'round';
+    context.lineJoin = 'round';
+    context.stroke();
+
+    chatDrawingLastPoint = point;
+    chatDrawingHasContent = true;
+  }
+
+  function endChatDrawing(event) {
+    if (!chatDrawingActive) return;
+    chatDrawingActive = false;
+    chatDrawingLastPoint = null;
+
+    if (
+      event.currentTarget
+        .hasPointerCapture(
+          event.pointerId
+        )
+    ) {
+      event.currentTarget
+        .releasePointerCapture(
+          event.pointerId
+        );
+    }
+  }
+
+  function attachChatDrawing() {
+    if (!chatDrawingHasContent) {
+      alert(
+        '보낼 그림을 먼저 그려주세요.'
+      );
+      return;
+    }
+
+    const dataUrl =
+      $('#chatDrawingCanvas')
+        .toDataURL(
+          'image/jpeg',
+          .88
+        );
+
+    setPendingChatImage(dataUrl);
+    closeChatDrawing();
+    chatInput.focus();
   }
 
   async function prepareChatPhoto(file) {

@@ -271,15 +271,17 @@ function memoPreviewHtml(note) {
   const template = document.createElement('template');
   template.innerHTML = sanitizeMemoHtml(memo.html);
   const image = template.content.querySelector('img');
-  const text = (
-    template.content.textContent
-    || note.content
-    || '아직 작성된 내용이 없어요.'
-  ).trim();
 
   return image
     ? `<img src="${image.src}" alt="">`
-    : `<p>${escapeHtml(text.slice(0, 150))}</p>`;
+    : `
+      <div class="memo-album-preview-content">
+        ${
+          template.innerHTML.trim()
+          || '<p>아직 작성된 내용이 없어요.</p>'
+        }
+      </div>
+    `;
 }
 
 function renderMemoAlbum(notes) {

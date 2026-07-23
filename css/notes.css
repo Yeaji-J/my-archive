@@ -1250,8 +1250,8 @@
   position: relative;
   display: flex;
   min-width: 0;
-  height: auto;
-  aspect-ratio: 4 / 5;
+  height: 302px;
+  aspect-ratio: auto;
   flex-direction: column;
   padding: 0;
   overflow: hidden;
@@ -1272,8 +1272,8 @@
   position: relative;
   display: block;
   min-height: 0;
-  flex: 1;
-  padding: 22px;
+  flex: 0 0 220px;
+  padding: 18px;
   overflow: hidden;
   border-bottom: 1px solid rgba(92, 54, 33, .1);
 }
@@ -1289,12 +1289,63 @@
 }
 
 .memo-album-preview p {
-  margin: 0;
-  overflow: hidden;
+  margin: 0 0 10px;
   color: rgba(92, 54, 33, .72);
   font-size: 12px;
   line-height: 1.8;
-  white-space: pre-wrap;
+  white-space: normal;
+}
+
+.memo-album-preview-content {
+  width: 100%;
+  height: 100%;
+  padding-right: 5px;
+  overflow-y: auto;
+  color: rgba(92, 54, 33, .76);
+  scrollbar-color: rgba(92, 54, 33, .2) transparent;
+  scrollbar-width: thin;
+}
+
+.memo-album-preview-content::-webkit-scrollbar {
+  width: 4px;
+}
+
+.memo-album-preview-content::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(92, 54, 33, .2);
+}
+
+.memo-album-preview-content h3 {
+  margin: 0 0 8px;
+  color: var(--archive-brown);
+  font-size: 15px;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.memo-album-preview-content h3:not(:first-child) {
+  margin-top: 17px;
+}
+
+.memo-album-preview-content div,
+.memo-album-preview-content li {
+  margin-bottom: 9px;
+  color: rgba(92, 54, 33, .72);
+  font-size: 12px;
+  line-height: 1.8;
+}
+
+.memo-album-preview-content ul,
+.memo-album-preview-content ol {
+  margin: 0 0 10px;
+  padding-left: 20px;
+}
+
+.memo-album-preview-content .memo-number-token {
+  min-width: 21px;
+  height: 21px;
+  padding: 0 6px;
+  font-size: 9px;
 }
 
 .memo-album-copy {

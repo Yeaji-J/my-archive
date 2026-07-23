@@ -379,18 +379,6 @@
   content: "";
 }
 
-.quote-tape,
-.quick-chat-tape {
-  position: absolute;
-  z-index: 2;
-  top: 14px;
-  left: 50%;
-  width: 72px;
-  height: 20px;
-  background: rgba(211, 207, 186, .65);
-  transform: translateX(-50%) rotate(-2deg);
-}
-
 .quote-copy { position: relative; z-index: 1; margin-top: 80px; }
 .quote-copy blockquote {
   margin: 0;

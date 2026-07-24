@@ -155,12 +155,127 @@ function restoreMemoSelection() {
   selection.addRange(memoSavedRange);
 }
 
+function replaceMemoSelectedBlocks(
+  tagName
+) {
+  const selection =
+    window.getSelection();
+
+  if (
+    !selection.rangeCount
+    || selection.isCollapsed
+  ) {
+    return false;
+  }
+
+  const range =
+    selection.getRangeAt(0);
+  const candidates = [
+    ...noteContent
+      .querySelectorAll(
+        'p, h3, div'
+      )
+  ].filter(element => {
+    try {
+      return range.intersectsNode(
+        element
+      );
+    } catch (_error) {
+      return false;
+    }
+  });
+
+  const blocks =
+    candidates.filter(
+      element =>
+        !candidates.some(
+          other =>
+            other !== element
+            && element.contains(other)
+        )
+    );
+
+  if (!blocks.length) {
+    return false;
+  }
+
+  const replacements =
+    blocks.map(block => {
+      if (
+        block.tagName
+        === tagName.toUpperCase()
+      ) {
+        return block;
+      }
+
+      const replacement =
+        document.createElement(
+          tagName
+        );
+      replacement.innerHTML =
+        block.innerHTML;
+
+      const alignment =
+        block.style.textAlign
+        || block.getAttribute('align');
+
+      if (
+        alignment === 'left'
+        || alignment === 'center'
+      ) {
+        replacement.style.textAlign =
+          alignment;
+      }
+
+      block.replaceWith(replacement);
+      return replacement;
+    });
+
+  const nextRange =
+    document.createRange();
+  nextRange.setStart(
+    replacements[0],
+    0
+  );
+  nextRange.setEnd(
+    replacements[
+      replacements.length - 1
+    ],
+    replacements[
+      replacements.length - 1
+    ].childNodes.length
+  );
+
+  selection.removeAllRanges();
+  selection.addRange(nextRange);
+  memoSavedRange =
+    nextRange.cloneRange();
+
+  return true;
+}
+
 function runMemoCommand(command) {
   restoreMemoSelection();
   if (command === 'paragraph') {
-    document.execCommand('formatBlock', false, 'p');
+    if (
+      !replaceMemoSelectedBlocks('p')
+    ) {
+      document.execCommand(
+        'formatBlock',
+        false,
+        'p'
+      );
+    }
   } else if (command === 'subtitle') {
-    document.execCommand('formatBlock', false, 'h3');
+    if (
+      !replaceMemoSelectedBlocks('h3')
+    ) {
+      document.execCommand(
+        'formatBlock',
+        false,
+        'h3'
+      );
+    }
   } else if (command === 'left') {
     document.execCommand('justifyLeft');
   } else if (command === 'center') {

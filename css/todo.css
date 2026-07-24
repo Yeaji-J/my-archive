@@ -677,8 +677,6 @@ input::placeholder {
 }
 
 .postit-time-cell.painted {
-  background:
-    var(--postit-accent);
   box-shadow:
     inset 0 3px 0
     rgba(255, 255, 255, .18),

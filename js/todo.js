@@ -780,8 +780,15 @@ function renderPostitTime(
             event => {
               event.preventDefault();
               postitTimePainting = true;
+              const currentColor =
+                normalizePostitColor(
+                  slot.blocks[
+                    blockIndex
+                  ],
+                  ''
+                );
               postitTimePaintColor =
-                color === data.accentColor
+                currentColor
                   ? ''
                   : data.accentColor;
               applyPostitTimeBlock(
@@ -820,7 +827,6 @@ function renderPostitTime(
                 slot,
                 blockIndex,
                 slot.blocks[blockIndex]
-                  === data.accentColor
                   ? ''
                   : data.accentColor,
                 cell
@@ -1396,9 +1402,31 @@ document
 function setPostitAccentColor(value) {
   const note = getCurrentNote();
   if (!note) return;
-  ensurePostitData(note).accentColor =
+  const data =
+    ensurePostitData(note);
+  data.accentColor =
     normalizePostitColor(value);
-  renderPostitEditor(note);
+
+  $('#postitEditorPaper')
+    .style.setProperty(
+      '--postit-accent',
+      data.accentColor
+    );
+  $('#postitCustomColor').value =
+    data.accentColor;
+
+  document
+    .querySelectorAll(
+      '[data-postit-color]'
+    )
+    .forEach(button => {
+      button.classList.toggle(
+        'active',
+        button.dataset.postitColor
+          === data.accentColor
+      );
+    });
+
   schedulePostitSave();
 }
 

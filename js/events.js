@@ -37,11 +37,9 @@
               button.dataset.sidebarTemplate;
             browseSecondaryFilter = 'all';
             memoAlbumPage = 1;
-            memoAlbumSearchTerm = '';
             postitAlbumPage = 1;
-            postitAlbumSearchTerm = '';
-            $('#memoAlbumSearch').value = '';
-            $('#postitAlbumSearch').value = '';
+            templateListSearchTerm = '';
+            $('#templateListSearch').value = '';
             resetArchiveSelection();
             setView('all');
           });
@@ -54,11 +52,9 @@
             browseMode = button.dataset.browseMode;
             browseSecondaryFilter = 'all';
             memoAlbumPage = 1;
-            memoAlbumSearchTerm = '';
             postitAlbumPage = 1;
-            postitAlbumSearchTerm = '';
-            $('#memoAlbumSearch').value = '';
-            $('#postitAlbumSearch').value = '';
+            templateListSearchTerm = '';
+            $('#templateListSearch').value = '';
             resetArchiveSelection();
             if (currentView !== 'all') {
               setView('all');
@@ -82,11 +78,9 @@
             browseTemplate = button.dataset.templateFilter;
             browseSecondaryFilter = 'all';
             memoAlbumPage = 1;
-            memoAlbumSearchTerm = '';
             postitAlbumPage = 1;
-            postitAlbumSearchTerm = '';
-            $('#memoAlbumSearch').value = '';
-            $('#postitAlbumSearch').value = '';
+            templateListSearchTerm = '';
+            $('#templateListSearch').value = '';
             resetArchiveSelection();
             renderFolderGridView();
           });
@@ -132,24 +126,16 @@
     }
   );
 
-  $('#memoAlbumSearch')
+  $('#templateListSearch')
     .addEventListener(
       'input',
       event => {
-        memoAlbumSearchTerm =
+        templateListSearchTerm =
           event.target.value;
         memoAlbumPage = 1;
-        renderFolderGridView();
-      }
-    );
-
-  $('#postitAlbumSearch')
-    .addEventListener(
-      'input',
-      event => {
-        postitAlbumSearchTerm =
-          event.target.value;
         postitAlbumPage = 1;
+        templateAlbumPages.moodboard = 1;
+        templateAlbumPages.collection = 1;
         renderFolderGridView();
       }
     );
@@ -169,36 +155,14 @@
         let notes =
           getFilteredNotes();
 
-        if (
-          browseTemplate === 'memo'
-          && memoAlbumSearchTerm.trim()
-        ) {
+        if (templateListSearchTerm.trim()) {
           const query =
-            memoAlbumSearchTerm
+            templateListSearchTerm
               .trim()
               .toLowerCase();
 
           notes = notes.filter(note =>
-            `${note.title || ''} ${note.content || ''}`
-              .toLowerCase()
-              .includes(query)
-          );
-        }
-
-        if (
-          browseTemplate === 'todo'
-          && postitAlbumSearchTerm.trim()
-        ) {
-          const query =
-            postitAlbumSearchTerm
-              .trim()
-              .toLowerCase();
-
-          notes = notes.filter(note =>
-            `${
-              note.title || ''
-            } ${postitSearchText(note)}`
-              .toLowerCase()
+            templateSearchText(note)
               .includes(query)
           );
         }

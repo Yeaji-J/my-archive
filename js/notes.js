@@ -886,53 +886,46 @@
       currentView === 'all'
       && browseMode === 'template'
       && browseTemplate === 'collection';
+    const templateListMode =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate !== 'all';
     const specializedTemplateMode =
       moodboardAlbumMode
       || linkArchiveMode
       || collectionAlbumMode;
 
-    $('#memoAlbumBar').hidden =
-      !memoAlbumMode;
-    $('#postitAlbumBar').hidden =
-      !postitAlbumMode;
+    $('#templateListBar').hidden =
+      !templateListMode;
 
-    if (memoAlbumMode) {
+    if (templateListMode) {
       const query =
-        memoAlbumSearchTerm
+        templateListSearchTerm
           .trim()
           .toLowerCase();
 
       if (query) {
         notes = notes.filter(note =>
-          `${note.title || ''} ${note.content || ''}`
-            .toLowerCase()
+          templateSearchText(note)
             .includes(query)
         );
       }
 
-      $('#memoAlbumResultCount').textContent =
-        `${notes.length}개의 메모`;
-    }
+      const listMeta = {
+        memo: ['01 · MEMO ALBUM', '메모'],
+        todo: ['02 · POST-IT ALBUM', '포스트잇'],
+        moodboard: ['03 · MOODBOARD', '무드보드'],
+        links: ['04 · LINK ARCHIVE', '링크'],
+        collection: ['05 · COLLECTION', '컬렉션']
+      }[browseTemplate];
 
-    if (postitAlbumMode) {
-      const query =
-        postitAlbumSearchTerm
-          .trim()
-          .toLowerCase();
-
-      if (query) {
-        notes = notes.filter(note =>
-          `${
-            note.title || ''
-          } ${postitSearchText(note)}`
-            .toLowerCase()
-            .includes(query)
-        );
-      }
-
-      $('#postitAlbumResultCount')
+      $('#templateListTitle').textContent =
+        listMeta?.[0] || 'TEMPLATE ARCHIVE';
+      $('#templateListResultCount')
         .textContent =
-          `${notes.length}개의 포스트잇`;
+          `${notes.length}개의 ${
+            listMeta?.[1] || '자료'
+          }`;
     }
 
     renderArchiveBulkBar(notes);

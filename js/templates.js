@@ -143,6 +143,12 @@ function addCollectionField() {
 
 function templateSearchText(note) {
   const parts = [note.title, note.content];
+  if ((note.template || 'memo') === 'memo') {
+    parts.push(
+      note.memoData?.html
+        ?.replace(/<[^>]*>/g, ' ')
+    );
+  }
   if (note.template === 'links') {
     const data = ensureLinkData(note);
     parts.push(data.url, data.siteName, data.description, data.category);
@@ -187,42 +193,40 @@ function templateFilterValues(note, template) {
 }
 
 function renderTemplateLibraryBar(template) {
-  const search = $('#editorTemplateSearch');
-  const filter = $('#editorTemplateFilter');
   const wrap = $('#editorLibraryResults');
-  const notes = state.notes.filter(note => (note.template || 'memo') === template);
-  const filterValues = [
-    ...new Set(
-      notes.flatMap(
-        note =>
-          templateFilterValues(
-            note,
-            template
-          )
-      )
+  if (!wrap) return;
+
+  const recentNotes = state.notes
+    .filter(
+      note =>
+        (note.template || 'memo')
+          === template
+        && note.id !== currentNoteId
     )
-  ].filter(value => value !== '전체');
-  const previousFilter = filter.dataset.template === template ? filter.value : 'all';
+    .sort(
+      (first, second) =>
+        (second.updatedAt || 0)
+        - (first.updatedAt || 0)
+    )
+    .slice(0, 6);
 
-  filter.dataset.template = template;
-  filter.innerHTML = '<option value="all">전체</option>' + filterValues.map(value => `<option value="${escapeHtml(value)}">${escapeHtml(value)}</option>`).join('');
-  filter.value = filterValues.includes(previousFilter) ? previousFilter : 'all';
-
-  const query = search.value.trim().toLowerCase();
-  const filtered = notes.filter(note => {
-    const matchesQuery = !query || templateSearchText(note).includes(query);
-    const matchesFilter =
-      filter.value === 'all'
-      || templateFilterValues(
-        note,
-        template
-      ).includes(filter.value);
-    return matchesQuery && matchesFilter;
-  });
-
-  wrap.innerHTML = filtered.slice(0, 8).map(note => `
-    <button type="button" class="editor-result-chip ${note.id === currentNoteId ? 'current' : ''}" data-result-note="${note.id}">${escapeHtml(note.title || '제목 없음')}</button>
-  `).join('');
+  wrap.innerHTML = recentNotes.length
+    ? recentNotes.map(note => `
+        <button
+          type="button"
+          class="editor-result-chip"
+          data-result-note="${note.id}"
+          title="${escapeHtml(note.title || '제목 없음')}"
+        >
+          <span>${escapeHtml(note.title || '제목 없음')}</span>
+          <small>${formatDate(note.updatedAt)}</small>
+        </button>
+      `).join('')
+    : `
+      <span class="editor-history-empty">
+        아직 이전 자료가 없어요.
+      </span>
+    `;
   wrap.querySelectorAll('[data-result-note]').forEach(button => {
     button.addEventListener('click', () => {
       persistCurrentNote();
@@ -445,7 +449,11 @@ function renderMoodboardAlbum(notes) {
           ? archiveSelectionButton(note.id)
           : ''
       }
-      <button class="moodboard-album-open" type="button">
+      <button
+        class="moodboard-album-open"
+        type="button"
+        aria-label="${escapeHtml(note.title || '무드보드')} 열기"
+      >
         <span class="moodboard-album-preview moodboard-skin-${data.skin}">
           ${
             data.drawing
@@ -459,10 +467,6 @@ function renderMoodboardAlbum(notes) {
               ? '<span class="moodboard-album-empty">아직 비어 있는 무드보드</span>'
               : ''
           }
-        </span>
-        <span class="moodboard-album-copy">
-          <strong>${escapeHtml(note.title || '제목 없음')}</strong>
-          <small>${formatDate(note.updatedAt)}</small>
         </span>
       </button>
     `;
@@ -555,6 +559,8 @@ function renderCollectionAlbum(notes) {
         'collection-album-card',
         note
       );
+    card.dataset.collectionType =
+      data.type || '기타';
     card.innerHTML = `
       ${
         archiveSelectionMode
@@ -570,16 +576,8 @@ function renderCollectionAlbum(notes) {
           }
         </span>
         <span class="collection-album-copy">
+          <small>${escapeHtml(data.type || '기타')}</small>
           <strong>${escapeHtml(note.title || '제목 없음')}</strong>
-          <span class="collection-album-tags">
-            ${
-              data.tags.length
-                ? data.tags.slice(0, 3)
-                  .map(tag => `<small>#${escapeHtml(tag)}</small>`)
-                  .join('')
-                : '<small>#태그없음</small>'
-            }
-          </span>
         </span>
       </button>
     `;
@@ -664,6 +662,3 @@ document.addEventListener('paste', event => {
     setCollectionCover(images[0]);
   }
 });
-
-$('#editorTemplateSearch').addEventListener('input', () => renderTemplateLibraryBar(getCurrentNote()?.template || 'memo'));
-$('#editorTemplateFilter').addEventListener('change', () => renderTemplateLibraryBar(getCurrentNote()?.template || 'memo'));

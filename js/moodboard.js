@@ -242,8 +242,13 @@ function setEditorTemplate(template, updateNote = true) {
     template !== 'links';
   collectionEditorPanel.hidden =
     template !== 'collection';
-  $('.editor-library-bar').hidden =
+  $('#editorHistoryRail').hidden =
     !validTemplate;
+  editorView.classList.toggle(
+    'moodboard-editor-active',
+    validTemplate
+    && template === 'moodboard'
+  );
   editorTemplateMessage.hidden =
     validTemplate;
 

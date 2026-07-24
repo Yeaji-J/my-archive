@@ -7,7 +7,7 @@
   <title>Archive — 나만의 자료 정리 공간</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/base.css?v=20260724-save-sync1">
-  <link rel="stylesheet" href="css/notes.css?v=20260724-save-sync1">
+  <link rel="stylesheet" href="css/notes.css?v=20260724-writer-rail1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260724-template-fix1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -394,31 +394,17 @@
           </button>
         </div>
 
-        <div class="memo-album-bar" id="memoAlbumBar" hidden>
+        <div class="template-list-bar" id="templateListBar" hidden>
           <div>
-            <strong>01 · MEMO ALBUM</strong>
-            <span id="memoAlbumResultCount">0개의 메모</span>
+            <strong id="templateListTitle">TEMPLATE ARCHIVE</strong>
+            <span id="templateListResultCount">0개의 자료</span>
           </div>
-          <label class="memo-album-search">
+          <label class="template-list-search">
             <svg viewBox="0 0 24 24">
               <circle cx="11" cy="11" r="7" stroke-width="1.6" />
               <path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" />
             </svg>
-            <input type="search" id="memoAlbumSearch" placeholder="메모 제목과 내용 검색">
-          </label>
-        </div>
-
-        <div class="postit-album-bar" id="postitAlbumBar" hidden>
-          <div>
-            <strong>02 · POST-IT ALBUM</strong>
-            <span id="postitAlbumResultCount">0개의 포스트잇</span>
-          </div>
-          <label class="postit-album-search">
-            <svg viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7" stroke-width="1.6" />
-              <path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" />
-            </svg>
-            <input type="search" id="postitAlbumSearch" placeholder="제목, 내용, 태그 검색">
+            <input type="search" id="templateListSearch" placeholder="제목과 내용 검색">
           </label>
         </div>
 
@@ -765,6 +751,11 @@
             <button type="button" class="editor-template-tab" data-editor-template="collection"><span>05</span>컬렉션</button>
           </nav>
 
+          <aside class="editor-history-rail" id="editorHistoryRail" aria-label="같은 템플릿의 최근 자료">
+            <span class="editor-history-label">RECENT</span>
+            <div class="editor-library-results" id="editorLibraryResults"></div>
+          </aside>
+
           <div class="editor-paper">
             <div class="editor-toolbar">
               <button class="text-btn" id="backBtn">
@@ -780,15 +771,6 @@
                   <svg viewBox="0 0 24 24"><path d="M4 7h16M9 7V5a1 1 0 011-1h4a1 1 0 011 1v2m2 0l-.8 12.2A2 2 0 0114.2 21H9.8a2 2 0 01-2-1.8L7 7" stroke-linecap="round" stroke-linejoin="round" stroke-width="1.6" /></svg>
                 </button>
               </div>
-            </div>
-
-            <div class="editor-library-bar">
-              <div class="editor-library-search">
-                <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7" stroke-width="1.6" /><path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" /></svg>
-                <input type="search" id="editorTemplateSearch" placeholder="이 템플릿 안에서 검색">
-              </div>
-              <select id="editorTemplateFilter" aria-label="필터"><option value="all">전체</option></select>
-              <div class="editor-library-results" id="editorLibraryResults"></div>
             </div>
 
             <div class="editor-heading">
@@ -1459,8 +1441,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260724-save-sync1"></script>
-  <script src="js/notes.js?v=20260724-templates345"></script>
+  <script src="js/core.js?v=20260724-writer-rail1"></script>
+  <script src="js/notes.js?v=20260724-writer-rail1"></script>
   <script src="js/todo.js?v=20260724-save-sync1"></script>
   <script src="js/folders.js?v=20260724-media4"></script>
   <script src="js/auth.js?v=20260724-media4"></script>
@@ -1468,11 +1450,11 @@
   <script src="js/calendar.js?v=20260724-media4"></script>
   <script src="js/home.js?v=20260724-save-sync1"></script>
   <script src="js/memo.js?v=20260724-save-sync1"></script>
-  <script src="js/moodboard.js?v=20260724-save-sync1"></script>
-  <script src="js/templates.js?v=20260724-save-sync1"></script>
+  <script src="js/moodboard.js?v=20260724-writer-rail1"></script>
+  <script src="js/templates.js?v=20260724-writer-rail1"></script>
   <script src="js/note-view.js?v=20260724-templates345"></script>
   <script src="js/router.js?v=20260724-media4"></script>
-  <script src="js/events.js?v=20260724-directedit1"></script>
+  <script src="js/events.js?v=20260724-writer-rail1"></script>
 </body>
 
 </html>

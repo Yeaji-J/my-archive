@@ -70,6 +70,33 @@
           () => setView('all')
         );
 
+      document
+        .querySelectorAll(
+          '[data-folder-view]'
+        )
+        .forEach(button => {
+          button.addEventListener(
+            'click',
+            () => {
+              folderNoteViewMode =
+                button.dataset.folderView;
+
+              try {
+                localStorage.setItem(
+                  'archive.folder-note-view.v1',
+                  folderNoteViewMode
+                );
+              } catch (_error) {
+                /* 저장소 사용이 제한돼도
+                 * 현재 화면 전환은 유지합니다.
+                 */
+              }
+
+              renderFolderGridView();
+            }
+          );
+        });
+
       archiveTemplateFilters
         .querySelectorAll('[data-template-filter]')
         .forEach(button => {

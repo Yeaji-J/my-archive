@@ -146,12 +146,12 @@
 
 .folder-context {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  gap: 18px;
-  margin-bottom: 18px;
-  padding-bottom: 16px;
-  border-bottom: 1px solid var(--border);
+  gap: 24px;
+  margin: 2px 0 20px;
+  padding: 2px 4px 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 75%, transparent);
 }
 
 .folder-context-back {
@@ -178,49 +178,80 @@
 
 .folder-context-current {
   display: flex;
+  min-width: 230px;
+  flex-direction: column;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
+  margin-right: auto;
 }
 
 .folder-context-current strong,
 .folder-context-current small {
   display: block;
-  text-align: right;
+  text-align: center;
 }
 
 .folder-context-current strong {
   color: var(--text);
-  font-size: 13px;
+  font-size: 15px;
 }
 
 .folder-context-current small {
-  margin-top: 2px;
+  margin-top: 4px;
   color: var(--text-tertiary);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .folder-context-icon {
   position: relative;
-  width: 32px;
-  height: 25px;
-  border-radius: 3px 6px 6px 6px;
-  background:
-    color-mix(
-      in srgb,
-      var(--folder-color) 52%,
-      #fff 48%
-    );
+  width: 154px;
+  height: 93px;
+  isolation: isolate;
+  filter: drop-shadow(0 10px 12px rgba(77, 70, 61, .1));
 }
 
 .folder-context-icon::before {
   position: absolute;
-  top: -4px;
-  left: 0;
-  width: 15px;
-  height: 6px;
-  border-radius: 4px 4px 0 0;
-  background: inherit;
+  z-index: -2;
+  top: 7px;
+  left: 11px;
+  width: 132px;
+  height: 76px;
+  border: 1px solid rgba(92, 82, 70, .2);
+  border-radius: 9px 12px 9px 9px;
+  background:
+    linear-gradient(
+      160deg,
+      color-mix(in srgb, var(--folder-color) 32%, #fff 68%),
+      color-mix(in srgb, var(--folder-color) 48%, #fff 52%)
+    );
+  box-shadow:
+    -7px -5px 0 -2px
+      color-mix(in srgb, var(--folder-color) 20%, #f5f0e7 80%);
   content: "";
+  transform: rotate(4deg);
+}
+
+.folder-context-icon::after {
+  position: absolute;
+  z-index: -1;
+  right: 2px;
+  bottom: 0;
+  left: 2px;
+  height: 67px;
+  border: 1px solid rgba(92, 82, 70, .22);
+  border-radius: 8px 10px 14px 10px;
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--folder-color) 60%, #fff 40%),
+      color-mix(in srgb, var(--folder-color) 76%, #fff 24%)
+    );
+  box-shadow:
+    inset 0 9px 14px rgba(255, 255, 255, .18);
+  content: "";
+  transform: perspective(180px) rotateX(-9deg) skewX(-5deg);
+  transform-origin: bottom;
 }
 
 .archive-view-switch,
@@ -285,20 +316,28 @@
 }
 
 .folder-grid {
-  margin-bottom: 8px;
+  margin-bottom: 12px;
   display: grid;
-  grid-template-columns:
-    repeat(auto-fill, minmax(168px, 1fr));
-  gap: 16px;
+  grid-auto-flow: column;
+  grid-auto-columns: 196px;
+  grid-template-columns: none;
+  gap: 24px;
+  padding: 8px 4px 18px;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(109, 122, 138, .18) transparent;
 }
 
 .folder-card {
   position: relative;
-  padding: 6px 4px;
+  width: 196px;
+  padding: 4px 6px 2px;
   border: 0;
-  border-radius: var(--radius-lg);
+  border-radius: 14px;
   background: transparent;
   box-shadow: none;
+  text-align: center;
   cursor: pointer;
   transition:
     transform .2s var(--ease),
@@ -306,47 +345,72 @@
 }
 
 .folder-card:hover {
-  opacity: .88;
+  opacity: 1;
   transform: translateY(-2px);
 }
 
 .folder-icon {
   position: relative;
-  width: 46px;
-  height: 36px;
-  margin-bottom: 12px;
+  width: 182px;
+  height: 112px;
+  margin: 0 auto 12px;
+  filter: drop-shadow(0 10px 10px rgba(73, 83, 94, .1));
 }
 
 .folder-icon::before {
   content: "";
   position: absolute;
-  top: -6px;
-  left: 0;
-  width: 22px;
-  height: 8px;
-  border-radius: 4px 6px 0 0;
-  background: var(--folder-color, #f6c9d0);
+  z-index: 0;
+  top: 8px;
+  left: 4px;
+  width: 82px;
+  height: 23px;
+  border: 1px solid rgba(62, 69, 78, .11);
+  border-bottom: 0;
+  border-radius: 12px 13px 0 0;
+  background:
+    color-mix(
+      in srgb,
+      var(--folder-color, #f6c9d0) 65%,
+      #fff 35%
+    );
 }
 
 .folder-icon::after {
   content: "";
   position: absolute;
-  top: 0;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
   left: 0;
-  width: 46px;
-  height: 36px;
-  border-radius: 3px 8px 8px 8px;
-  background: var(--folder-color, #f6c9d0);
+  height: 91px;
+  border: 1px solid rgba(62, 69, 78, .12);
+  border-radius: 8px 13px 15px 15px;
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(
+        in srgb,
+        var(--folder-color, #f6c9d0) 72%,
+        #fff 28%
+      ),
+      color-mix(
+        in srgb,
+        var(--folder-color, #f6c9d0) 88%,
+        #fff 12%
+      )
+    );
   box-shadow:
-    inset 0 -6px 10px rgba(0, 0, 0, 0.06);
+    inset 0 7px 13px rgba(255, 255, 255, .18),
+    inset 0 -10px 15px rgba(66, 72, 81, .045);
 }
 
 .folder-card-name {
   max-width: 100%;
-  margin-bottom: 2px;
+  margin: 0 auto;
   overflow: hidden;
   color: var(--text);
-  font-size: 14.5px;
+  font-size: 14px;
   font-style: normal;
   font-weight: 650;
   letter-spacing: -0.01em;
@@ -355,15 +419,14 @@
 }
 
 .folder-card-count {
-  color: var(--text-tertiary);
-  font-size: 12px;
-  font-style: normal;
+  display: none;
 }
 
 .folder-card-del {
   position: absolute;
-  top: 12px;
-  right: 12px;
+  z-index: 4;
+  top: 14px;
+  right: 14px;
   width: 24px;
   height: 24px;
   opacity: 0;
@@ -393,7 +456,7 @@
 }
 
 .section-divider {
-  margin: 26px 0 14px;
+  margin: 18px 0 12px;
   display: flex;
   align-items: center;
   gap: 12px;
@@ -402,6 +465,77 @@
   font-weight: 650;
   letter-spacing: .05em;
   text-transform: uppercase;
+}
+
+.folder-list-toolbar {
+  min-height: 52px;
+  margin: 2px 0 14px;
+  padding: 8px 0 9px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-bottom: 1px solid color-mix(in srgb, var(--border) 76%, transparent);
+}
+
+.folder-list-toolbar > div:first-child {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.folder-list-eyebrow {
+  color: #9ca3aa;
+  font-size: 9px;
+  font-weight: 760;
+  letter-spacing: .13em;
+}
+
+.folder-list-toolbar strong {
+  color: var(--text-secondary);
+  font-size: 12px;
+  font-weight: 620;
+}
+
+.folder-view-buttons {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px;
+  border-radius: 11px;
+  background: color-mix(in srgb, var(--panel) 65%, #eef1f4 35%);
+}
+
+.folder-view-buttons button {
+  min-width: 68px;
+  height: 32px;
+  padding: 0 9px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: #8e969e;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.folder-view-buttons button.active {
+  background: #fff;
+  color: #648a80;
+  box-shadow: 0 3px 10px rgba(73, 84, 93, .08);
+}
+
+.folder-view-buttons svg {
+  width: 14px;
+  height: 14px;
+  fill: none;
+  stroke: currentColor;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 1.45;
 }
 
 .section-divider::after {
@@ -418,6 +552,17 @@
   grid-template-columns:
     repeat(auto-fill, minmax(220px, 1fr));
   gap: 14px;
+}
+
+.note-grid.folder-preview-grid {
+  grid-template-columns:
+    repeat(auto-fill, minmax(228px, 1fr));
+  gap: 20px;
+}
+
+.note-grid.folder-text-list {
+  grid-template-columns: 1fr;
+  gap: 0;
 }
 
 .note-grid.list-mode {
@@ -445,6 +590,282 @@
 .note-card:hover {
   box-shadow: var(--shadow-md);
   transform: translateY(-2px);
+}
+
+.folder-preview-card.note-card {
+  min-height: 326px;
+  padding: 0;
+  gap: 0;
+  overflow: hidden;
+  border-color: rgba(92, 101, 112, .11);
+  border-radius: 15px;
+  background: #fff;
+  box-shadow: 0 14px 30px rgba(71, 78, 88, .075);
+}
+
+.folder-preview-media {
+  position: relative;
+  height: 238px;
+  flex: 0 0 238px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(92, 101, 112, .08);
+  background:
+    color-mix(in srgb, var(--folder-color) 8%, #fafafa 92%);
+}
+
+.folder-preview-media > span,
+.folder-preview-media > img {
+  width: 100%;
+  height: 100%;
+}
+
+.folder-preview-cover {
+  display: block;
+  object-fit: cover;
+}
+
+.folder-preview-star {
+  position: absolute;
+  z-index: 5;
+  top: 11px;
+  right: 11px;
+  display: grid;
+  width: 29px !important;
+  height: 29px !important;
+  place-items: center;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .9);
+  color: #e6c56d;
+  box-shadow: 0 4px 12px rgba(62, 64, 69, .09);
+}
+
+.folder-preview-star svg {
+  width: 14px;
+  height: 14px;
+  fill: currentColor;
+  stroke: none;
+}
+
+.folder-preview-copy {
+  min-height: 88px;
+  padding: 14px 16px 15px;
+  display: flex;
+  flex-direction: column;
+}
+
+.folder-preview-copy > span {
+  margin-bottom: 5px;
+  color: #779d94;
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: .1em;
+}
+
+.folder-preview-copy strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 680;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-preview-copy small {
+  margin-top: auto;
+  color: var(--text-tertiary);
+  font-size: 10px;
+}
+
+.folder-preview-memo,
+.folder-preview-postit,
+.folder-preview-link,
+.folder-preview-board {
+  position: relative;
+  display: block;
+  overflow: hidden;
+}
+
+.folder-preview-memo-copy {
+  position: absolute;
+  inset: 18px;
+  overflow: hidden;
+  color: #5c4a41;
+  font-size: 10px;
+  line-height: 1.8;
+}
+
+.folder-preview-memo-copy h3 {
+  margin: 0 0 7px;
+  font-size: 13px;
+}
+
+.folder-preview-memo-copy p {
+  margin: 0 0 7px;
+}
+
+.folder-preview-memo-copy img {
+  display: block;
+  max-width: 88%;
+  max-height: 135px;
+  margin: 8px auto;
+  object-fit: cover;
+}
+
+.folder-preview-board .moodboard-album-item {
+  position: absolute;
+}
+
+.folder-preview-drawing {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+}
+
+.folder-preview-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(83, 89, 96, .45);
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: .12em;
+}
+
+.folder-preview-postit {
+  padding: 32px 27px;
+  background:
+    radial-gradient(circle at 15% 20%, rgba(92, 54, 33, .035) 0 1px, transparent 1.5px) 0 0 / 8px 8px,
+    color-mix(in srgb, var(--folder-color) 14%, #fef7cb 86%);
+  color: #5c4a41;
+}
+
+.folder-preview-postit b,
+.folder-preview-postit span {
+  display: block;
+}
+
+.folder-preview-postit b {
+  margin-bottom: 25px;
+  font-size: 12px;
+  letter-spacing: .15em;
+}
+
+.folder-preview-postit span {
+  padding-bottom: 9px;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(92, 54, 33, .27);
+  font-size: 10px;
+  line-height: 1.7;
+}
+
+.folder-preview-link {
+  padding: 30px;
+  background:
+    linear-gradient(135deg, rgba(172, 188, 205, .18), rgba(255,255,255,.92));
+  color: #596979;
+}
+
+.folder-preview-link > span {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  margin-bottom: 34px;
+  place-items: center;
+  border: 1px solid rgba(89, 105, 121, .18);
+  border-radius: 50%;
+  font-size: 18px;
+}
+
+.folder-preview-link b,
+.folder-preview-link small {
+  display: block;
+}
+
+.folder-preview-link b {
+  margin-bottom: 8px;
+  font-size: 15px;
+}
+
+.folder-preview-link small {
+  overflow: hidden;
+  color: #84909b;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-text-row.note-card {
+  min-height: 54px;
+  padding: 10px 9px;
+  display: grid;
+  grid-template-columns: 72px minmax(170px, .7fr) minmax(240px, 1.5fr) 118px 90px 20px;
+  align-items: center;
+  gap: 14px;
+  border: 0;
+  border-bottom: 1px solid rgba(89, 100, 114, .105);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.folder-text-row.note-card:hover {
+  background: rgba(137, 171, 163, .055);
+  box-shadow: none;
+  transform: none;
+}
+
+.folder-text-template {
+  color: #70958c;
+  font-size: 8px;
+  font-weight: 780;
+  letter-spacing: .08em;
+}
+
+.folder-text-title,
+.folder-text-summary,
+.folder-text-folder {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.folder-text-title {
+  font-size: 12px;
+  font-weight: 650;
+}
+
+.folder-text-summary,
+.folder-text-folder,
+.folder-text-row time {
+  color: var(--text-tertiary);
+  font-size: 10.5px;
+}
+
+.folder-text-folder {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.folder-text-folder i {
+  width: 7px;
+  height: 7px;
+  flex: 0 0 auto;
+  border-radius: 2px;
+  background: var(--folder-color);
+}
+
+.folder-text-row time {
+  text-align: right;
+}
+
+.folder-text-star {
+  color: #e1c065;
+  text-align: center;
 }
 
 .list-mode .note-card {
@@ -2385,6 +2806,30 @@
 }
 
 @media (max-width: 900px) {
+  .folder-grid {
+    grid-auto-columns: 168px;
+    gap: 17px;
+  }
+  .folder-card {
+    width: 168px;
+  }
+  .folder-icon {
+    width: 156px;
+    height: 98px;
+  }
+  .folder-icon::after {
+    height: 79px;
+  }
+  .folder-context-current {
+    min-width: 190px;
+  }
+  .folder-text-row.note-card {
+    grid-template-columns:
+      62px minmax(150px, 1fr) 110px 82px 18px;
+  }
+  .folder-text-summary {
+    display: none;
+  }
   .memo-album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .moodboard-album-grid {
     grid-template-columns:
@@ -2398,6 +2843,45 @@
 }
 
 @media (max-width: 560px) {
+  .folder-context {
+    align-items: center;
+  }
+  .folder-context-current {
+    min-width: 150px;
+  }
+  .folder-context-icon {
+    width: 124px;
+    height: 78px;
+  }
+  .folder-context-icon::before {
+    width: 106px;
+    height: 62px;
+  }
+  .folder-context-icon::after {
+    height: 56px;
+  }
+  .folder-list-toolbar {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .folder-view-buttons {
+    width: 100%;
+  }
+  .folder-view-buttons button {
+    min-width: 0;
+    flex: 1;
+  }
+  .note-grid.folder-preview-grid {
+    grid-template-columns: 1fr;
+  }
+  .folder-text-row.note-card {
+    grid-template-columns:
+      54px minmax(0, 1fr) 72px 16px;
+  }
+  .folder-text-folder,
+  .folder-text-summary {
+    display: none;
+  }
   .memo-format-toolbar { align-items: flex-start; }
   .memo-column-tools { display: none; }
   .memo-editor-skin { padding: 28px 20px; }

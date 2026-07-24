@@ -551,6 +551,117 @@
     })[note.template || 'memo'];
   }
 
+  function folderPreviewMarkup(note) {
+    const template =
+      note.template || 'memo';
+
+    if (template === 'collection') {
+      const data =
+        note.collectionData || {};
+
+      return data.cover
+        ? `
+          <img
+            class="folder-preview-cover"
+            src="${escapeHtml(data.cover)}"
+            alt=""
+          >
+        `
+        : `
+          <span class="folder-preview-empty">
+            ${escapeHtml(data.type || 'COLLECTION')}
+          </span>
+        `;
+    }
+
+    if (template === 'moodboard') {
+      const data =
+        note.moodboard || {
+          items: [],
+          skin: 'plain',
+          drawing: ''
+        };
+
+      return `
+        <span class="folder-preview-board moodboard-skin-${escapeHtml(data.skin || 'plain')}">
+          ${
+            data.drawing
+              ? `
+                <img
+                  class="folder-preview-drawing"
+                  src="${escapeHtml(data.drawing)}"
+                  alt=""
+                >
+              `
+              : ''
+          }
+          ${
+            (data.items || [])
+              .slice(0, 8)
+              .map(moodboardPreviewItem)
+              .join('')
+          }
+          ${
+            !data.drawing
+            && !(data.items || []).length
+              ? '<span class="folder-preview-empty">MOODBOARD</span>'
+              : ''
+          }
+        </span>
+      `;
+    }
+
+    if (template === 'memo') {
+      const memo =
+        ensureMemoData(note);
+
+      return `
+        <span class="folder-preview-memo memo-skin-${escapeHtml(memo.skin)}">
+          <span class="folder-preview-memo-copy">
+            ${
+              sanitizeMemoHtml(memo.html)
+              || '<span class="folder-preview-empty">아직 작성된 내용이 없어요.</span>'
+            }
+          </span>
+        </span>
+      `;
+    }
+
+    if (template === 'todo') {
+      const data =
+        ensurePostitData(note);
+
+      return `
+        <span class="folder-preview-postit postit-skin-${escapeHtml(data.skin)}">
+          <b>${escapeHtml(data.heading || 'POST-IT')}</b>
+          <span>
+            ${escapeHtml(noteCardPreview(note))}
+          </span>
+        </span>
+      `;
+    }
+
+    const data =
+      note.linkData || {};
+    let domain = '';
+
+    try {
+      domain =
+        new URL(data.url).hostname
+          .replace(/^www\./, '');
+    } catch (_error) {
+      domain = data.url || '';
+    }
+
+    return `
+      <span class="folder-preview-link">
+        <span>↗</span>
+        <b>${escapeHtml(domain || 'SAVED LINK')}</b>
+        <small>${escapeHtml(data.description || '바로가기를 저장한 링크예요.')}</small>
+      </span>
+    `;
+  }
+
   function isTemplateArchiveView() {
     return (
       currentView === 'all'
@@ -860,6 +971,8 @@
     }
 
     let notes = getFilteredNotes();
+    const folderListMode =
+      browseMode === 'folder';
     const memoAlbumMode =
       currentView === 'all'
       && browseMode === 'template'
@@ -891,6 +1004,27 @@
 
     $('#templateListBar').hidden =
       !templateListMode;
+
+    $('#folderListToolbar').hidden =
+      !folderListMode;
+
+    if (folderListMode) {
+      $('#folderListResultCount')
+        .textContent =
+          `${notes.length}개의 자료`;
+
+      document
+        .querySelectorAll(
+          '[data-folder-view]'
+        )
+        .forEach(button => {
+          button.classList.toggle(
+            'active',
+            button.dataset.folderView
+              === folderNoteViewMode
+          );
+        });
+    }
 
     if (templateListMode) {
       const query =
@@ -948,6 +1082,16 @@
     noteGrid.classList.toggle(
       'collection-album-grid',
       collectionAlbumMode
+    );
+    noteGrid.classList.toggle(
+      'folder-preview-grid',
+      folderListMode
+      && folderNoteViewMode === 'preview'
+    );
+    noteGrid.classList.toggle(
+      'folder-text-list',
+      folderListMode
+      && folderNoteViewMode === 'text'
     );
 
     noteGrid.innerHTML = '';
@@ -1027,7 +1171,69 @@
         !folder
       );
 
-      card.innerHTML = `
+      if (
+        folderListMode
+        && folderNoteViewMode === 'preview'
+      ) {
+        card.classList.add(
+          'folder-preview-card'
+        );
+
+        card.innerHTML = `
+          <div class="folder-preview-media">
+            ${folderPreviewMarkup(note)}
+            ${
+              note.starred
+                ? `
+                  <span class="folder-preview-star">
+                    <svg viewBox="0 0 24 24">
+                      <path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z"/>
+                    </svg>
+                  </span>
+                `
+                : ''
+            }
+          </div>
+          <div class="folder-preview-copy">
+            <span>${escapeHtml(templateCardLabel(note))}</span>
+            <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+            <small>
+              ${escapeHtml(folder?.name || '폴더 없음')}
+              · ${formatDate(note.updatedAt)}
+            </small>
+          </div>
+        `;
+      } else if (
+        folderListMode
+        && folderNoteViewMode === 'text'
+      ) {
+        card.classList.add(
+          'folder-text-row'
+        );
+
+        card.innerHTML = `
+          <span class="folder-text-template">
+            ${escapeHtml(templateCardLabel(note))}
+          </span>
+          <strong class="folder-text-title">
+            ${escapeHtml(note.title || '제목 없음')}
+          </strong>
+          <span class="folder-text-summary">
+            ${escapeHtml(noteCardPreview(note) || '내용 없음')}
+          </span>
+          <span class="folder-text-folder">
+            <i style="--folder-color:${escapeHtml(folder?.color || '#C3C2D9')}"></i>
+            ${escapeHtml(folder?.name || '폴더 없음')}
+          </span>
+          <time>${formatDate(note.updatedAt)}</time>
+          ${
+            note.starred
+              ? '<span class="folder-text-star">★</span>'
+              : '<span class="folder-text-star"></span>'
+          }
+        `;
+      } else {
+        card.innerHTML = `
         ${
           archiveSelectionMode
             ? archiveSelectionButton(note.id)
@@ -1084,7 +1290,8 @@
               `
           }
         </div>
-      `;
+        `;
+      }
 
       card.addEventListener(
         'click',

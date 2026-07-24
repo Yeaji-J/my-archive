@@ -59,12 +59,11 @@ function renderHomeLibraryStrip() {
   const folderWrap = $('#homeFolderShortcuts');
   const noteWrap = $('#homeNoteShortcuts');
 
-  folderWrap.innerHTML = state.folders.slice(0, 4).map(folder => {
-    const count = state.notes.filter(note => note.folderId === folder.id).length;
+  folderWrap.innerHTML = state.folders.slice(0, 3).map(folder => {
     return `
       <button class="home-folder-link" type="button" data-folder-id="${folder.id}">
         <span class="home-mini-folder" style="--folder-color:${folder.color}"></span>
-        <span><strong>${escapeHtml(folder.name)}</strong><small>${count}개 자료</small></span>
+        <strong>${escapeHtml(folder.name)}</strong>
       </button>
     `;
   }).join('');
@@ -72,13 +71,18 @@ function renderHomeLibraryStrip() {
   noteWrap.innerHTML = state.notes
     .slice()
     .sort((first, second) => second.updatedAt - first.updatedAt)
-    .slice(0, 6)
+    .slice(0, 8)
     .map(note => {
       const folder = state.folders.find(item => item.id === note.folderId);
       const color = folder?.color || '#dfe4e9';
-      const summary = note.content.trim().replace(/\s+/g, ' ') || '내용 없음';
+      const summary =
+        noteCardPreview(note)
+          .trim()
+          .replace(/\s+/g, ' ')
+        || '내용 없음';
       return `
         <button class="home-note-link" type="button" data-note-id="${note.id}" style="--folder-color:${color}">
+          <em>${escapeHtml(templateCardLabel(note))}</em>
           <strong>${escapeHtml(note.title || '제목 없음')}</strong>
           <span>${escapeHtml(summary)}</span>
           <small><i></i>${escapeHtml(folder?.name || '폴더 없음')} · ${formatDate(note.updatedAt)}</small>
@@ -113,7 +117,15 @@ function updateHomeStripPosition() {
 
 function moveHomeStrip(direction) {
   const viewport = $('#homeLibraryViewport');
-  homeStripPosition += direction * Math.max(260, viewport.clientWidth * .72);
+  homeStripPosition +=
+    direction
+    * Math.max(
+      224,
+      Math.min(
+        viewport.clientWidth * .72,
+        896
+      )
+    );
   updateHomeStripPosition();
 }
 

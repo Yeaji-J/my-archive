@@ -964,6 +964,24 @@ const STORAGE_KEY = 'archive.data.v1';
   let searchTerm = '';
   let gridMode = true;
   let browseMode = 'folder';
+  let folderNoteViewMode = (() => {
+    try {
+      const saved =
+        localStorage.getItem(
+          'archive.folder-note-view.v1'
+        );
+
+      return [
+        'mixed',
+        'preview',
+        'text'
+      ].includes(saved)
+        ? saved
+        : 'mixed';
+    } catch (_error) {
+      return 'mixed';
+    }
+  })();
   let browseTemplate = 'all';
   let browseSecondaryFilter = 'all';
   let memoAlbumPage = 1;

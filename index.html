@@ -23,11 +23,11 @@
   </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/base.css?v=20260724-save-sync1">
-  <link rel="stylesheet" href="css/notes.css?v=20260724-list-toolbar1">
+  <link rel="stylesheet" href="css/notes.css?v=20260724-folder-browser1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260724-template-fix1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
-  <link rel="stylesheet" href="css/home.css?v=20260724-media4">
+  <link rel="stylesheet" href="css/home.css?v=20260724-folder-browser1">
   <link rel="stylesheet" href="css/responsive-theme.css?v=20260724-media4">
   <link rel="stylesheet" href="css/theme.css?v=20260724-skin-switch1">
 </head>
@@ -410,6 +410,27 @@
           id="notesDividerWrap"
         >
           <span>모든 자료</span>
+        </div>
+
+        <div class="folder-list-toolbar" id="folderListToolbar" hidden>
+          <div>
+            <span class="folder-list-eyebrow">ARCHIVE VIEW</span>
+            <strong id="folderListResultCount">0개의 자료</strong>
+          </div>
+          <div class="folder-view-buttons" aria-label="폴더 자료 보기 방식">
+            <button type="button" class="active" data-folder-view="mixed" title="기본 카드" aria-label="기본 카드로 보기">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
+              <span>기본</span>
+            </button>
+            <button type="button" data-folder-view="preview" title="미리보기 카드" aria-label="미리보기 카드로 보기">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="2"/><path d="M3 13h8"/><rect x="13" y="3" width="8" height="18" rx="2"/><path d="M13 13h8"/></svg>
+              <span>미리보기</span>
+            </button>
+            <button type="button" data-folder-view="text" title="텍스트 목록" aria-label="텍스트 목록으로 보기">
+              <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="3" cy="6" r=".7"/><circle cx="3" cy="12" r=".7"/><circle cx="3" cy="18" r=".7"/></svg>
+              <span>목록</span>
+            </button>
+          </div>
         </div>
 
         <div class="template-list-bar" id="templateListBar" hidden>
@@ -1479,20 +1500,20 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260724-autosave2"></script>
-  <script src="js/notes.js?v=20260724-list-toolbar1"></script>
+  <script src="js/core.js?v=20260724-folder-browser1"></script>
+  <script src="js/notes.js?v=20260724-folder-browser1"></script>
   <script src="js/todo.js?v=20260724-save-sync1"></script>
   <script src="js/folders.js?v=20260724-media4"></script>
   <script src="js/auth.js?v=20260724-media4"></script>
   <script src="js/chat.js?v=20260724-save-sync1"></script>
   <script src="js/calendar.js?v=20260724-media4"></script>
-  <script src="js/home.js?v=20260724-save-sync1"></script>
+  <script src="js/home.js?v=20260724-folder-browser1"></script>
   <script src="js/memo.js?v=20260724-save-sync1"></script>
   <script src="js/moodboard.js?v=20260724-writer-rail1"></script>
   <script src="js/templates.js?v=20260724-writer-rail1"></script>
   <script src="js/note-view.js?v=20260724-templates345"></script>
   <script src="js/router.js?v=20260724-media4"></script>
-  <script src="js/events.js?v=20260724-autosave2"></script>
+  <script src="js/events.js?v=20260724-folder-browser1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
 </body>
 

@@ -44,7 +44,7 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  min-height: 122px;
+  min-height: 214px;
   margin-bottom: 30px;
   padding: 0;
 }
@@ -72,46 +72,81 @@
 
 .home-folder-link {
   display: flex;
-  width: 152px;
-  flex: 0 0 152px;
+  width: 176px;
+  flex: 0 0 176px;
+  flex-direction: column;
   align-items: center;
-  gap: 11px;
-  padding: 12px;
+  gap: 10px;
+  padding: 8px 6px 5px;
   border: 0;
   border-radius: 11px;
   background: transparent;
   color: #4c5159;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
 }
 
-.home-folder-link:hover { background: rgba(130, 165, 207, .07); }
+.home-folder-link:hover {
+  background: transparent;
+  transform: translateY(-2px);
+}
 
 .home-mini-folder {
   position: relative;
-  width: 40px;
-  height: 32px;
+  width: 164px;
+  height: 108px;
   flex: 0 0 auto;
-  border-radius: 5px 7px 7px 7px;
-  background: color-mix(in srgb, var(--folder-color) 72%, #fff 28%);
-  box-shadow: inset 0 -7px 12px rgba(75, 91, 111, .04);
+  filter: drop-shadow(0 9px 9px rgba(73, 83, 94, .095));
 }
 
 .home-mini-folder::before {
   position: absolute;
-  top: -5px;
-  left: 0;
-  width: 19px;
-  height: 8px;
-  border-radius: 5px 5px 0 0;
-  background: inherit;
+  z-index: 0;
+  top: 8px;
+  left: 3px;
+  width: 74px;
+  height: 22px;
+  border: 1px solid rgba(62, 69, 78, .1);
+  border-bottom: 0;
+  border-radius: 11px 12px 0 0;
+  background:
+    color-mix(
+      in srgb,
+      var(--folder-color) 64%,
+      #fff 36%
+    );
   content: "";
 }
 
-.home-folder-link strong,
-.home-folder-link small { display: block; white-space: nowrap; }
-.home-folder-link strong { margin-bottom: 5px; font-size: 12px; }
-.home-folder-link small { color: #adb1b8; font-size: 9px; }
+.home-mini-folder::after {
+  position: absolute;
+  z-index: 1;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  height: 87px;
+  border: 1px solid rgba(62, 69, 78, .11);
+  border-radius: 8px 12px 14px 14px;
+  background:
+    linear-gradient(
+      155deg,
+      color-mix(in srgb, var(--folder-color) 70%, #fff 30%),
+      color-mix(in srgb, var(--folder-color) 87%, #fff 13%)
+    );
+  box-shadow:
+    inset 0 7px 12px rgba(255, 255, 255, .18),
+    inset 0 -9px 14px rgba(66, 72, 81, .045);
+  content: "";
+}
+
+.home-folder-link strong {
+  display: block;
+  max-width: 158px;
+  overflow: hidden;
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 
 .home-strip-divider {
   width: 1px;
@@ -121,9 +156,10 @@
 }
 
 .home-note-link {
-  width: 205px;
-  flex: 0 0 205px;
-  padding: 13px 14px;
+  width: 210px;
+  min-height: 184px;
+  flex: 0 0 210px;
+  padding: 18px 17px 15px;
   overflow: hidden;
   border: 1px solid color-mix(in srgb, var(--folder-color) 20%, rgba(80, 91, 109, .06) 80%);
   border-radius: 12px;
@@ -136,15 +172,35 @@
 .home-note-link:hover { transform: translateY(-2px); box-shadow: 0 8px 18px rgba(70, 82, 101, .06); }
 .home-note-link strong,
 .home-note-link span,
-.home-note-link small { display: block; }
-.home-note-link strong { overflow: hidden; font-size: 11px; text-overflow: ellipsis; white-space: nowrap; }
-.home-note-link span { height: 30px; margin: 7px 0 9px; overflow: hidden; color: #8c9199; font-size: 9px; line-height: 1.65; }
-.home-note-link small { overflow: hidden; color: #b1b5bc; font-size: 8px; text-overflow: ellipsis; white-space: nowrap; }
+.home-note-link small,
+.home-note-link em { display: block; }
+.home-note-link em {
+  margin-bottom: 11px;
+  color: #759b92;
+  font-size: 8px;
+  font-style: normal;
+  font-weight: 760;
+  letter-spacing: .1em;
+}
+.home-note-link strong { overflow: hidden; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
+.home-note-link span {
+  height: 62px;
+  margin: 10px 0 14px;
+  display: -webkit-box;
+  overflow: hidden;
+  color: #80868f;
+  font-size: 10px;
+  line-height: 1.65;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 4;
+}
+.home-note-link small { overflow: hidden; color: #aaafb6; font-size: 8.5px; text-overflow: ellipsis; white-space: nowrap; }
 .home-note-link i { display: inline-block; width: 5px; height: 5px; margin-right: 5px; border-radius: 50%; background: var(--folder-color); }
 
 .home-strip-more {
-  width: 58px;
-  flex: 0 0 58px;
+  width: 64px;
+  min-height: 184px;
+  flex: 0 0 64px;
   border: 0;
   border-radius: 10px;
   background: rgba(130, 165, 207, .08);

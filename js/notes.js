@@ -777,16 +777,10 @@
       showFolders
       && state.folders.length
         ? 'flex'
-        : browseMode === 'template'
-          ? 'flex'
-          : 'none';
+        : 'none';
 
     notesDividerWrap.querySelector('span').textContent =
-      browseMode === 'template'
-        ? browseTemplate === 'all'
-          ? '모든 템플릿'
-          : templateCardLabel({ template: browseTemplate })
-        : '모든 자료';
+      '모든 자료';
 
     folderGrid.innerHTML = '';
 
@@ -919,8 +913,6 @@
         collection: ['05 · COLLECTION', '컬렉션']
       }[browseTemplate];
 
-      $('#templateListTitle').textContent =
-        listMeta?.[0] || 'TEMPLATE ARCHIVE';
       $('#templateListResultCount')
         .textContent =
           `${notes.length}개의 ${

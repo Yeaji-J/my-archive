@@ -23,7 +23,7 @@
   </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/base.css?v=20260724-save-sync1">
-  <link rel="stylesheet" href="css/notes.css?v=20260724-writer-rail1">
+  <link rel="stylesheet" href="css/notes.css?v=20260724-list-toolbar1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260724-template-fix1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -412,36 +412,38 @@
           <span>모든 자료</span>
         </div>
 
-        <div class="archive-bulk-bar" id="archiveBulkBar" hidden>
-          <div class="archive-bulk-summary">
-            <button class="archive-select-toggle" id="archiveSelectModeBtn" type="button">
-              선택
-            </button>
-            <button class="archive-bulk-action" id="archiveSelectAllBtn" type="button" hidden>
-              전체 선택
-            </button>
-            <button class="archive-bulk-action" id="archiveClearSelectionBtn" type="button" hidden>
-              선택 해제
-            </button>
-            <span id="archiveSelectedCount" hidden>0개 선택</span>
-          </div>
-          <button class="archive-bulk-delete" id="archiveBulkDeleteBtn" type="button" hidden disabled>
-            선택 삭제
-          </button>
-        </div>
-
         <div class="template-list-bar" id="templateListBar" hidden>
-          <div>
-            <strong id="templateListTitle">TEMPLATE ARCHIVE</strong>
-            <span id="templateListResultCount">0개의 자료</span>
+          <span class="template-list-count" id="templateListResultCount">
+            0개의 자료
+          </span>
+
+          <div class="template-list-controls">
+            <label class="template-list-search">
+              <svg viewBox="0 0 24 24">
+                <circle cx="11" cy="11" r="7" stroke-width="1.6" />
+                <path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" />
+              </svg>
+              <input type="search" id="templateListSearch" placeholder="제목과 내용 검색">
+            </label>
+
+            <div class="archive-bulk-bar" id="archiveBulkBar" hidden>
+              <div class="archive-bulk-summary">
+                <button class="archive-select-toggle" id="archiveSelectModeBtn" type="button">
+                  선택
+                </button>
+                <button class="archive-bulk-action" id="archiveSelectAllBtn" type="button" hidden>
+                  전체 선택
+                </button>
+                <button class="archive-bulk-action" id="archiveClearSelectionBtn" type="button" hidden>
+                  선택 해제
+                </button>
+                <span id="archiveSelectedCount" hidden>0개 선택</span>
+              </div>
+              <button class="archive-bulk-delete" id="archiveBulkDeleteBtn" type="button" hidden disabled>
+                선택 삭제
+              </button>
+            </div>
           </div>
-          <label class="template-list-search">
-            <svg viewBox="0 0 24 24">
-              <circle cx="11" cy="11" r="7" stroke-width="1.6" />
-              <path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" />
-            </svg>
-            <input type="search" id="templateListSearch" placeholder="제목과 내용 검색">
-          </label>
         </div>
 
         <div class="note-grid" id="noteGrid"></div>
@@ -1478,7 +1480,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/core.js?v=20260724-autosave2"></script>
-  <script src="js/notes.js?v=20260724-writer-rail1"></script>
+  <script src="js/notes.js?v=20260724-list-toolbar1"></script>
   <script src="js/todo.js?v=20260724-save-sync1"></script>
   <script src="js/folders.js?v=20260724-media4"></script>
   <script src="js/auth.js?v=20260724-media4"></script>

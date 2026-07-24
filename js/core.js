@@ -635,8 +635,8 @@ const STORAGE_KEY = 'archive.data.v1';
   const colorSwatches =
     $('#colorSwatches');
 
-  const viewToggleBtn =
-    $('#viewToggleBtn');
+  const homeShortcutBtn =
+    $('#homeShortcutBtn');
 
   const authBtn = $('#authBtn');
   const accountAvatar =

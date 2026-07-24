@@ -5,6 +5,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Archive — 나만의 자료 정리 공간</title>
+  <script>
+    try {
+      const savedSkin =
+        localStorage.getItem(
+          'archive.skin.v1'
+        );
+
+      document.documentElement.dataset.skin =
+        savedSkin === 'paper'
+          ? 'paper'
+          : 'pastel';
+    } catch (_error) {
+      document.documentElement.dataset.skin =
+        'pastel';
+    }
+  </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/base.css?v=20260724-save-sync1">
   <link rel="stylesheet" href="css/notes.css?v=20260724-writer-rail1">
@@ -13,6 +29,7 @@
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
   <link rel="stylesheet" href="css/home.css?v=20260724-media4">
   <link rel="stylesheet" href="css/responsive-theme.css?v=20260724-media4">
+  <link rel="stylesheet" href="css/theme.css?v=20260724-skin-switch1">
 </head>
 
 <body>
@@ -248,14 +265,33 @@
 
           <button
             class="pill-btn"
-            id="viewToggleBtn"
-            title="보기 전환"
+            id="homeShortcutBtn"
+            title="홈 대시보드"
+            aria-label="홈 대시보드로 이동"
           >
-            <svg viewBox="0 0 24 24" id="viewToggleIcon">
-              <rect x="4" y="4" width="7" height="7" rx="1.6" />
-              <rect x="13" y="4" width="7" height="7" rx="1.6" />
-              <rect x="4" y="13" width="7" height="7" rx="1.6" />
-              <rect x="13" y="13" width="7" height="7" rx="1.6" />
+            <svg viewBox="0 0 24 24">
+              <path
+                d="M4 10.5L12 4l8 6.5V20h-5v-5H9v5H4z"
+                stroke-linecap="round"
+                stroke-linejoin="round"
+                stroke-width="1.6"
+              />
+            </svg>
+          </button>
+
+          <button
+            class="pill-btn skin-toggle-btn"
+            id="skinToggleBtn"
+            title="빈티지 페이퍼 스킨으로 변경"
+            aria-label="홈페이지 스킨 변경"
+            aria-pressed="false"
+          >
+            <svg viewBox="0 0 24 24">
+              <circle cx="12" cy="12" r="8" stroke-width="1.6" />
+              <path
+                d="M12 4a8 8 0 010 16z"
+                stroke="none"
+              />
             </svg>
           </button>
 
@@ -1455,6 +1491,7 @@
   <script src="js/note-view.js?v=20260724-templates345"></script>
   <script src="js/router.js?v=20260724-media4"></script>
   <script src="js/events.js?v=20260724-writer-rail1"></script>
+  <script src="js/theme.js?v=20260724-skin-switch1"></script>
 </body>
 
 </html>

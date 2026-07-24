@@ -808,17 +808,10 @@
     );
   });
 
-  viewToggleBtn.addEventListener(
+  homeShortcutBtn.addEventListener(
     'click',
     () => {
-      gridMode = !gridMode;
-
-      viewToggleBtn.classList.toggle(
-        'active-grid',
-        !gridMode
-      );
-
-      renderFolderGridView();
+      setView('home');
     }
   );
 

@@ -461,7 +461,11 @@ async function addMoodboardImages(
   renderMoodboard();
 }
 
-function compressMoodboardImage(file) {
+function compressMoodboardImage(
+  file,
+  limit = 1400,
+  quality = .78
+) {
   return new Promise((resolve, reject) => {
     const reader = new FileReader();
     reader.onerror = reject;
@@ -469,13 +473,17 @@ function compressMoodboardImage(file) {
       const image = new Image();
       image.onerror = reject;
       image.onload = () => {
-        const limit = 1600;
         const scale = Math.min(1, limit / Math.max(image.width, image.height));
         const canvas = document.createElement('canvas');
         canvas.width = Math.round(image.width * scale);
         canvas.height = Math.round(image.height * scale);
         canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', .82));
+        resolve(
+          canvas.toDataURL(
+            'image/jpeg',
+            quality
+          )
+        );
       };
       image.src = reader.result;
     };

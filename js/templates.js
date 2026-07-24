@@ -12,15 +12,23 @@ const templateAlbumPages = {
   collection: 1
 };
 
-function scheduleTemplateDataSave() {
+function scheduleTemplateDataSave(
+  targetNote = getCurrentNote()
+) {
+  const note = targetNote;
+  if (!note) return;
+
+  note.updatedAt = Date.now();
+  updateEditorMeta(note);
+  saveData();
+
   clearTimeout(templateDataSaveTimer);
   templateDataSaveTimer = setTimeout(() => {
-    const note = getCurrentNote();
-    if (!note) return;
-    note.updatedAt = Date.now();
-    updateEditorMeta(note);
-    saveData();
-    renderTemplateLibraryBar(note.template || 'memo');
+    if (getCurrentNote()?.id === note.id) {
+      renderTemplateLibraryBar(
+        note.template || 'memo'
+      );
+    }
   }, 350);
 }
 
@@ -612,9 +620,16 @@ async function setCollectionCover(
 ) {
   const note = getCurrentNote();
   if (!file || !note) return;
-  ensureCollectionData(note).cover = await compressMoodboardImage(file);
-  renderCollectionEditor();
-  scheduleTemplateDataSave();
+  ensureCollectionData(note).cover =
+    await compressMoodboardImage(
+      file,
+      1000,
+      .74
+    );
+  if (getCurrentNote()?.id === note.id) {
+    renderCollectionEditor();
+  }
+  scheduleTemplateDataSave(note);
 }
 
 $('#collectionCoverInput').addEventListener('change', async event => {

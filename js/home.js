@@ -314,14 +314,19 @@ async function openQuickChatNote() {
     return;
   }
 
-  if (!chatRooms.length) {
-    await loadChatRooms();
-  }
+  /*
+   * 채팅 페이지와 같은 최신 방 목록을 기준으로
+   * 퀵메뉴를 열 때마다 다시 동기화합니다.
+   */
+  await loadChatRooms();
 
   renderQuickChatRooms();
 
   const selectedRoom =
     chatRooms.find(
+      room => room.id === activeRoomId
+    )
+    || chatRooms.find(
       room => room.id === quickChatRoomId
     )
     || chatRooms[0];
@@ -362,7 +367,7 @@ async function loadQuickChatRoom(room) {
     .select('*')
     .eq('room_id', room.id)
     .order('created_at', { ascending: true })
-    .limit(80);
+    .limit(500);
 
   if (error) {
     $('#quickChatLines').innerHTML = '<p>대화를 불러오지 못했어요.</p>';
@@ -544,6 +549,13 @@ async function sendQuickChatMessage(event) {
   }
 
   appendQuickChatMessage(data);
+  if (
+    typeof appendMessage === 'function'
+    && activeRoomId === quickChatRoomId
+  ) {
+    appendMessage(data);
+    scrollChatToBottom();
+  }
   loadChatRooms();
 }
 
@@ -562,3 +574,20 @@ $('#quickChatClose').addEventListener('click', () => {
   closeQuickChatSubscription();
 });
 $('#quickChatForm').addEventListener('submit', sendQuickChatMessage);
+
+window.addEventListener('focus', () => {
+  if (
+    !currentUser
+    || $('#quickChatNote').hidden
+    || !quickChatRoomId
+  ) {
+    return;
+  }
+
+  const room = chatRooms.find(
+    item => item.id === quickChatRoomId
+  );
+  if (room) {
+    loadQuickChatRoom(room);
+  }
+});

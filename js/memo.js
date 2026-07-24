@@ -345,13 +345,18 @@ function resizeMemoImage(file) {
     reader.onload = () => {
       const image = new Image();
       image.onload = () => {
-        const max = 1400;
+        const max = 1200;
         const scale = Math.min(1, max / Math.max(image.width, image.height));
         const canvas = document.createElement('canvas');
         canvas.width = Math.max(1, Math.round(image.width * scale));
         canvas.height = Math.max(1, Math.round(image.height * scale));
         canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
-        resolve(canvas.toDataURL('image/jpeg', .82));
+        resolve(
+          canvas.toDataURL(
+            'image/jpeg',
+            .76
+          )
+        );
       };
       image.onerror = reject;
       image.src = reader.result;

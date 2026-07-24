@@ -271,24 +271,24 @@ function postitDaysInMonth(value) {
 }
 
 function schedulePostitSave() {
+  const note =
+    typeof getCurrentNote === 'function'
+      ? getCurrentNote()
+      : null;
+
+  if (
+    !note
+    || note.template !== 'todo'
+  ) {
+    return;
+  }
+
+  note.updatedAt = Date.now();
+  updateEditorMeta(note);
+  saveData();
+
   clearTimeout(postitSaveTimer);
   postitSaveTimer = setTimeout(() => {
-    const note =
-      typeof getCurrentNote === 'function'
-        ? getCurrentNote()
-        : null;
-
-    if (
-      !note
-      || note.template !== 'todo'
-    ) {
-      return;
-    }
-
-    note.updatedAt = Date.now();
-    updateEditorMeta(note);
-    saveData();
-
     if (
       typeof renderTemplateLibraryBar
       === 'function'

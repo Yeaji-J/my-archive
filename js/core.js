@@ -325,10 +325,31 @@ const STORAGE_KEY = 'archive.data.v1';
   }
 
   function saveData() {
-    localStorage.setItem(
-      STORAGE_KEY,
-      JSON.stringify(state)
-    );
+    cloudMutationRevision += 1;
+
+    try {
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(state)
+      );
+    } catch (error) {
+      console.warn(
+        'Local archive save failed',
+        error
+      );
+
+      /*
+       * 이미지가 많이 포함되면 브라우저 저장 한도를
+       * 넘을 수 있습니다. 이 경우에도 아래의 클라우드
+       * 저장은 반드시 계속 진행합니다.
+       */
+      if (!currentUser) {
+        setSyncStatus(
+          '브라우저 저장공간 부족',
+          'error'
+        );
+      }
+    }
 
     scheduleCloudSave();
   }

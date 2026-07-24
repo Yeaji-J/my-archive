@@ -297,17 +297,13 @@ svg {
 }
 
 .nav-icon--all {
-  background:
-    linear-gradient(
-      145deg,
-      #8e8e93,
-      #636366
-    );
+  border: 1.5px solid #B8C39E;
+  background: transparent;
 }
 
 .nav-icon--star {
   display: flex;
-  color: #ff9f0a;
+  color: #E4D37F;
 }
 
 .nav-icon--star svg {
@@ -317,7 +313,7 @@ svg {
 
 .nav-icon--chat {
   display: flex;
-  color: #34c759;
+  color: #B8C39E;
 }
 
 .nav-icon--chat svg,
@@ -329,21 +325,28 @@ svg {
 
 .nav-icon--calendar {
   display: flex;
-  color: #ff3b30;
+  color: #B8C39E;
 }
 
 .nav-icon--todo {
   display: flex;
-  color: #f5c344;
+  color: #B8C39E;
 }
 
 .nav-item.active .nav-icon--all {
-  background:
-    linear-gradient(
-      145deg,
-      #5ac8fa,
-      #0071e3
-    );
+  border-color: #9CA078;
+  background: rgba(184, 195, 158, .18);
+}
+
+.sidebar .icon-btn,
+.sidebar .search-icon,
+.sidebar .folder-del {
+  color: #B8C39E;
+}
+
+.sidebar .icon-btn:hover,
+.sidebar .folder-del:hover {
+  color: #9CA078;
 }
 
 .nav-count {

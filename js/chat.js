@@ -636,6 +636,7 @@ function showChatImageFailure(
     if (!room) return;
 
     activeRoomId = roomId;
+    quickChatRoomId = roomId;
     clearPendingChatImage();
 
     renderedMessageIds.clear();
@@ -876,6 +877,16 @@ function showChatImageFailure(
             }
 
             appendMessage(payload.new);
+            if (
+              typeof appendQuickChatMessage
+                === 'function'
+              && quickChatRoomId === roomId
+              && !$('#quickChatNote').hidden
+            ) {
+              appendQuickChatMessage(
+                payload.new
+              );
+            }
             scrollChatToBottom();
             loadChatRooms();
           }
@@ -953,6 +964,14 @@ function showChatImageFailure(
       clearPendingChatImage();
 
       appendMessage(data);
+      if (
+        typeof appendQuickChatMessage
+          === 'function'
+        && quickChatRoomId === activeRoomId
+        && !$('#quickChatNote').hidden
+      ) {
+        appendQuickChatMessage(data);
+      }
       scrollChatToBottom();
       loadChatRooms();
     } catch (error) {

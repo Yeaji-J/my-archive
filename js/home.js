@@ -438,7 +438,7 @@ async function appendQuickChatMessage(message) {
     row.classList.remove('image');
     row.classList.add('failed-image');
     row.textContent =
-      '사진을 다시 불러와주세요.';
+      '사진 저장공간 권한을 확인해주세요.';
     return;
   }
 
@@ -455,7 +455,7 @@ async function appendQuickChatMessage(message) {
       row.classList.remove('image');
       row.classList.add('failed-image');
       row.textContent =
-        '사진을 다시 불러와주세요.';
+        '사진 저장공간 권한을 확인해주세요.';
     },
     { once: true }
   );

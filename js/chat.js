@@ -13,12 +13,20 @@ let chatDrawingEraser = false;
 let chatDrawingHasContent = false;
 
 function parseChatMedia(body) {
-  const value = String(body || '');
+  const value =
+    String(body || '')
+      .replace(/^\uFEFF/, '')
+      .trim();
 
-  if (value.startsWith(CHAT_MEDIA_PREFIX)) {
+  const mediaMatch =
+    value.match(
+      /^__ARCHIVE_MEDIA__\s*:\s*([\s\S]+)$/i
+    );
+
+  if (mediaMatch) {
     try {
       const data = JSON.parse(
-        value.slice(CHAT_MEDIA_PREFIX.length)
+        mediaMatch[1]
       );
 
       if (
@@ -37,13 +45,18 @@ function parseChatMedia(body) {
         typeof data.path === 'string'
         && data.path
       ) {
+        const bucket =
+          data.bucket === 'chat-images'
+            ? 'chat-images'
+            : 'calendar-images';
+
         return {
           image: '',
-          path: data.path,
-          bucket:
-            data.bucket === 'chat-images'
-              ? 'chat-images'
-              : 'calendar-images',
+          path: normalizeChatImagePath(
+            data.path,
+            bucket
+          ),
+          bucket,
           text: String(data.text || '')
         };
       }
@@ -66,9 +79,42 @@ function parseChatMedia(body) {
     : null;
 }
 
+function normalizeChatImagePath(
+  path,
+  bucket = 'chat-images'
+) {
+  let value =
+    String(path || '')
+      .trim()
+      .replace(/^\/+/, '');
+
+  const bucketPrefix =
+    `${bucket}/`;
+
+  if (value.startsWith(bucketPrefix)) {
+    value = value.slice(
+      bucketPrefix.length
+    );
+  }
+
+  return value;
+}
+
 function chatImagePath(body) {
-  return String(body || '').startsWith(CHAT_IMAGE_PREFIX)
-    ? String(body).slice(CHAT_IMAGE_PREFIX.length)
+  const value =
+    String(body || '')
+      .replace(/^\uFEFF/, '')
+      .trim();
+  const match =
+    value.match(
+      /^__ARCHIVE_IMAGE__\s*:\s*([\s\S]+)$/i
+    );
+
+  return match
+    ? normalizeChatImagePath(
+        match[1],
+        'calendar-images'
+      )
     : '';
 }
 
@@ -84,17 +130,59 @@ async function getChatImageUrl(
   path,
   bucket = 'calendar-images'
 ) {
+  const normalizedPath =
+    normalizeChatImagePath(
+      path,
+      bucket
+    );
+  const storage =
+    cloud.storage.from(bucket);
   const { data, error } =
-    await cloud.storage
-      .from(bucket)
-      .createSignedUrl(path, 3600);
+    await storage
+      .createSignedUrl(
+        normalizedPath,
+        3600
+      );
 
-  if (error) {
-    console.error('Chat image URL failed', error);
-    return '';
+  if (!error && data?.signedUrl) {
+    return data.signedUrl;
   }
 
-  return data?.signedUrl || '';
+  console.error(
+    'Chat image signed URL failed',
+    {
+      bucket,
+      path: normalizedPath,
+      error
+    }
+  );
+
+  const {
+    data: imageBlob,
+    error: downloadError
+  } = await storage.download(
+    normalizedPath
+  );
+
+  if (
+    !downloadError
+    && imageBlob
+  ) {
+    return URL.createObjectURL(
+      imageBlob
+    );
+  }
+
+  console.error(
+    'Chat image download failed',
+    {
+      bucket,
+      path: normalizedPath,
+      error: downloadError
+    }
+  );
+
+  return '';
 }
 
 function openChatImageLightbox(url) {
@@ -742,7 +830,7 @@ function showChatImageFailure(
         showChatImageFailure(
           row,
           bubble,
-          '사진을 다시 불러와주세요.'
+          '사진 저장공간 권한을 확인해주세요.'
         );
       }
     }
@@ -874,9 +962,15 @@ function showChatImageFailure(
       );
 
       alert(
-        error?.message
-          ?.includes('Bucket not found')
-          ? '채팅 사진 저장공간 설정이 필요해요. 함께 드린 SQL 파일을 Supabase에서 한 번 실행해주세요.'
+        (
+          error?.message
+            ?.includes('Bucket not found')
+          || error?.message
+            ?.includes(
+              'CHAT_IMAGE_ACCESS_CHECK_FAILED'
+            )
+        )
+          ? '채팅 사진 저장공간 설정이 완료되지 않았어요. 함께 드린 supabase-chat-images.sql 파일을 Supabase SQL Editor에서 다시 실행해주세요.'
           : (
               outgoingImage
                 ? '사진을 보내지 못했어요. 잠시 후 다시 시도해주세요.'
@@ -908,7 +1002,10 @@ function showChatImageFailure(
       + `${activeRoomId}/`
       + `${Date.now()}-${uid()}.jpg`;
 
-    const { error } =
+    const {
+      data: uploaded,
+      error
+    } =
       await cloud.storage
         .from('chat-images')
         .upload(
@@ -921,7 +1018,68 @@ function showChatImageFailure(
         );
 
     if (error) throw error;
-    return path;
+
+    const uploadedPath =
+      normalizeChatImagePath(
+        uploaded?.path || path,
+        'chat-images'
+      );
+    let signedData = null;
+    let signedError = null;
+
+    for (
+      let attempt = 0;
+      attempt < 3;
+      attempt += 1
+    ) {
+      const result =
+        await cloud.storage
+          .from('chat-images')
+          .createSignedUrl(
+            uploadedPath,
+            60
+          );
+
+      signedData = result.data;
+      signedError = result.error;
+
+      if (
+        !signedError
+        && signedData?.signedUrl
+      ) {
+        break;
+      }
+
+      if (attempt < 2) {
+        await new Promise(
+          resolve =>
+            setTimeout(
+              resolve,
+              250 * (attempt + 1)
+            )
+        );
+      }
+    }
+
+    if (
+      signedError
+      || !signedData?.signedUrl
+    ) {
+      console.error(
+        'Chat image access check failed',
+        signedError
+      );
+
+      await cloud.storage
+        .from('chat-images')
+        .remove([uploadedPath]);
+
+      throw new Error(
+        'CHAT_IMAGE_ACCESS_CHECK_FAILED'
+      );
+    }
+
+    return uploadedPath;
   }
 
   function resizeChatImage(file) {

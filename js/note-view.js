@@ -101,6 +101,10 @@ function renderTodoNoteView(content, note) {
     '--postit-font-size',
     `${data.fontSize}px`
   );
+  paper.style.setProperty(
+    '--postit-accent',
+    data.accentColor
+  );
 
   const heading =
     document.createElement('h2');

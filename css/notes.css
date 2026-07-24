@@ -27,8 +27,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 14px;
-  border-top: 1px solid rgba(92, 54, 33, .1);
-  border-bottom: 1px solid rgba(92, 54, 33, .1);
+  border: 0;
 }
 
 .archive-bulk-summary {

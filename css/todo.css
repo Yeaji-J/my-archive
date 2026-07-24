@@ -220,6 +220,7 @@
   --postit-paper: #ACBCCD;
   --postit-ink: #5C3621;
   --postit-font-size: 16px;
+  --postit-accent: #7F9FC0;
   position: relative;
   width: min(100%, 650px);
   aspect-ratio: 4 / 5;
@@ -407,8 +408,8 @@
 
 .postit-list-row.done
 .postit-check {
-  background:
-    rgba(92, 54, 33, .78);
+  border-color: var(--postit-accent);
+  background: var(--postit-accent);
   color: #fff;
 }
 
@@ -582,9 +583,131 @@ input::placeholder {
 }
 
 .postit-habit-dot.checked {
-  background:
-    rgba(92, 54, 33, .78);
+  border-color: var(--postit-accent);
+  background: var(--postit-accent);
   color: #fff;
+}
+
+.postit-time {
+  margin-top: -28px;
+  border-top: 1px solid
+    rgba(92, 54, 33, .42);
+  user-select: none;
+}
+
+.postit-time-head,
+.postit-time-row {
+  display: grid;
+  grid-template-columns:
+    32px minmax(0, 1fr) 118px;
+}
+
+.postit-time-head {
+  min-height: 30px;
+  align-items: center;
+  border-bottom: 1px solid
+    rgba(92, 54, 33, .42);
+  color: rgba(92, 54, 33, .58);
+  font-size: 8px;
+  letter-spacing: .08em;
+}
+
+.postit-time-head > span:first-child,
+.postit-time-hour {
+  text-align: center;
+}
+
+.postit-time-head > span:last-child {
+  padding-left: 9px;
+}
+
+.postit-time-minutes,
+.postit-time-blocks {
+  display: grid;
+  height: 100%;
+  grid-template-columns:
+    repeat(6, minmax(0, 1fr));
+}
+
+.postit-time-minutes i {
+  display: grid;
+  place-items: center;
+  border-left: 1px solid
+    rgba(92, 54, 33, .22);
+  font-style: normal;
+}
+
+.postit-time-minutes i:last-child {
+  border-right: 1px solid
+    rgba(92, 54, 33, .22);
+}
+
+.postit-time-row {
+  min-height: 26px;
+  align-items: stretch;
+  border-bottom: 1px solid
+    rgba(92, 54, 33, .25);
+}
+
+.postit-time-hour {
+  display: grid;
+  place-items: center;
+  color: rgba(92, 54, 33, .58);
+  font-size: 8px;
+}
+
+.postit-time-cell {
+  min-width: 0;
+  padding: 0;
+  border: 0;
+  border-left: 1px dashed
+    rgba(92, 54, 33, .2);
+  border-radius: 0;
+  outline: 0;
+  background: transparent;
+  cursor: crosshair;
+  transition:
+    filter .12s ease,
+    background-color .12s ease;
+}
+
+.postit-time-cell:last-child {
+  border-right: 1px dashed
+    rgba(92, 54, 33, .2);
+}
+
+.postit-time-cell.painted {
+  background:
+    var(--postit-accent);
+  box-shadow:
+    inset 0 3px 0
+    rgba(255, 255, 255, .18),
+    inset 0 -3px 0
+    rgba(255, 255, 255, .18);
+}
+
+button.postit-time-cell:hover {
+  filter: brightness(.94);
+}
+
+.postit-time-label {
+  min-width: 0;
+  width: 100%;
+  padding: 3px 5px 2px 9px;
+  overflow: hidden;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--postit-ink);
+  font: inherit;
+  font-size: .68em;
+  line-height: 1.2;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.postit-time-label::placeholder {
+  color: rgba(92, 54, 33, .28);
 }
 
 .postit-paper-tags {
@@ -602,7 +725,7 @@ input::placeholder {
   border-radius: 999px;
   background: rgba(255, 255, 255, .25);
   color: rgba(92, 54, 33, .67);
-  font-size: 9px;
+  font-size: 10px;
 }
 
 .postit-control-panel {
@@ -624,7 +747,7 @@ input::placeholder {
   display: block;
   margin-bottom: 10px;
   color: #8c837e;
-  font-size: 9px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: .15em;
 }
@@ -644,7 +767,7 @@ input::placeholder {
   border-radius: 8px;
   background: #fff;
   color: #817974;
-  font-size: 10px;
+  font-size: 11.5px;
   cursor: pointer;
 }
 
@@ -706,7 +829,7 @@ input::placeholder {
   outline: 0;
   background: #fff;
   color: #665f5b;
-  font-size: 10px;
+  font-size: 11.5px;
 }
 
 .postit-control-row select:focus,
@@ -721,7 +844,7 @@ input::placeholder {
 .postit-control-help {
   margin: 7px 0 0;
   color: #aaa4a0;
-  font-size: 9px;
+  font-size: 10.5px;
   line-height: 1.55;
 }
 
@@ -741,13 +864,74 @@ input::placeholder {
   border-radius: 9px;
   background: #edf3f8;
   color: #6687aa;
-  font-size: 10px;
+  font-size: 11.5px;
   cursor: pointer;
 }
 
 .postit-add-row:disabled {
   opacity: .48;
   cursor: default;
+}
+
+.postit-color-grid {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 9px;
+}
+
+.postit-color-grid > button,
+.postit-custom-color {
+  position: relative;
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 4px solid #fff;
+  border-radius: 50%;
+  outline: 1px solid
+    rgba(92, 54, 33, .11);
+  background:
+    var(--postit-color, #fff);
+  box-shadow:
+    0 2px 7px
+    rgba(92, 54, 33, .08);
+  cursor: pointer;
+}
+
+.postit-color-grid
+> button.active {
+  outline: 2px solid
+    #7597bb;
+}
+
+.postit-custom-color {
+  overflow: hidden;
+  border-width: 2px;
+  background:
+    conic-gradient(
+      #F0A9C0,
+      #E8C76D,
+      #9CB87A,
+      #7F9FC0,
+      #B29AC5,
+      #F0A9C0
+    );
+  color: #fff;
+  font-size: 15px;
+  text-shadow:
+    0 1px 3px
+    rgba(0, 0, 0, .28);
+}
+
+.postit-custom-color input {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
 }
 
 /* ---------- Post-it album / detail ---------- */
@@ -961,6 +1145,41 @@ input::placeholder {
   border-width: .5px;
   color: transparent;
   font-size: 0;
+}
+
+.postit-paper-preview
+.postit-time {
+  margin-top: -9px;
+}
+
+.postit-paper-preview
+.postit-time-head,
+.postit-paper-preview
+.postit-time-row {
+  grid-template-columns:
+    20px minmax(0, 1fr) 65px;
+}
+
+.postit-paper-preview
+.postit-time-head {
+  min-height: 14px;
+  font-size: 5px;
+}
+
+.postit-paper-preview
+.postit-time-row {
+  min-height: 10px;
+}
+
+.postit-paper-preview
+.postit-time-hour {
+  font-size: 5px;
+}
+
+.postit-paper-preview
+.postit-time-label {
+  padding: 1px 2px 1px 4px;
+  font-size: 5px;
 }
 
 .postit-paper-preview

@@ -28,6 +28,11 @@ const POSTIT_TYPES = {
     label: '쇼핑 리스트',
     heading: 'SHOPPING LIST',
     skin: 'green'
+  },
+  time: {
+    label: '타임 트래커',
+    heading: 'TIME TRACKER',
+    skin: 'cream'
   }
 };
 const POSTIT_SKINS = [
@@ -52,6 +57,8 @@ const POSTIT_WEEKDAYS = [
   ['SUN', '일요일']
 ];
 let postitSaveTimer = null;
+let postitTimePainting = false;
+let postitTimePaintColor = '';
 
 function postitMonthValue() {
   const date = new Date();
@@ -94,6 +101,32 @@ function blankHabitRows(count = 3) {
   );
 }
 
+function blankTimeSlots() {
+  return Array.from(
+    { length: 21 },
+    (_, index) => ({
+      id: uid(),
+      hour: String(
+        (index + 5) % 24
+      ).padStart(2, '0'),
+      label: '',
+      blocks: Array(6).fill('')
+    })
+  );
+}
+
+function normalizePostitColor(
+  value,
+  fallback = '#7F9FC0'
+) {
+  const color =
+    String(value || '').trim();
+
+  return /^#[0-9a-f]{6}$/i.test(color)
+    ? color.toUpperCase()
+    : fallback;
+}
+
 function ensurePostitData(note) {
   if (
     !note.postitData
@@ -115,11 +148,13 @@ function ensurePostitData(note) {
       heading: 'TO DO LIST',
       font: 'pretendard',
       fontSize: 16,
+      accentColor: '#7F9FC0',
       tags: [],
       items: legacyItems,
       weekly: blankWeeklyRows(),
       habitMonth: postitMonthValue(),
-      habits: blankHabitRows()
+      habits: blankHabitRows(),
+      timeSlots: blankTimeSlots()
     };
   }
 
@@ -142,6 +177,10 @@ function ensurePostitData(note) {
     )
       ? Number(data.fontSize)
       : 16;
+  data.accentColor =
+    normalizePostitColor(
+      data.accentColor
+    );
 
   data.heading =
     String(
@@ -160,6 +199,9 @@ function ensurePostitData(note) {
   }
   if (!Array.isArray(data.habits)) {
     data.habits = blankHabitRows();
+  }
+  if (!Array.isArray(data.timeSlots)) {
+    data.timeSlots = blankTimeSlots();
   }
 
   data.items.forEach(item => {
@@ -185,6 +227,32 @@ function ensurePostitData(note) {
       habit.checked = [];
     }
   });
+  data.timeSlots =
+    blankTimeSlots().map(
+      (fallback, index) => {
+        const current =
+          data.timeSlots[index]
+          || {};
+        const blocks =
+          Array.from(
+            { length: 6 },
+            (_, blockIndex) =>
+              normalizePostitColor(
+                current.blocks
+                  ?.[blockIndex],
+                ''
+              )
+          );
+
+        return {
+          id: current.id || fallback.id,
+          hour: fallback.hour,
+          label:
+            String(current.label || ''),
+          blocks
+        };
+      }
+    );
 
   if (
     !/^\d{4}-\d{2}$/
@@ -617,6 +685,197 @@ function renderPostitHabit(
   container.appendChild(wrap);
 }
 
+function applyPostitTimeBlock(
+  slot,
+  blockIndex,
+  color,
+  cell
+) {
+  slot.blocks[blockIndex] = color;
+  cell.classList.toggle(
+    'painted',
+    Boolean(color)
+  );
+  cell.style.backgroundColor =
+    color || '';
+  cell.setAttribute(
+    'aria-pressed',
+    color ? 'true' : 'false'
+  );
+  schedulePostitSave();
+}
+
+function renderPostitTime(
+  container,
+  note,
+  readOnly = false
+) {
+  const data =
+    ensurePostitData(note);
+  const tracker =
+    document.createElement('div');
+  tracker.className =
+    'postit-time';
+
+  const head =
+    document.createElement('div');
+  head.className =
+    'postit-time-head';
+  head.innerHTML = `
+    <span>TIME</span>
+    <span class="postit-time-minutes">
+      <i>10</i><i>20</i><i>30</i>
+      <i>40</i><i>50</i><i>60</i>
+    </span>
+    <span>NOTE</span>
+  `;
+  tracker.appendChild(head);
+
+  data.timeSlots.forEach(slot => {
+    const row =
+      document.createElement('div');
+    row.className =
+      'postit-time-row';
+
+    const hour =
+      document.createElement('span');
+    hour.className =
+      'postit-time-hour';
+    hour.textContent = slot.hour;
+
+    const blocks =
+      document.createElement('div');
+    blocks.className =
+      'postit-time-blocks';
+
+    slot.blocks.forEach(
+      (blockColor, blockIndex) => {
+        const cell =
+          document.createElement(
+            readOnly
+              ? 'span'
+              : 'button'
+          );
+        const color =
+          normalizePostitColor(
+            blockColor,
+            ''
+          );
+
+        cell.className =
+          'postit-time-cell'
+          + (
+            color
+              ? ' painted'
+              : ''
+          );
+        cell.style.backgroundColor =
+          color;
+
+        if (!readOnly) {
+          cell.type = 'button';
+          cell.setAttribute(
+            'aria-label',
+            `${slot.hour}시 ${
+              (blockIndex + 1) * 10
+            }분 블럭`
+          );
+          cell.setAttribute(
+            'aria-pressed',
+            color ? 'true' : 'false'
+          );
+
+          cell.addEventListener(
+            'pointerdown',
+            event => {
+              event.preventDefault();
+              postitTimePainting = true;
+              postitTimePaintColor =
+                color === data.accentColor
+                  ? ''
+                  : data.accentColor;
+              applyPostitTimeBlock(
+                slot,
+                blockIndex,
+                postitTimePaintColor,
+                cell
+              );
+            }
+          );
+          cell.addEventListener(
+            'pointerenter',
+            () => {
+              if (!postitTimePainting) {
+                return;
+              }
+              applyPostitTimeBlock(
+                slot,
+                blockIndex,
+                postitTimePaintColor,
+                cell
+              );
+            }
+          );
+          cell.addEventListener(
+            'keydown',
+            event => {
+              if (
+                event.key !== 'Enter'
+                && event.key !== ' '
+              ) {
+                return;
+              }
+              event.preventDefault();
+              applyPostitTimeBlock(
+                slot,
+                blockIndex,
+                slot.blocks[blockIndex]
+                  === data.accentColor
+                  ? ''
+                  : data.accentColor,
+                cell
+              );
+            }
+          );
+        }
+
+        blocks.appendChild(cell);
+      }
+    );
+
+    const label =
+      document.createElement(
+        readOnly ? 'span' : 'input'
+      );
+    label.className =
+      'postit-time-label';
+
+    if (readOnly) {
+      label.textContent =
+        slot.label || '';
+    } else {
+      label.type = 'text';
+      label.maxLength = 40;
+      label.value =
+        slot.label || '';
+      label.placeholder = '일정';
+      label.addEventListener(
+        'input',
+        event => {
+          slot.label =
+            event.target.value;
+          schedulePostitSave();
+        }
+      );
+    }
+
+    row.append(hour, blocks, label);
+    tracker.appendChild(row);
+  });
+
+  container.appendChild(tracker);
+}
+
 function renderPostitBody(
   container,
   note,
@@ -634,6 +893,12 @@ function renderPostitBody(
     );
   } else if (data.type === 'weekly') {
     renderPostitWeekly(
+      container,
+      note,
+      readOnly
+    );
+  } else if (data.type === 'time') {
+    renderPostitTime(
       container,
       note,
       readOnly
@@ -677,6 +942,10 @@ function renderPostitEditor(
     '--postit-font-size',
     `${data.fontSize}px`
   );
+  paper.style.setProperty(
+    '--postit-accent',
+    data.accentColor
+  );
 
   $('#postitHeadingInput').value =
     data.heading;
@@ -688,6 +957,8 @@ function renderPostitEditor(
     data.tags.join(', ');
   $('#postitTagPreview').innerHTML =
     postitTagsHtml(data.tags);
+  $('#postitCustomColor').value =
+    data.accentColor;
 
   document
     .querySelectorAll(
@@ -698,6 +969,18 @@ function renderPostitEditor(
         'active',
         button.dataset.postitType
           === data.type
+      );
+    });
+
+  document
+    .querySelectorAll(
+      '[data-postit-color]'
+    )
+    .forEach(button => {
+      button.classList.toggle(
+        'active',
+        button.dataset.postitColor
+          === data.accentColor
       );
     });
 
@@ -718,9 +1001,12 @@ function renderPostitEditor(
       ? '+ 습관 추가'
       : data.type === 'weekly'
         ? '7일 구성'
+        : data.type === 'time'
+          ? '10분 단위 구성'
         : '+ 항목 추가';
   $('#postitAddRowBtn').disabled =
-    data.type === 'weekly';
+    data.type === 'weekly'
+    || data.type === 'time';
 
   renderPostitBody(
     $('#postitEditorContent'),
@@ -767,7 +1053,10 @@ function addPostitRow() {
       text: '',
       checked: []
     });
-  } else if (data.type !== 'weekly') {
+  } else if (
+    data.type !== 'weekly'
+    && data.type !== 'time'
+  ) {
     data.items.push({
       id: uid(),
       text: '',
@@ -793,7 +1082,8 @@ function postitSearchText(note) {
     ...data.tags,
     ...data.items.map(item => item.text),
     ...data.weekly.map(item => item.text),
-    ...data.habits.map(item => item.text)
+    ...data.habits.map(item => item.text),
+    ...data.timeSlots.map(item => item.label)
   ];
 
   return parts
@@ -816,6 +1106,10 @@ function renderPostitPreview(
       10,
       data.fontSize * .68
     )}px`
+  );
+  container.style.setProperty(
+    '--postit-accent',
+    data.accentColor
   );
 
   const heading =
@@ -1108,6 +1402,46 @@ document
       }
     );
   });
+
+function setPostitAccentColor(value) {
+  const note = getCurrentNote();
+  if (!note) return;
+  ensurePostitData(note).accentColor =
+    normalizePostitColor(value);
+  renderPostitEditor(note);
+  schedulePostitSave();
+}
+
+document
+  .querySelectorAll(
+    '[data-postit-color]'
+  )
+  .forEach(button => {
+    button.addEventListener(
+      'click',
+      () => setPostitAccentColor(
+        button.dataset.postitColor
+      )
+    );
+  });
+
+$('#postitCustomColor')
+  ?.addEventListener(
+    'input',
+    event => {
+      setPostitAccentColor(
+        event.target.value
+      );
+    }
+  );
+
+document.addEventListener(
+  'pointerup',
+  () => {
+    postitTimePainting = false;
+    postitTimePaintColor = '';
+  }
+);
 
 $('#postitHeadingInput')
   ?.addEventListener(

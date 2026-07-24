@@ -514,6 +514,14 @@
           || '비어 있는 해빗 트래커';
       }
 
+      if (data.type === 'time') {
+        return data.timeSlots
+          .map(item => item.label)
+          .filter(Boolean)
+          .join(' · ')
+          || '비어 있는 타임 트래커';
+      }
+
       return data.items
         .map(item => item.text)
         .filter(Boolean)

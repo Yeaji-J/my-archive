@@ -261,12 +261,35 @@ const STORAGE_KEY = 'archive.data.v1';
 
   /* ---------------- Data layer ---------------- */
 
+  const LOCAL_SAVED_AT_KEY =
+    'archive.data.savedAt.v1';
+  const ARCHIVE_DB_NAME =
+    'archive-durable-storage';
+  const ARCHIVE_DB_VERSION = 1;
+  const ARCHIVE_STORE_NAME =
+    'snapshots';
+  const ARCHIVE_STATE_RECORD =
+    'main';
+
+  let localDataWasLoaded = false;
+  let lastLocalSavedAt = 0;
+  let durableSaveTimer = null;
+  let durableSavePromise =
+    Promise.resolve();
+
   function loadData() {
     try {
       const raw =
         localStorage.getItem(STORAGE_KEY);
 
       if (raw) {
+        localDataWasLoaded = true;
+        lastLocalSavedAt =
+          Number(
+            localStorage.getItem(
+              LOCAL_SAVED_AT_KEY
+            )
+          ) || 0;
         return JSON.parse(raw);
       }
     } catch (error) {
@@ -277,6 +300,281 @@ const STORAGE_KEY = 'archive.data.v1';
     }
 
     return seedData();
+  }
+
+  function stateLatestTimestamp(
+    targetState
+  ) {
+    return Math.max(
+      0,
+      ...(
+        targetState?.notes || []
+      ).map(
+        note =>
+          Number(note.updatedAt) || 0
+      )
+    );
+  }
+
+  function cloneArchiveState(
+    targetState = state
+  ) {
+    if (
+      typeof structuredClone
+      === 'function'
+    ) {
+      return structuredClone(targetState);
+    }
+
+    return JSON.parse(
+      JSON.stringify(targetState)
+    );
+  }
+
+  function openArchiveDatabase() {
+    return new Promise(
+      (resolve, reject) => {
+        if (!window.indexedDB) {
+          reject(
+            new Error(
+              'IndexedDB is unavailable'
+            )
+          );
+          return;
+        }
+
+        const request =
+          indexedDB.open(
+            ARCHIVE_DB_NAME,
+            ARCHIVE_DB_VERSION
+          );
+
+        request.onupgradeneeded =
+          () => {
+            const database =
+              request.result;
+
+            if (
+              !database.objectStoreNames
+                .contains(
+                  ARCHIVE_STORE_NAME
+                )
+            ) {
+              database.createObjectStore(
+                ARCHIVE_STORE_NAME
+              );
+            }
+          };
+
+        request.onsuccess =
+          () => resolve(
+            request.result
+          );
+        request.onerror =
+          () => reject(
+            request.error
+          );
+      }
+    );
+  }
+
+  async function readDurableState() {
+    const database =
+      await openArchiveDatabase();
+
+    try {
+      return await new Promise(
+        (resolve, reject) => {
+          const transaction =
+            database.transaction(
+              ARCHIVE_STORE_NAME,
+              'readonly'
+            );
+          const request =
+            transaction
+              .objectStore(
+                ARCHIVE_STORE_NAME
+              )
+              .get(
+                ARCHIVE_STATE_RECORD
+              );
+
+          request.onsuccess =
+            () => resolve(
+              request.result || null
+            );
+          request.onerror =
+            () => reject(
+              request.error
+            );
+        }
+      );
+    } finally {
+      database.close();
+    }
+  }
+
+  async function writeDurableState(
+    snapshot,
+    savedAt
+  ) {
+    const database =
+      await openArchiveDatabase();
+
+    try {
+      await new Promise(
+        (resolve, reject) => {
+          const transaction =
+            database.transaction(
+              ARCHIVE_STORE_NAME,
+              'readwrite'
+            );
+
+          transaction
+            .objectStore(
+              ARCHIVE_STORE_NAME
+            )
+            .put(
+              {
+                state: snapshot,
+                savedAt
+              },
+              ARCHIVE_STATE_RECORD
+            );
+
+          transaction.oncomplete =
+            () => resolve();
+          transaction.onerror =
+            () => reject(
+              transaction.error
+            );
+          transaction.onabort =
+            () => reject(
+              transaction.error
+            );
+        }
+      );
+    } finally {
+      database.close();
+    }
+  }
+
+  function persistDurableState(
+    immediate = false,
+    savedAt = lastLocalSavedAt
+  ) {
+    clearTimeout(durableSaveTimer);
+
+    const persist = () => {
+      const snapshot =
+        cloneArchiveState();
+      const snapshotSavedAt =
+        savedAt || Date.now();
+
+      durableSavePromise =
+        durableSavePromise
+          .catch(() => {})
+          .then(
+            async () => {
+              await writeDurableState(
+                snapshot,
+                snapshotSavedAt
+              );
+
+              if (!currentUser) {
+                setSyncStatus(
+                  '이 브라우저에 저장됨'
+                );
+              }
+            }
+          )
+          .catch(error => {
+            console.error(
+              'Durable archive save failed',
+              error
+            );
+          });
+
+      return durableSavePromise;
+    };
+
+    if (immediate) {
+      return persist();
+    }
+
+    durableSaveTimer =
+      setTimeout(persist, 120);
+
+    return durableSavePromise;
+  }
+
+  async function restoreDurableState() {
+    try {
+      const record =
+        await readDurableState();
+
+      if (!record?.state) {
+        if (localDataWasLoaded) {
+          persistDurableState(
+            true,
+            lastLocalSavedAt
+              || stateLatestTimestamp(
+                state
+              )
+              || Date.now()
+          );
+        }
+        return;
+      }
+
+      const localTimestamp =
+        lastLocalSavedAt
+        || stateLatestTimestamp(state);
+      const durableTimestamp =
+        Number(record.savedAt) || 0;
+
+      if (
+        !localDataWasLoaded
+        || durableTimestamp
+          > localTimestamp
+      ) {
+        state = record.state;
+        localDataWasLoaded = true;
+        lastLocalSavedAt =
+          durableTimestamp;
+
+        try {
+          localStorage.setItem(
+            STORAGE_KEY,
+            JSON.stringify(state)
+          );
+          localStorage.setItem(
+            LOCAL_SAVED_AT_KEY,
+            String(
+              durableTimestamp
+            )
+          );
+        } catch (error) {
+          console.warn(
+            'Local archive restore cache failed',
+            error
+          );
+        }
+      } else if (
+        localTimestamp
+        > durableTimestamp
+      ) {
+        persistDurableState(
+          true,
+          localTimestamp
+        );
+      }
+    } catch (error) {
+      console.warn(
+        'Could not restore durable archive',
+        error
+      );
+    }
   }
 
   function seedData() {
@@ -326,12 +624,21 @@ const STORAGE_KEY = 'archive.data.v1';
 
   function saveData() {
     cloudMutationRevision += 1;
+    const savedAt = Date.now();
+    lastLocalSavedAt = savedAt;
+    let localStorageSaved = false;
 
     try {
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify(state)
       );
+      localStorage.setItem(
+        LOCAL_SAVED_AT_KEY,
+        String(savedAt)
+      );
+      localStorageSaved = true;
+      localDataWasLoaded = true;
     } catch (error) {
       console.warn(
         'Local archive save failed',
@@ -349,6 +656,20 @@ const STORAGE_KEY = 'archive.data.v1';
           'error'
         );
       }
+    }
+
+    persistDurableState(
+      false,
+      savedAt
+    );
+
+    if (
+      localStorageSaved
+      && !currentUser
+    ) {
+      setSyncStatus(
+        '이 브라우저에 저장됨'
+      );
     }
 
     scheduleCloudSave();
@@ -381,6 +702,8 @@ const STORAGE_KEY = 'archive.data.v1';
 
   let currentUser = null;
   let cloudSaveTimer = null;
+  let cloudSaveInFlight = null;
+  let cloudSaveQueued = false;
   let pullingCloudData = false;
   let folderDeleteInProgress = false;
   let cloudMutationRevision = 0;
@@ -401,7 +724,9 @@ const STORAGE_KEY = 'archive.data.v1';
       + (type ? ` ${type}` : '');
   }
 
-  function scheduleCloudSave() {
+  function scheduleCloudSave(
+    delay = 450
+  ) {
     if (
       !currentUser
       || pullingCloudData
@@ -419,50 +744,102 @@ const STORAGE_KEY = 'archive.data.v1';
     cloudSaveTimer =
       setTimeout(
         pushCloudData,
-        450
+        delay
       );
   }
 
   async function pushCloudData() {
     if (!currentUser) return true;
 
-    const { error } = await cloud
-      .from('archive_data')
-      .upsert(
-        {
-          user_id: currentUser.id,
-          data: state,
-          updated_at:
-            new Date().toISOString()
-        },
-        {
-          onConflict: 'user_id'
-        }
-      );
+    if (cloudSaveInFlight) {
+      cloudSaveQueued = true;
+      return cloudSaveInFlight;
+    }
 
-    if (error) {
+    const savingRevision =
+      cloudMutationRevision;
+    const snapshot =
+      cloneArchiveState();
+
+    cloudSaveInFlight =
+      (async () => {
+        const { error } = await cloud
+          .from('archive_data')
+          .upsert(
+            {
+              user_id: currentUser.id,
+              data: snapshot,
+              updated_at:
+                new Date()
+                  .toISOString()
+            },
+            {
+              onConflict: 'user_id'
+            }
+          );
+
+        if (error) {
+          console.error(
+            'Cloud save failed',
+            error
+          );
+
+          setSyncStatus(
+            '동기화 실패',
+            'error'
+          );
+
+          return false;
+        }
+
+        if (
+          savingRevision
+          === cloudMutationRevision
+        ) {
+          setSyncStatus(
+            '모든 기기에 저장됨'
+          );
+        }
+
+        return true;
+      })();
+
+    let result = false;
+
+    try {
+      result =
+        await cloudSaveInFlight;
+    } catch (error) {
       console.error(
-        'Cloud save failed',
+        'Cloud save request failed',
         error
       );
-
       setSyncStatus(
         '동기화 실패',
         'error'
       );
-
-      return false;
+    } finally {
+      cloudSaveInFlight = null;
     }
 
-    setSyncStatus(
-      '모든 기기에 저장됨'
-    );
+    if (
+      cloudSaveQueued
+      || savingRevision
+        !== cloudMutationRevision
+    ) {
+      cloudSaveQueued = false;
+      scheduleCloudSave(0);
+    }
 
-    return true;
+    return result;
   }
 
   async function pullCloudData() {
     if (!currentUser) return;
+
+    if (currentNoteId) {
+      persistCurrentNote();
+    }
 
     const requestedAtRevision =
       cloudMutationRevision;
@@ -474,7 +851,7 @@ const STORAGE_KEY = 'archive.data.v1';
 
     const { data, error } = await cloud
       .from('archive_data')
-      .select('data')
+      .select('data,updated_at')
       .eq(
         'user_id',
         currentUser.id
@@ -503,12 +880,49 @@ const STORAGE_KEY = 'archive.data.v1';
     }
 
     if (data?.data) {
+      const cloudSavedAt =
+        Date.parse(data.updated_at || '')
+        || stateLatestTimestamp(
+          data.data
+        );
+      const localSavedAt =
+        lastLocalSavedAt
+        || stateLatestTimestamp(state);
+
+      if (
+        localDataWasLoaded
+        && localSavedAt
+          > cloudSavedAt
+      ) {
+        await pushCloudData();
+        return;
+      }
+
       pullingCloudData = true;
       state = data.data;
+      lastLocalSavedAt =
+        cloudSavedAt || Date.now();
+      localDataWasLoaded = true;
 
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(state)
+      try {
+        localStorage.setItem(
+          STORAGE_KEY,
+          JSON.stringify(state)
+        );
+        localStorage.setItem(
+          LOCAL_SAVED_AT_KEY,
+          String(lastLocalSavedAt)
+        );
+      } catch (storageError) {
+        console.warn(
+          'Cloud data local cache failed',
+          storageError
+        );
+      }
+
+      await persistDurableState(
+        true,
+        lastLocalSavedAt
       );
 
       pullingCloudData = false;

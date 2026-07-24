@@ -872,7 +872,37 @@
       if (currentNoteId) {
         persistCurrentNote();
       }
+
+      persistDurableState(true);
     }
+  );
+
+  function flushArchiveBeforePause() {
+    if (currentNoteId) {
+      persistCurrentNote();
+    } else {
+      saveData();
+    }
+
+    persistDurableState(true);
+
+    if (currentUser) {
+      pushCloudData();
+    }
+  }
+
+  document.addEventListener(
+    'visibilitychange',
+    () => {
+      if (document.hidden) {
+        flushArchiveBeforePause();
+      }
+    }
+  );
+
+  window.addEventListener(
+    'pagehide',
+    flushArchiveBeforePause
   );
 
   window.addEventListener(
@@ -891,5 +921,18 @@
 
   /* ---------------- Init ---------------- */
 
-  render();
-  initCloud();
+  async function initializeArchiveApp() {
+    await restoreDurableState();
+    render();
+
+    if (
+      typeof syncArchiveRouteFromLocation
+      === 'function'
+    ) {
+      syncArchiveRouteFromLocation();
+    }
+
+    initCloud();
+  }
+
+  initializeArchiveApp();

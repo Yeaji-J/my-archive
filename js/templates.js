@@ -3,6 +3,14 @@
 /* ---------------- Links / Collection / Template search ---------------- */
 
 let templateDataSaveTimer = null;
+const TEMPLATE_ALBUM_PAGE_SIZE = {
+  moodboard: 6,
+  collection: 15
+};
+const templateAlbumPages = {
+  moodboard: 1,
+  collection: 1
+};
 
 function scheduleTemplateDataSave() {
   clearTimeout(templateDataSaveTimer);
@@ -18,7 +26,7 @@ function scheduleTemplateDataSave() {
 
 function ensureLinkData(note) {
   if (!note.linkData) {
-    note.linkData = { url: '', siteName: '', description: '', memo: '', category: '' };
+    note.linkData = { url: '', siteName: '', description: '', category: '' };
   }
   return note.linkData;
 }
@@ -30,7 +38,6 @@ function renderLinkEditor() {
   $('#linkUrlInput').value = data.url || '';
   $('#linkSiteNameInput').value = data.siteName || '';
   $('#linkDescriptionInput').value = data.description || '';
-  $('#linkMemoInput').value = data.memo || '';
   $('#linkCategoryInput').value = data.category || '';
   updateLinkPreview();
 }
@@ -130,7 +137,7 @@ function templateSearchText(note) {
   const parts = [note.title, note.content];
   if (note.template === 'links') {
     const data = ensureLinkData(note);
-    parts.push(data.url, data.siteName, data.description, data.memo, data.category);
+    parts.push(data.url, data.siteName, data.description, data.category);
   }
   if (note.template === 'collection') {
     const data = ensureCollectionData(note);
@@ -216,9 +223,372 @@ function renderTemplateLibraryBar(template) {
   });
 }
 
-['linkUrlInput', 'linkSiteNameInput', 'linkDescriptionInput', 'linkMemoInput', 'linkCategoryInput'].forEach(id => {
+function safeExternalUrl(value) {
+  try {
+    const parsed = new URL(value);
+    return ['http:', 'https:']
+      .includes(parsed.protocol)
+      ? parsed.href
+      : '';
+  } catch (_error) {
+    return '';
+  }
+}
+
+function specializedCardClass(
+  baseClass,
+  note
+) {
+  return baseClass
+    + (
+      archiveSelectionMode
+        ? ' selection-mode'
+        : ''
+    )
+    + (
+      selectedArchiveNoteIds.has(note.id)
+        ? ' selected'
+        : ''
+    );
+}
+
+function bindSpecializedCard(
+  card,
+  note,
+  openTarget = card
+) {
+  openTarget.addEventListener(
+    'click',
+    () => {
+      if (archiveSelectionMode) {
+        toggleArchiveNoteSelection(note.id);
+        return;
+      }
+
+      openNoteView(note.id);
+    }
+  );
+
+  card
+    .querySelector('[data-note-select]')
+    ?.addEventListener(
+      'click',
+      event => {
+        event.stopPropagation();
+        toggleArchiveNoteSelection(note.id);
+      }
+    );
+}
+
+function moodboardPreviewItem(item) {
+  const left =
+    Math.max(0, Number(item.x) || 0) / 10;
+  const top =
+    Math.max(0, Number(item.y) || 0) / 5;
+  const width =
+    Math.max(
+      8,
+      Number(item.width)
+        || (
+          item.type === 'image'
+            ? 240
+            : 220
+        )
+    ) / 10;
+  const height =
+    Math.max(
+      8,
+      Number(item.height)
+        || (
+          item.type === 'image'
+            ? 160
+            : 72
+        )
+    ) / 5;
+  const style = [
+    `left:${Math.min(left, 92)}%`,
+    `top:${Math.min(top, 90)}%`,
+    `width:${Math.min(width, 72)}%`,
+    `height:${Math.min(height, 70)}%`,
+    `transform:rotate(${Number(item.rotation) || 0}deg)`
+  ].join(';');
+
+  if (item.type === 'image') {
+    return `
+      <span class="moodboard-album-item image" style="${style}">
+        <img src="${escapeHtml(item.src || '')}" alt="">
+      </span>
+    `;
+  }
+
+  return `
+    <span class="moodboard-album-item text" style="${style}">
+      ${escapeHtml(item.text || '')}
+    </span>
+  `;
+}
+
+function renderTemplateAlbumPagination(
+  template,
+  notes
+) {
+  const pagination =
+    $('#templateAlbumPagination');
+  const pageSize =
+    TEMPLATE_ALBUM_PAGE_SIZE[template];
+
+  if (!pageSize) {
+    pagination.hidden = true;
+    return notes;
+  }
+
+  const totalPages = Math.max(
+    1,
+    Math.ceil(notes.length / pageSize)
+  );
+  templateAlbumPages[template] =
+    Math.min(
+      Math.max(
+        1,
+        templateAlbumPages[template] || 1
+      ),
+      totalPages
+    );
+  const currentPage =
+    templateAlbumPages[template];
+
+  pagination.hidden =
+    notes.length === 0;
+  pagination.innerHTML = `
+    <button
+      type="button"
+      data-template-album-page="${currentPage - 1}"
+      ${currentPage === 1 ? 'disabled' : ''}
+      aria-label="이전 페이지"
+    >‹</button>
+    <span>
+      ${
+        Array.from(
+          { length: totalPages },
+          (_, index) => `
+            <button
+              type="button"
+              class="${index + 1 === currentPage ? 'active' : ''}"
+              data-template-album-page="${index + 1}"
+            >${index + 1}</button>
+          `
+        ).join('')
+      }
+    </span>
+    <button
+      type="button"
+      data-template-album-page="${currentPage + 1}"
+      ${currentPage === totalPages ? 'disabled' : ''}
+      aria-label="다음 페이지"
+    >›</button>
+  `;
+
+  pagination
+    .querySelectorAll(
+      '[data-template-album-page]'
+    )
+    .forEach(button => {
+      button.addEventListener(
+        'click',
+        () => {
+          templateAlbumPages[template] =
+            Number(
+              button.dataset
+                .templateAlbumPage
+            );
+          renderFolderGridView();
+          folderGridView.scrollTo({
+            top: 0,
+            behavior: 'smooth'
+          });
+        }
+      );
+    });
+
+  const start =
+    (currentPage - 1) * pageSize;
+  return notes.slice(
+    start,
+    start + pageSize
+  );
+}
+
+function renderMoodboardAlbum(notes) {
+  renderTemplateAlbumPagination(
+    'moodboard',
+    notes
+  ).forEach(note => {
+    const data = ensureMoodboard(note);
+    const card =
+      document.createElement('article');
+    card.className =
+      specializedCardClass(
+        `moodboard-album-card moodboard-skin-${data.skin}`,
+        note
+      );
+    card.innerHTML = `
+      ${
+        archiveSelectionMode
+          ? archiveSelectionButton(note.id)
+          : ''
+      }
+      <button class="moodboard-album-open" type="button">
+        <span class="moodboard-album-preview moodboard-skin-${data.skin}">
+          ${
+            data.drawing
+              ? `<img class="moodboard-album-drawing" src="${escapeHtml(data.drawing)}" alt="">`
+              : ''
+          }
+          ${data.items.map(moodboardPreviewItem).join('')}
+          ${
+            !data.items.length
+            && !data.drawing
+              ? '<span class="moodboard-album-empty">아직 비어 있는 무드보드</span>'
+              : ''
+          }
+        </span>
+        <span class="moodboard-album-copy">
+          <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+          <small>${formatDate(note.updatedAt)}</small>
+        </span>
+      </button>
+    `;
+    bindSpecializedCard(
+      card,
+      note,
+      card.querySelector(
+        '.moodboard-album-open'
+      )
+    );
+    noteGrid.appendChild(card);
+  });
+}
+
+function renderLinkArchiveList(notes) {
+  $('#templateAlbumPagination').hidden =
+    true;
+
+  notes.forEach((note, index) => {
+    const data = ensureLinkData(note);
+    const href =
+      safeExternalUrl(data.url);
+    const row =
+      document.createElement('article');
+    row.className =
+      specializedCardClass(
+        'link-archive-row',
+        note
+      );
+    row.innerHTML = `
+      ${
+        archiveSelectionMode
+          ? archiveSelectionButton(note.id)
+          : ''
+      }
+      <button class="link-archive-open" type="button">
+        <span class="link-archive-number">${String(index + 1).padStart(2, '0')}</span>
+        <span class="link-archive-copy">
+          <strong>${escapeHtml(data.siteName || note.title || '제목 없음')}</strong>
+          ${
+            data.description
+              ? `<small>${escapeHtml(data.description)}</small>`
+              : ''
+          }
+        </span>
+        ${
+          data.category
+            ? `<span class="link-archive-category">${escapeHtml(data.category)}</span>`
+            : ''
+        }
+      </button>
+      ${
+        href
+          ? `
+            <a class="link-archive-go" href="${escapeHtml(href)}" target="_blank" rel="noopener">
+              바로가기 <span aria-hidden="true">↗</span>
+            </a>
+          `
+          : '<span class="link-archive-go disabled">주소 없음</span>'
+      }
+    `;
+    bindSpecializedCard(
+      row,
+      note,
+      row.querySelector(
+        '.link-archive-open'
+      )
+    );
+    row
+      .querySelector('.link-archive-go')
+      ?.addEventListener(
+        'click',
+        event => event.stopPropagation()
+      );
+    noteGrid.appendChild(row);
+  });
+}
+
+function renderCollectionAlbum(notes) {
+  renderTemplateAlbumPagination(
+    'collection',
+    notes
+  ).forEach(note => {
+    const data =
+      ensureCollectionData(note);
+    const card =
+      document.createElement('article');
+    card.className =
+      specializedCardClass(
+        'collection-album-card',
+        note
+      );
+    card.innerHTML = `
+      ${
+        archiveSelectionMode
+          ? archiveSelectionButton(note.id)
+          : ''
+      }
+      <button class="collection-album-open" type="button">
+        <span class="collection-album-cover">
+          ${
+            data.cover
+              ? `<img src="${escapeHtml(data.cover)}" alt="">`
+              : `<span>${escapeHtml(data.type || 'COLLECTION')}</span>`
+          }
+        </span>
+        <span class="collection-album-copy">
+          <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+          <span class="collection-album-tags">
+            ${
+              data.tags.length
+                ? data.tags.slice(0, 3)
+                  .map(tag => `<small>#${escapeHtml(tag)}</small>`)
+                  .join('')
+                : '<small>#태그없음</small>'
+            }
+          </span>
+        </span>
+      </button>
+    `;
+    bindSpecializedCard(
+      card,
+      note,
+      card.querySelector(
+        '.collection-album-open'
+      )
+    );
+    noteGrid.appendChild(card);
+  });
+}
+
+['linkUrlInput', 'linkSiteNameInput', 'linkDescriptionInput', 'linkCategoryInput'].forEach(id => {
   const map = {
-    linkUrlInput: 'url', linkSiteNameInput: 'siteName', linkDescriptionInput: 'description', linkMemoInput: 'memo', linkCategoryInput: 'category'
+    linkUrlInput: 'url', linkSiteNameInput: 'siteName', linkDescriptionInput: 'description', linkCategoryInput: 'category'
   };
   $(`#${id}`).addEventListener('input', event => updateLinkField(map[id], event.target.value.trimStart()));
 });

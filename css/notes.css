@@ -117,13 +117,19 @@
 
 .note-card.selection-mode,
 .memo-album-card.selection-mode,
-.postit-album-card.selection-mode {
+.postit-album-card.selection-mode,
+.moodboard-album-card.selection-mode,
+.collection-album-card.selection-mode,
+.link-archive-row.selection-mode {
   cursor: pointer;
 }
 
 .note-card.selected,
 .memo-album-card.selected,
-.postit-album-card.selected {
+.postit-album-card.selected,
+.moodboard-album-card.selected,
+.collection-album-card.selected,
+.link-archive-row.selected {
   border-color: #7c9dc0;
   box-shadow:
     0 0 0 3px rgba(124, 157, 192, .14),
@@ -894,9 +900,87 @@
 
 .moodboard-tool.primary { background: #89a9ce; color: #fff; }
 .moodboard-tool.active { background: #dfe9f3; color: #6486ad; }
+.moodboard-tool:disabled {
+  opacity: .38;
+  cursor: default;
+}
 .moodboard-tool.danger { margin-left: auto; color: #d5868b; }
 .moodboard-color { display: grid; width: 30px; height: 30px; place-items: center; overflow: hidden; border-radius: 50%; cursor: pointer; }
 .moodboard-color input { width: 38px; height: 38px; border: 0; cursor: pointer; }
+.moodboard-tool-separator {
+  width: 1px;
+  height: 20px;
+  margin: 0 2px;
+  background: rgba(92, 54, 33, .1);
+}
+
+.moodboard-skin-picker {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-left: 2px;
+}
+
+.moodboard-skin-picker > span {
+  margin-right: 2px;
+  color: #959595;
+  font-size: 9px;
+  font-weight: 750;
+  letter-spacing: .1em;
+}
+
+.moodboard-skin-picker button {
+  width: 27px;
+  height: 27px;
+  padding: 0;
+  border: 2px solid #fff;
+  border-radius: 7px;
+  box-shadow: 0 0 0 1px rgba(92, 54, 33, .12);
+  cursor: pointer;
+}
+
+.moodboard-skin-picker button.active {
+  box-shadow:
+    0 0 0 2px #ACBCCD,
+    0 2px 8px rgba(92, 54, 33, .12);
+}
+
+.moodboard-skin-paper-swatch {
+  background:
+    linear-gradient(rgba(172, 188, 205, .28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(172, 188, 205, .28) 1px, transparent 1px),
+    #faf9f4;
+  background-size: 7px 7px;
+}
+
+.moodboard-skin-stripe-swatch {
+  background:
+    linear-gradient(90deg, transparent 0 42%, #FEF7CB 42%),
+    repeating-linear-gradient(
+      90deg,
+      #F0C7D9 0 5px,
+      #FEF7CB 5px 10px
+    );
+}
+
+.moodboard-skin-dot-swatch {
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0 72%,
+      #C3C2D9 72%
+    ),
+    radial-gradient(
+      circle,
+      #5C3621 1px,
+      transparent 1.4px
+    ),
+    #F0C7D9;
+  background-size:
+    auto,
+    7px 7px,
+    auto;
+}
 
 .moodboard-canvas-wrap {
   position: relative;
@@ -904,12 +988,48 @@
   min-height: 470px;
   overflow: hidden;
   border: 1px solid rgba(83, 95, 113, .1);
-  border-radius: 5px 14px 14px 5px;
+  border-radius: 14px;
+}
+
+.moodboard-skin-paper {
   background:
     linear-gradient(rgba(105, 117, 133, .035) 1px, transparent 1px),
     linear-gradient(90deg, rgba(105, 117, 133, .035) 1px, transparent 1px),
     #faf9f4;
   background-size: 24px 24px;
+}
+
+.moodboard-skin-stripe-split {
+  background:
+    linear-gradient(
+      90deg,
+      transparent 0 40%,
+      rgba(254, 247, 203, .96) 40%
+    ),
+    repeating-linear-gradient(
+      90deg,
+      #F0C7D9 0 34px,
+      #FEF7CB 34px 68px
+    );
+}
+
+.moodboard-skin-dot-footer {
+  background:
+    linear-gradient(
+      to bottom,
+      transparent 0 75%,
+      #C3C2D9 75% 100%
+    ),
+    radial-gradient(
+      circle,
+      rgba(92, 54, 33, .74) 2.2px,
+      transparent 2.6px
+    ),
+    #F0C7D9;
+  background-size:
+    auto,
+    34px 34px,
+    auto;
 }
 
 .moodboard-canvas-wrap.drag-over { outline: 2px dashed #91aecb; outline-offset: -10px; }
@@ -1388,6 +1508,388 @@
   white-space: normal;
 }
 
+/* ---------- Template 03 · Moodboard album ---------- */
+
+.moodboard-album-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+.moodboard-album-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(92, 54, 33, .12);
+  border-radius: 16px;
+  color: var(--archive-brown);
+  box-shadow: 0 9px 26px rgba(92, 54, 33, .07);
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.moodboard-album-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 15px 34px rgba(92, 54, 33, .11);
+}
+
+.moodboard-album-open,
+.collection-album-open {
+  display: flex;
+  width: 100%;
+  height: 100%;
+  min-width: 0;
+  padding: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border: 0;
+  border-radius: inherit;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.moodboard-album-preview {
+  position: relative;
+  display: block;
+  aspect-ratio: 16 / 9;
+  overflow: hidden;
+  border-bottom: 1px solid rgba(92, 54, 33, .1);
+}
+
+.moodboard-album-item {
+  position: absolute;
+  z-index: 2;
+  display: block;
+  min-width: 18px;
+  min-height: 12px;
+  overflow: hidden;
+}
+
+.moodboard-album-item.image {
+  background: #fff;
+  box-shadow: 0 4px 12px rgba(92, 54, 33, .14);
+}
+
+.moodboard-album-item.image img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.moodboard-album-item.text {
+  padding: 4px 6px;
+  background: rgba(255, 255, 255, .72);
+  color: #5C3621;
+  font-family:
+    'IsYun',
+    "Pretendard",
+    sans-serif;
+  font-size: clamp(7px, .75vw, 12px);
+  line-height: 1.35;
+  white-space: pre-wrap;
+}
+
+.moodboard-album-drawing {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: fill;
+  pointer-events: none;
+}
+
+.moodboard-album-empty {
+  position: absolute;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  color: rgba(92, 54, 33, .42);
+  font-size: 11px;
+}
+
+.moodboard-album-copy {
+  display: block;
+  min-width: 0;
+  padding: 15px 18px 16px;
+  background: rgba(255, 255, 255, .92);
+}
+
+.moodboard-album-copy strong,
+.moodboard-album-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.moodboard-album-copy strong {
+  font-size: 14px;
+}
+
+.moodboard-album-copy small {
+  margin-top: 6px;
+  color: #959595;
+  font-size: 11px;
+}
+
+/* ---------- Template 04 · Link archive ---------- */
+
+.link-archive-list {
+  display: flex;
+  max-width: 1180px;
+  margin: 0 auto;
+  flex-direction: column;
+  gap: 0;
+  border-top: 1px solid rgba(92, 54, 33, .14);
+}
+
+.link-archive-row {
+  position: relative;
+  display: grid;
+  min-height: 70px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: stretch;
+  border: 0;
+  border-bottom: 1px solid rgba(92, 54, 33, .12);
+  background: #fff;
+  color: var(--archive-brown);
+  transition: background .18s ease;
+}
+
+.link-archive-row:hover {
+  background:
+    color-mix(
+      in srgb,
+      #FEF7CB 22%,
+      #fff 78%
+    );
+}
+
+.link-archive-open {
+  display: grid;
+  min-width: 0;
+  padding: 14px 18px;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 15px;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.link-archive-number {
+  color: #ACBCCD;
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .12em;
+}
+
+.link-archive-copy {
+  min-width: 0;
+}
+
+.link-archive-copy strong,
+.link-archive-copy small {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.link-archive-copy strong {
+  font-size: 14px;
+}
+
+.link-archive-copy small {
+  margin-top: 5px;
+  color: #959595;
+  font-size: 11px;
+}
+
+.link-archive-category,
+.link-archive-go {
+  flex: 0 0 auto;
+  border-radius: 999px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.link-archive-category {
+  padding: 5px 9px;
+  background:
+    color-mix(
+      in srgb,
+      #C3C2D9 38%,
+      #fff 62%
+    );
+  color: rgba(92, 54, 33, .65);
+}
+
+.link-archive-go {
+  align-self: center;
+  margin-right: 18px;
+  padding: 8px 12px;
+  border: 1px solid rgba(92, 54, 33, .13);
+  color: #5C3621;
+  text-decoration: none;
+}
+
+.link-archive-go:hover {
+  border-color: #ACBCCD;
+  background: #fff;
+}
+
+.link-archive-go.disabled {
+  border-color: transparent;
+  color: #959595;
+}
+
+/* ---------- Template 05 · Collection album ---------- */
+
+.collection-album-grid {
+  display: grid;
+  grid-template-columns:
+    repeat(5, minmax(0, 1fr));
+  gap: 22px 16px;
+  max-width: 1380px;
+  margin: 0 auto;
+}
+
+.collection-album-card {
+  position: relative;
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid rgba(92, 54, 33, .1);
+  border-radius: 14px;
+  background: #fff;
+  color: var(--archive-brown);
+  box-shadow: 0 7px 22px rgba(92, 54, 33, .055);
+  transition:
+    transform .2s ease,
+    box-shadow .2s ease;
+}
+
+.collection-album-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 13px 28px rgba(92, 54, 33, .1);
+}
+
+.collection-album-cover {
+  position: relative;
+  display: grid;
+  aspect-ratio: 4 / 5;
+  place-items: center;
+  overflow: hidden;
+  background:
+    linear-gradient(
+      145deg,
+      #FEF7CB,
+      color-mix(
+        in srgb,
+        #C3C2D9 45%,
+        #fff 55%
+      )
+    );
+  color: rgba(92, 54, 33, .48);
+  font-size: 10px;
+  font-weight: 750;
+  letter-spacing: .08em;
+}
+
+.collection-album-cover img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform .28s ease;
+}
+
+.collection-album-card:hover
+.collection-album-cover img {
+  transform: scale(1.025);
+}
+
+.collection-album-copy {
+  display: block;
+  min-width: 0;
+  padding: 12px 13px 14px;
+}
+
+.collection-album-copy > strong {
+  display: block;
+  overflow: hidden;
+  font-size: 13px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collection-album-tags {
+  display: flex;
+  min-width: 0;
+  gap: 5px;
+  margin-top: 7px;
+  overflow: hidden;
+}
+
+.collection-album-tags small {
+  overflow: hidden;
+  color: #9CA078;
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.template-album-pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin: 34px 0 8px;
+}
+
+.template-album-pagination > span {
+  display: flex;
+  gap: 4px;
+}
+
+.template-album-pagination button {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: #959595;
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.template-album-pagination button:hover,
+.template-album-pagination button.active {
+  background:
+    color-mix(
+      in srgb,
+      #C3C2D9 42%,
+      #fff 58%
+    );
+  color: #5C3621;
+}
+
+.template-album-pagination button:disabled {
+  opacity: .28;
+  cursor: default;
+}
+
 .memo-album-grid {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1663,6 +2165,14 @@
 
 @media (max-width: 900px) {
   .memo-album-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .moodboard-album-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+  .collection-album-grid {
+    grid-template-columns:
+      repeat(3, minmax(0, 1fr));
+  }
   .memo-skin-picker { width: 100%; margin-left: 0; }
 }
 
@@ -1673,6 +2183,28 @@
   .memo-editor-skin[data-columns="2"] .memo-rich-editor,
   .note-view-memo.two-columns { column-count: 1; }
   .memo-album-grid { grid-template-columns: 1fr; gap: 18px; }
+  .moodboard-album-grid {
+    grid-template-columns: 1fr;
+    gap: 18px;
+  }
+  .collection-album-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+    gap: 16px 10px;
+  }
+  .link-archive-open {
+    padding: 12px 10px;
+    grid-template-columns:
+      28px minmax(0, 1fr);
+    gap: 8px;
+  }
+  .link-archive-category {
+    display: none;
+  }
+  .link-archive-go {
+    margin-right: 10px;
+    padding: 7px 8px;
+  }
   .memo-album-bar { align-items: flex-start; flex-direction: column; }
   .memo-album-search { width: 100%; }
   .archive-bulk-bar { align-items: flex-start; }

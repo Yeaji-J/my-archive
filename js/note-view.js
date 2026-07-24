@@ -171,7 +171,6 @@ function renderLinkNoteView(content, note) {
       <span><strong>${escapeHtml(data.siteName || note.title || '저장된 링크')}</strong><small>${escapeHtml(parsed?.hostname || data.url || '')}</small></span>
       <b>사이트 열기 ↗</b>
     </a>
-    ${data.memo ? `<div class="note-view-link-memo">${escapeHtml(data.memo)}</div>` : ''}
   `;
   content.appendChild(wrap);
 }

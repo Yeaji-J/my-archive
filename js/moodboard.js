@@ -7,6 +7,15 @@ let moodboardPenActive = false;
 let moodboardSaveTimer = null;
 let moodboardDrawing = false;
 let moodboardLastPoint = null;
+let moodboardHistoryNoteId = null;
+let moodboardHistory = [];
+let moodboardHistoryIndex = -1;
+
+const MOODBOARD_SKINS = [
+  'paper',
+  'stripe-split',
+  'dot-footer'
+];
 
 function getCurrentNote() {
   return state.notes.find(note => note.id === currentNoteId) || null;
@@ -14,10 +23,131 @@ function getCurrentNote() {
 
 function ensureMoodboard(note) {
   if (!note.moodboard) {
-    note.moodboard = { items: [], drawing: '' };
+    note.moodboard = {
+      items: [],
+      drawing: '',
+      skin: 'paper'
+    };
   }
-  if (!Array.isArray(note.moodboard.items)) note.moodboard.items = [];
+  if (!Array.isArray(note.moodboard.items)) {
+    note.moodboard.items = [];
+  }
+  if (
+    !MOODBOARD_SKINS.includes(
+      note.moodboard.skin
+    )
+  ) {
+    note.moodboard.skin = 'paper';
+  }
   return note.moodboard;
+}
+
+function moodboardSnapshot(board) {
+  return JSON.stringify({
+    items: board.items,
+    drawing: board.drawing || '',
+    skin: board.skin || 'paper'
+  });
+}
+
+function updateMoodboardHistoryButtons() {
+  $('#moodboardUndoBtn').disabled =
+    moodboardHistoryIndex <= 0;
+  $('#moodboardRedoBtn').disabled =
+    moodboardHistoryIndex
+      >= moodboardHistory.length - 1;
+}
+
+function initializeMoodboardHistory(note) {
+  if (
+    moodboardHistoryNoteId
+    === note.id
+  ) {
+    updateMoodboardHistoryButtons();
+    return;
+  }
+
+  moodboardHistoryNoteId = note.id;
+  moodboardHistory = [
+    moodboardSnapshot(
+      ensureMoodboard(note)
+    )
+  ];
+  moodboardHistoryIndex = 0;
+  updateMoodboardHistoryButtons();
+}
+
+function captureMoodboardHistory(note) {
+  initializeMoodboardHistory(note);
+  const snapshot =
+    moodboardSnapshot(
+      ensureMoodboard(note)
+    );
+
+  if (
+    moodboardHistory[
+      moodboardHistoryIndex
+    ] === snapshot
+  ) {
+    return;
+  }
+
+  moodboardHistory =
+    moodboardHistory.slice(
+      0,
+      moodboardHistoryIndex + 1
+    );
+  moodboardHistory.push(snapshot);
+
+  if (moodboardHistory.length > 60) {
+    moodboardHistory.shift();
+  }
+
+  moodboardHistoryIndex =
+    moodboardHistory.length - 1;
+  updateMoodboardHistoryButtons();
+}
+
+function restoreMoodboardHistory(
+  offset
+) {
+  const note = getCurrentNote();
+  if (
+    !note
+    || note.template !== 'moodboard'
+  ) {
+    return;
+  }
+
+  clearTimeout(moodboardSaveTimer);
+  captureMoodboardHistory(note);
+
+  const nextIndex =
+    moodboardHistoryIndex + offset;
+
+  if (
+    nextIndex < 0
+    || nextIndex
+      >= moodboardHistory.length
+  ) {
+    updateMoodboardHistoryButtons();
+    return;
+  }
+
+  moodboardHistoryIndex =
+    nextIndex;
+  note.moodboard =
+    JSON.parse(
+      moodboardHistory[
+        moodboardHistoryIndex
+      ]
+    );
+  selectedMoodboardItemId = null;
+  note.updatedAt = Date.now();
+  updateEditorMeta(note);
+  saveData();
+  renderMoodboard();
+  updateMoodboardHistoryButtons();
 }
 
 const EDITOR_TEMPLATE_KEYS = [
@@ -49,6 +179,9 @@ function resetNoteForTemplate(
   delete note.moodboard;
   delete note.linkData;
   delete note.collectionData;
+  moodboardHistoryNoteId = null;
+  moodboardHistory = [];
+  moodboardHistoryIndex = -1;
 
   if (template === 'memo') {
     note.memoData = {
@@ -61,14 +194,14 @@ function resetNoteForTemplate(
   } else if (template === 'moodboard') {
     note.moodboard = {
       items: [],
-      drawing: ''
+      drawing: '',
+      skin: 'paper'
     };
   } else if (template === 'links') {
     note.linkData = {
       url: '',
       siteName: '',
       description: '',
-      memo: '',
       category: ''
     };
   } else if (template === 'collection') {
@@ -148,6 +281,7 @@ function setEditorTemplate(template, updateNote = true) {
 
   if (template === 'moodboard') {
     ensureMoodboard(note);
+    initializeMoodboardHistory(note);
     requestAnimationFrame(renderMoodboard);
   }
 
@@ -161,6 +295,7 @@ function scheduleMoodboardSave() {
   moodboardSaveTimer = setTimeout(() => {
     const note = getCurrentNote();
     if (!note) return;
+    captureMoodboardHistory(note);
     note.updatedAt = Date.now();
     updateEditorMeta(note);
     saveData();
@@ -172,6 +307,23 @@ function renderMoodboard() {
   if (!note || note.template !== 'moodboard') return;
 
   const board = ensureMoodboard(note);
+  initializeMoodboardHistory(note);
+  const canvasWrap =
+    $('#moodboardCanvasWrap');
+  canvasWrap.className =
+    `moodboard-canvas-wrap moodboard-skin-${board.skin}`;
+
+  document
+    .querySelectorAll(
+      '[data-moodboard-skin]'
+    )
+    .forEach(button => {
+      button.classList.toggle(
+        'active',
+        button.dataset.moodboardSkin
+          === board.skin
+      );
+    });
   const itemsWrap = $('#moodboardItems');
   itemsWrap.innerHTML = '';
 
@@ -424,6 +576,31 @@ document.querySelectorAll('[data-editor-template]').forEach(tab => {
 $('#moodboardImageInput').addEventListener('change', event => addMoodboardImages(event.target.files));
 $('#moodboardTextBtn').addEventListener('click', addMoodboardText);
 $('#moodboardPenBtn').addEventListener('click', toggleMoodboardPen);
+$('#moodboardUndoBtn').addEventListener(
+  'click',
+  () => restoreMoodboardHistory(-1)
+);
+$('#moodboardRedoBtn').addEventListener(
+  'click',
+  () => restoreMoodboardHistory(1)
+);
+document
+  .querySelectorAll(
+    '[data-moodboard-skin]'
+  )
+  .forEach(button => {
+    button.addEventListener(
+      'click',
+      () => {
+        const note = getCurrentNote();
+        if (!note) return;
+        ensureMoodboard(note).skin =
+          button.dataset.moodboardSkin;
+        renderMoodboard();
+        scheduleMoodboardSave();
+      }
+    );
+  });
 $('#moodboardDeleteItem').addEventListener('click', deleteSelectedMoodboardItem);
 $('#moodboardClearDrawing').addEventListener('click', () => {
   const note = getCurrentNote();

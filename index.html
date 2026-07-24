@@ -7,7 +7,7 @@
   <title>Archive — 나만의 자료 정리 공간</title>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/base.css?v=20260724-media4">
-  <link rel="stylesheet" href="css/notes.css?v=20260724-directedit1">
+  <link rel="stylesheet" href="css/notes.css?v=20260724-templates345">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260724-template-fix1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -425,6 +425,7 @@
         <div class="note-grid" id="noteGrid"></div>
         <nav class="memo-album-pagination" id="memoAlbumPagination" hidden aria-label="메모 페이지 이동"></nav>
         <nav class="postit-album-pagination" id="postitAlbumPagination" hidden aria-label="포스트잇 페이지 이동"></nav>
+        <nav class="template-album-pagination" id="templateAlbumPagination" hidden aria-label="템플릿 자료 페이지 이동"></nav>
 
         <div class="empty-state" id="emptyState" hidden>
           <div class="empty-icon"></div>
@@ -943,6 +944,15 @@
                 <select class="moodboard-width" id="moodboardPenWidth" aria-label="펜 굵기">
                   <option value="2">얇게</option><option value="4" selected>보통</option><option value="7">굵게</option>
                 </select>
+                <span class="moodboard-tool-separator" aria-hidden="true"></span>
+                <button type="button" class="moodboard-tool" id="moodboardUndoBtn" disabled>↶ 되돌리기</button>
+                <button type="button" class="moodboard-tool" id="moodboardRedoBtn" disabled>↷ 다시 하기</button>
+                <div class="moodboard-skin-picker" aria-label="무드보드 스킨">
+                  <span>SKIN</span>
+                  <button type="button" class="active moodboard-skin-paper-swatch" data-moodboard-skin="paper" aria-label="기본 종이"></button>
+                  <button type="button" class="moodboard-skin-stripe-swatch" data-moodboard-skin="stripe-split" aria-label="스트라이프 분할"></button>
+                  <button type="button" class="moodboard-skin-dot-swatch" data-moodboard-skin="dot-footer" aria-label="도트와 단색"></button>
+                </div>
                 <button type="button" class="moodboard-tool" id="moodboardClearDrawing">선 지우기</button>
                 <button type="button" class="moodboard-tool danger" id="moodboardDeleteItem">선택 삭제</button>
               </div>
@@ -961,7 +971,6 @@
                 <label class="template-field"><span>카테고리</span><input type="text" id="linkCategoryInput" list="linkCategoryList" placeholder="디자인, 업무, 공부…"></label>
                 <label class="template-field"><span>사이트 이름</span><input type="text" id="linkSiteNameInput" placeholder="사이트 이름"></label>
                 <label class="template-field full"><span>한 줄 메모</span><input type="text" id="linkDescriptionInput" maxlength="160" placeholder="어떤 사이트인지 간단하게 적어보세요"></label>
-                <label class="template-field full"><span>상세 메모</span><textarea id="linkMemoInput" placeholder="이 사이트를 언제, 어떻게 활용하는지 적어보세요"></textarea></label>
               </div>
               <datalist id="linkCategoryList"><option value="디자인"><option value="개발"><option value="레퍼런스"><option value="업무"><option value="공부"><option value="쇼핑"><option value="기타"></datalist>
               <a class="link-preview-card" id="linkPreviewCard" href="#" target="_blank" rel="noopener">
@@ -1451,7 +1460,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/core.js?v=20260724-media4"></script>
-  <script src="js/notes.js?v=20260724-directedit1"></script>
+  <script src="js/notes.js?v=20260724-templates345"></script>
   <script src="js/todo.js?v=20260724-template-fix1"></script>
   <script src="js/folders.js?v=20260724-media4"></script>
   <script src="js/auth.js?v=20260724-media4"></script>
@@ -1459,9 +1468,9 @@
   <script src="js/calendar.js?v=20260724-media4"></script>
   <script src="js/home.js?v=20260724-media4"></script>
   <script src="js/memo.js?v=20260724-template-fix1"></script>
-  <script src="js/moodboard.js?v=20260724-directedit1"></script>
-  <script src="js/templates.js?v=20260724-media4"></script>
-  <script src="js/note-view.js?v=20260724-directedit1"></script>
+  <script src="js/moodboard.js?v=20260724-templates345"></script>
+  <script src="js/templates.js?v=20260724-templates345"></script>
+  <script src="js/note-view.js?v=20260724-templates345"></script>
   <script src="js/router.js?v=20260724-media4"></script>
   <script src="js/events.js?v=20260724-directedit1"></script>
 </body>

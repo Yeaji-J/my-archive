@@ -874,6 +874,22 @@
       currentView === 'all'
       && browseMode === 'template'
       && browseTemplate === 'todo';
+    const moodboardAlbumMode =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate === 'moodboard';
+    const linkArchiveMode =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate === 'links';
+    const collectionAlbumMode =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate === 'collection';
+    const specializedTemplateMode =
+      moodboardAlbumMode
+      || linkArchiveMode
+      || collectionAlbumMode;
 
     $('#memoAlbumBar').hidden =
       !memoAlbumMode;
@@ -926,6 +942,7 @@
       !gridMode
       && !memoAlbumMode
       && !postitAlbumMode
+      && !specializedTemplateMode
     );
     noteGrid.classList.toggle(
       'memo-album-grid',
@@ -934,6 +951,18 @@
     noteGrid.classList.toggle(
       'postit-album-grid',
       postitAlbumMode
+    );
+    noteGrid.classList.toggle(
+      'moodboard-album-grid',
+      moodboardAlbumMode
+    );
+    noteGrid.classList.toggle(
+      'link-archive-list',
+      linkArchiveMode
+    );
+    noteGrid.classList.toggle(
+      'collection-album-grid',
+      collectionAlbumMode
     );
 
     noteGrid.innerHTML = '';
@@ -944,6 +973,8 @@
     if (memoAlbumMode) {
       $('#postitAlbumPagination')
         .hidden = true;
+      $('#templateAlbumPagination')
+        .hidden = true;
       renderMemoAlbum(notes);
       return;
     }
@@ -951,11 +982,31 @@
     $('#memoAlbumPagination').hidden = true;
 
     if (postitAlbumMode) {
+      $('#templateAlbumPagination')
+        .hidden = true;
       renderPostitAlbum(notes);
       return;
     }
 
     $('#postitAlbumPagination').hidden = true;
+
+    if (moodboardAlbumMode) {
+      renderMoodboardAlbum(notes);
+      return;
+    }
+
+    if (linkArchiveMode) {
+      renderLinkArchiveList(notes);
+      return;
+    }
+
+    if (collectionAlbumMode) {
+      renderCollectionAlbum(notes);
+      return;
+    }
+
+    $('#templateAlbumPagination').hidden =
+      true;
 
     notes.forEach(note => {
       const folder =

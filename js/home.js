@@ -392,6 +392,21 @@ async function appendQuickChatMessage(message) {
   }
 
   row.classList.add('image');
+
+  if (
+    media.path
+    && media.bucket
+      === 'calendar-images'
+  ) {
+    row.classList.remove('image');
+    row.classList.add('failed-image');
+    row.textContent =
+      '이전 사진은 다시 전송해주세요.';
+    $('#quickChatLines').appendChild(row);
+    scrollQuickChatToBottom();
+    return;
+  }
+
   row.textContent = '사진 불러오는 중…';
   $('#quickChatLines').appendChild(row);
 
@@ -401,7 +416,10 @@ async function appendQuickChatMessage(message) {
       media.bucket
     );
   if (!url) {
-    row.textContent = '사진을 불러오지 못했어요.';
+    row.classList.remove('image');
+    row.classList.add('failed-image');
+    row.textContent =
+      '사진을 다시 불러와주세요.';
     return;
   }
 
@@ -415,17 +433,10 @@ async function appendQuickChatMessage(message) {
   image.addEventListener(
     'error',
     () => {
-      button.replaceWith(
-        Object.assign(
-          document.createElement('span'),
-          {
-            className:
-              'quick-chat-image-failed',
-            textContent:
-              '사진을 불러오지 못했어요.'
-          }
-        )
-      );
+      row.classList.remove('image');
+      row.classList.add('failed-image');
+      row.textContent =
+        '사진을 다시 불러와주세요.';
     },
     { once: true }
   );

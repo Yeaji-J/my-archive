@@ -103,6 +103,23 @@ function openChatImageLightbox(url) {
   $('#chatImageLightbox').hidden = false;
 }
 
+function showChatImageFailure(
+  row,
+  bubble,
+  message = '이전 사진은 다시 전송해주세요.'
+) {
+  row.classList.remove(
+    'image-message-row'
+  );
+  row.classList.add(
+    'failed-image-message-row'
+  );
+  bubble.classList.remove(
+    'message-bubble-image'
+  );
+  bubble.textContent = message;
+}
+
   function initials(name) {
     return String(name || '?')
       .trim()
@@ -659,13 +676,26 @@ function openChatImageLightbox(url) {
     chatMessages.appendChild(row);
 
     if (media) {
+      const bubble =
+        row.querySelector('.message-bubble');
+
+      if (
+        media.path
+        && media.bucket
+          === 'calendar-images'
+      ) {
+        showChatImageFailure(
+          row,
+          bubble
+        );
+        return;
+      }
+
       const url = media.image
         || await getChatImageUrl(
           media.path,
           media.bucket
         );
-      const bubble =
-        row.querySelector('.message-bubble');
 
       if (url) {
         bubble.innerHTML = '';
@@ -684,18 +714,10 @@ function openChatImageLightbox(url) {
         image.addEventListener(
           'error',
           () => {
-            button.replaceWith(
-              Object.assign(
-                document.createElement(
-                  'span'
-                ),
-                {
-                  className:
-                    'chat-image-failed',
-                  textContent:
-                    '사진을 불러오지 못했어요.'
-                }
-              )
+            showChatImageFailure(
+              row,
+              bubble,
+              '사진을 다시 불러와주세요.'
             );
           },
           { once: true }
@@ -717,8 +739,11 @@ function openChatImageLightbox(url) {
         }
         scrollChatToBottom();
       } else {
-        bubble.textContent =
-          '사진을 불러오지 못했어요.';
+        showChatImageFailure(
+          row,
+          bubble,
+          '사진을 다시 불러와주세요.'
+        );
       }
     }
   }

@@ -650,19 +650,19 @@
   $('#newNoteBtnSide')
     .addEventListener(
       'click',
-      createNote
+      () => createNote()
     );
 
   $('#newNoteBtnTop')
     .addEventListener(
       'click',
-      createNote
+      () => createNote()
     );
 
   $('#emptyAddBtn')
     .addEventListener(
       'click',
-      createNote
+      () => createNote()
     );
 
       $('#backBtn')

@@ -1,6 +1,6 @@
 'use strict';
 
-/* ---------------- Read-only note view ---------------- */
+/* ---------------- Direct-edit note route ---------------- */
 
 const NOTE_TYPE_LABELS = {
   memo: '01 · BASIC NOTE',
@@ -22,23 +22,11 @@ function openNoteView(noteId, updateHistory = true) {
     pushArchiveRoute(`/note/${encodeURIComponent(noteId)}`);
   }
 
-  if (currentNoteId) persistCurrentNote();
-  currentNoteId = null;
-  currentNoteViewId = noteId;
-  editorReturnsToView = false;
-  note.template = note.template || 'memo';
-
-  homeView.hidden = true;
-  folderGridView.hidden = true;
-  editorView.hidden = true;
-  editorView.style.display = 'none';
-  chatView.hidden = true;
-  calendarView.hidden = true;
-  todoView.hidden = true;
-  noteDetailView.hidden = false;
-
-  breadcrumb.textContent = note.title || '제목 없음';
-  renderNoteView(note);
+  openEditor(
+    noteId,
+    false,
+    false
+  );
   closeSidebarMobile();
 }
 
@@ -220,10 +208,6 @@ function closeNoteView() {
 }
 
 $('#noteViewBackBtn').addEventListener('click', closeNoteView);
-$('#noteViewEditBtn').addEventListener('click', () => {
-  const noteId = currentNoteViewId;
-  if (noteId) openEditor(noteId, true);
-});
 $('#noteViewStarBtn').addEventListener('click', () => {
   const note = getViewedNote();
   if (!note) return;

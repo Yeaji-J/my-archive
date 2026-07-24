@@ -132,16 +132,6 @@ function ensurePostitData(note) {
     !note.postitData
     || typeof note.postitData !== 'object'
   ) {
-    const legacyItems =
-      Array.isArray(todos)
-      && todos.length
-        ? todos.map(item => ({
-            id: item.id || uid(),
-            text: item.text || '',
-            done: Boolean(item.done)
-          }))
-        : blankPostitItems(10);
-
     note.postitData = {
       type: 'todo',
       skin: 'blue',
@@ -150,7 +140,7 @@ function ensurePostitData(note) {
       fontSize: 16,
       accentColor: '#7F9FC0',
       tags: [],
-      items: legacyItems,
+      items: blankPostitItems(10),
       weekly: blankWeeklyRows(),
       habitMonth: postitMonthValue(),
       habits: blankHabitRows(),

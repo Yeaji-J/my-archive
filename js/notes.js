@@ -1119,14 +1119,23 @@
     if (!note) return;
 
     if (updateHistory && typeof pushArchiveRoute === 'function') {
-      pushArchiveRoute(`/note/${encodeURIComponent(noteId)}/edit`);
+      pushArchiveRoute(`/note/${encodeURIComponent(noteId)}`);
     }
     currentNoteId = noteId;
     currentNoteViewId = null;
     editorReturnsToView = returnToView;
 
     noteTitle.value = note.title || '';
-    note.template = note.template || 'memo';
+    note.template =
+      typeof note.template === 'string'
+        ? note.template
+        : Object.prototype
+          .hasOwnProperty.call(
+            note,
+            'template'
+          )
+          ? ''
+          : 'memo';
 
     updateEditorMeta(note);
     populateFolderSelect(note.folderId);
@@ -1148,7 +1157,9 @@
 
     setEditorTemplate(note.template, false);
 
-    if (note.template === 'memo') {
+    if (!note.template) {
+      noteTitle.focus();
+    } else if (note.template === 'memo') {
       noteTitle.focus();
     }
   }
@@ -1267,7 +1278,7 @@
     saveData();
   }
 
-  function createNote(template = 'memo') {
+  function createNote(template = '') {
     if (
       currentView === 'home'
       || currentView === 'chat'
@@ -1296,30 +1307,17 @@
       title: '',
       content: '',
       template,
-      memoData: template === 'memo'
-        ? {
-            html: '',
-            skin: 'pink-grid',
-            columns: 1
-          }
-        : undefined,
-      moodboard: template === 'moodboard'
-        ? { items: [], drawing: '' }
-        : undefined,
-      linkData: template === 'links'
-        ? { url: '', siteName: '', description: '', memo: '', category: '' }
-        : undefined,
-      collectionData: template === 'collection'
-        ? { type: '책', cover: '', oneLine: '', tags: [], content: '', fields: [] }
-        : undefined,
       folderId,
       starred: false,
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
 
-    if (template === 'todo') {
-      ensurePostitData(note);
+    if (template) {
+      resetNoteForTemplate(
+        note,
+        template
+      );
     }
 
     state.notes.unshift(note);

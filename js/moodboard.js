@@ -20,38 +20,125 @@ function ensureMoodboard(note) {
   return note.moodboard;
 }
 
+const EDITOR_TEMPLATE_KEYS = [
+  'memo',
+  'todo',
+  'moodboard',
+  'links',
+  'collection'
+];
+
+function resetNoteForTemplate(
+  note,
+  template
+) {
+  if (
+    !note
+    || !EDITOR_TEMPLATE_KEYS
+      .includes(template)
+  ) {
+    return;
+  }
+
+  note.title = '';
+  note.content = '';
+  note.template = template;
+
+  delete note.memoData;
+  delete note.postitData;
+  delete note.moodboard;
+  delete note.linkData;
+  delete note.collectionData;
+
+  if (template === 'memo') {
+    note.memoData = {
+      html: '',
+      skin: 'pink-grid',
+      columns: 1
+    };
+  } else if (template === 'todo') {
+    ensurePostitData(note);
+  } else if (template === 'moodboard') {
+    note.moodboard = {
+      items: [],
+      drawing: ''
+    };
+  } else if (template === 'links') {
+    note.linkData = {
+      url: '',
+      siteName: '',
+      description: '',
+      memo: '',
+      category: ''
+    };
+  } else if (template === 'collection') {
+    note.collectionData = {
+      type: '책',
+      cover: '',
+      oneLine: '',
+      tags: [],
+      content: '',
+      fields: []
+    };
+  }
+}
+
 function setEditorTemplate(template, updateNote = true) {
   const note = getCurrentNote();
   if (!note) return;
+  const validTemplate =
+    EDITOR_TEMPLATE_KEYS
+      .includes(template);
 
   document.querySelectorAll('[data-editor-template]').forEach(tab => {
-    tab.classList.toggle('active', tab.dataset.editorTemplate === template);
+    tab.classList.toggle(
+      'active',
+      validTemplate
+      && tab.dataset.editorTemplate
+        === template
+    );
   });
 
-  memoEditorPanel.hidden = template !== 'memo';
-  todoEditorPanel.hidden = template !== 'todo';
-  moodboardEditorPanel.hidden = template !== 'moodboard';
-  linkEditorPanel.hidden = template !== 'links';
-  collectionEditorPanel.hidden = template !== 'collection';
-  editorTemplateMessage.hidden = !template.startsWith('blank');
+  memoEditorPanel.hidden =
+    template !== 'memo';
+  todoEditorPanel.hidden =
+    template !== 'todo';
+  moodboardEditorPanel.hidden =
+    template !== 'moodboard';
+  linkEditorPanel.hidden =
+    template !== 'links';
+  collectionEditorPanel.hidden =
+    template !== 'collection';
+  $('.editor-library-bar').hidden =
+    !validTemplate;
+  editorTemplateMessage.hidden =
+    validTemplate;
 
-  if (template.startsWith('blank')) {
-    editorTemplateMessage.innerHTML = '<div><strong>아직 준비 중인 템플릿이에요.</strong><br><br>용도가 정해지면 이 인덱스에 연결할게요.</div>';
+  if (!validTemplate) {
+    editorTemplateMessage.hidden = false;
+    editorTemplateMessage.innerHTML = `
+      <div class="editor-template-empty">
+        <strong>작성할 템플릿을 선택해주세요.</strong>
+        <span>위 인덱스를 누르면 빈 작성 화면이 열려요.</span>
+      </div>
+    `;
     return;
   }
 
   if (updateNote) {
-    note.template = template;
+    if (note.template !== template) {
+      resetNoteForTemplate(
+        note,
+        template
+      );
+      noteTitle.value = '';
+    }
     note.updatedAt = Date.now();
     saveData();
     updateEditorMeta(note);
   }
 
   if (template === 'todo') {
-    if (!note.title) {
-      note.title = '포스트잇';
-      noteTitle.value = note.title;
-    }
     renderPostitEditor(note);
   }
 

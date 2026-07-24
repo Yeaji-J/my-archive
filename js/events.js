@@ -20,6 +20,7 @@
             browseMode = 'folder';
             browseSecondaryFilter = 'all';
           }
+          resetArchiveSelection();
           setView(
             button.dataset.view
           );
@@ -38,6 +39,7 @@
             memoAlbumPage = 1;
             memoAlbumSearchTerm = '';
             $('#memoAlbumSearch').value = '';
+            resetArchiveSelection();
             setView('all');
           });
         });
@@ -51,6 +53,7 @@
             memoAlbumPage = 1;
             memoAlbumSearchTerm = '';
             $('#memoAlbumSearch').value = '';
+            resetArchiveSelection();
             if (currentView !== 'all') {
               setView('all');
             } else {
@@ -75,6 +78,7 @@
             memoAlbumPage = 1;
             memoAlbumSearchTerm = '';
             $('#memoAlbumSearch').value = '';
+            resetArchiveSelection();
             renderFolderGridView();
           });
         });
@@ -128,6 +132,74 @@
         memoAlbumPage = 1;
         renderFolderGridView();
       }
+    );
+
+  $('#archiveSelectModeBtn')
+    .addEventListener(
+      'click',
+      () => setArchiveSelectionMode(
+        !archiveSelectionMode
+      )
+    );
+
+  $('#archiveSelectAllBtn')
+    .addEventListener(
+      'click',
+      () => {
+        let notes =
+          getFilteredNotes();
+
+        if (
+          browseTemplate === 'memo'
+          && memoAlbumSearchTerm.trim()
+        ) {
+          const query =
+            memoAlbumSearchTerm
+              .trim()
+              .toLowerCase();
+
+          notes = notes.filter(note =>
+            `${note.title || ''} ${note.content || ''}`
+              .toLowerCase()
+              .includes(query)
+          );
+        }
+
+        const allSelected =
+          notes.length > 0
+          && notes.every(
+            note =>
+              selectedArchiveNoteIds
+                .has(note.id)
+          );
+
+        if (allSelected) {
+          selectedArchiveNoteIds.clear();
+        } else {
+          notes.forEach(
+            note =>
+              selectedArchiveNoteIds
+                .add(note.id)
+          );
+        }
+
+        renderFolderGridView();
+      }
+    );
+
+  $('#archiveClearSelectionBtn')
+    .addEventListener(
+      'click',
+      () => {
+        selectedArchiveNoteIds.clear();
+        renderFolderGridView();
+      }
+    );
+
+  $('#archiveBulkDeleteBtn')
+    .addEventListener(
+      'click',
+      deleteSelectedArchiveNotes
     );
 
   $('#addFolderBtn')
@@ -815,6 +887,7 @@
         currentUser
         && editorView.hidden
         && !folderDeleteInProgress
+        && !noteDeleteInProgress
       ) {
         pullCloudData();
       }

@@ -376,6 +376,24 @@
           <span>모든 자료</span>
         </div>
 
+        <div class="archive-bulk-bar" id="archiveBulkBar" hidden>
+          <div class="archive-bulk-summary">
+            <button class="archive-select-toggle" id="archiveSelectModeBtn" type="button">
+              선택
+            </button>
+            <button class="archive-bulk-action" id="archiveSelectAllBtn" type="button" hidden>
+              전체 선택
+            </button>
+            <button class="archive-bulk-action" id="archiveClearSelectionBtn" type="button" hidden>
+              선택 해제
+            </button>
+            <span id="archiveSelectedCount" hidden>0개 선택</span>
+          </div>
+          <button class="archive-bulk-delete" id="archiveBulkDeleteBtn" type="button" hidden disabled>
+            선택 삭제
+          </button>
+        </div>
+
         <div class="memo-album-bar" id="memoAlbumBar" hidden>
           <div>
             <strong>01 · MEMO ALBUM</strong>

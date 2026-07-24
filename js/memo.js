@@ -304,8 +304,23 @@ function renderMemoAlbum(notes) {
       const memo = ensureMemoData(note);
       const card = document.createElement('article');
       card.className =
-        `memo-album-card memo-skin-${memo.skin}`;
+        `memo-album-card memo-skin-${memo.skin}`
+        + (
+          archiveSelectionMode
+            ? ' selection-mode'
+            : ''
+        )
+        + (
+          selectedArchiveNoteIds.has(note.id)
+            ? ' selected'
+            : ''
+        );
       card.innerHTML = `
+        ${
+          archiveSelectionMode
+            ? archiveSelectionButton(note.id)
+            : ''
+        }
         <button class="memo-album-open" type="button">
           <span class="memo-album-preview">
             ${memoPreviewHtml(note)}
@@ -330,11 +345,40 @@ function renderMemoAlbum(notes) {
         .querySelector('.memo-album-open')
         .addEventListener(
         'click',
-        () => openNoteView(note.id)
+        () => {
+          if (archiveSelectionMode) {
+            toggleArchiveNoteSelection(
+              note.id
+            );
+            return;
+          }
+
+          openNoteView(note.id);
+        }
       );
+      card
+        .querySelector(
+          '[data-note-select]'
+        )
+        ?.addEventListener(
+          'click',
+          event => {
+            event.stopPropagation();
+            toggleArchiveNoteSelection(
+              note.id
+            );
+          }
+        );
       card
         .querySelector('.memo-album-star')
         .addEventListener('click', () => {
+          if (archiveSelectionMode) {
+            toggleArchiveNoteSelection(
+              note.id
+            );
+            return;
+          }
+
           note.starred = !note.starred;
           saveData();
           renderCounts();

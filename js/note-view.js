@@ -238,10 +238,9 @@ $('#noteViewFolderSelect').addEventListener('change', event => {
   saveData();
   renderNoteView(note);
 });
-$('#noteViewDeleteBtn').addEventListener('click', () => {
+$('#noteViewDeleteBtn').addEventListener('click', async () => {
   const note = getViewedNote();
   if (!note || !confirm('이 자료를 삭제할까요?')) return;
-  state.notes = state.notes.filter(item => item.id !== note.id);
-  saveData();
+  await deleteNotesByIds([note.id]);
   closeNoteView();
 });

@@ -362,6 +362,7 @@ const STORAGE_KEY = 'archive.data.v1';
   let cloudSaveTimer = null;
   let pullingCloudData = false;
   let folderDeleteInProgress = false;
+  let cloudMutationRevision = 0;
 
   function setSyncStatus(
     message,
@@ -402,7 +403,7 @@ const STORAGE_KEY = 'archive.data.v1';
   }
 
   async function pushCloudData() {
-    if (!currentUser) return;
+    if (!currentUser) return true;
 
     const { error } = await cloud
       .from('archive_data')
@@ -429,16 +430,21 @@ const STORAGE_KEY = 'archive.data.v1';
         'error'
       );
 
-      return;
+      return false;
     }
 
     setSyncStatus(
       '모든 기기에 저장됨'
     );
+
+    return true;
   }
 
   async function pullCloudData() {
     if (!currentUser) return;
+
+    const requestedAtRevision =
+      cloudMutationRevision;
 
     setSyncStatus(
       '동기화 중…',
@@ -465,6 +471,13 @@ const STORAGE_KEY = 'archive.data.v1';
         'error'
       );
 
+      return;
+    }
+
+    if (
+      requestedAtRevision
+      !== cloudMutationRevision
+    ) {
       return;
     }
 
@@ -520,6 +533,9 @@ const STORAGE_KEY = 'archive.data.v1';
   let browseSecondaryFilter = 'all';
   let memoAlbumPage = 1;
   let memoAlbumSearchTerm = '';
+  let archiveSelectionMode = false;
+  const selectedArchiveNoteIds = new Set();
+  let noteDeleteInProgress = false;
   let pendingFolderColor =
     FOLDER_COLORS[0];
 

@@ -475,6 +475,180 @@
     })[note.template || 'memo'];
   }
 
+  function isTemplateArchiveView() {
+    return (
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate !== 'all'
+    );
+  }
+
+  function resetArchiveSelection() {
+    archiveSelectionMode = false;
+    selectedArchiveNoteIds.clear();
+  }
+
+  function setArchiveSelectionMode(enabled) {
+    archiveSelectionMode = Boolean(enabled);
+    selectedArchiveNoteIds.clear();
+    renderFolderGridView();
+  }
+
+  function toggleArchiveNoteSelection(noteId) {
+    if (selectedArchiveNoteIds.has(noteId)) {
+      selectedArchiveNoteIds.delete(noteId);
+    } else {
+      selectedArchiveNoteIds.add(noteId);
+    }
+
+    renderFolderGridView();
+  }
+
+  function archiveSelectionButton(noteId) {
+    const selected =
+      selectedArchiveNoteIds.has(noteId);
+
+    return `
+      <button
+        class="archive-card-check${selected ? ' selected' : ''}"
+        type="button"
+        data-note-select="${escapeHtml(noteId)}"
+        aria-label="${selected ? '선택 해제' : '자료 선택'}"
+        aria-pressed="${selected}"
+      >
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M5 12.5l4.2 4.2L19 7" />
+        </svg>
+      </button>
+    `;
+  }
+
+  function renderArchiveBulkBar(notes) {
+    const bar = $('#archiveBulkBar');
+    const visible =
+      isTemplateArchiveView();
+
+    bar.hidden = !visible;
+
+    if (!visible) {
+      resetArchiveSelection();
+      return;
+    }
+
+    const availableIds =
+      new Set(notes.map(note => note.id));
+
+    [...selectedArchiveNoteIds]
+      .forEach(noteId => {
+        if (!availableIds.has(noteId)) {
+          selectedArchiveNoteIds.delete(noteId);
+        }
+      });
+
+    const count =
+      selectedArchiveNoteIds.size;
+    const allSelected =
+      notes.length > 0
+      && count === notes.length;
+
+    $('#archiveSelectModeBtn').textContent =
+      archiveSelectionMode
+        ? '선택 종료'
+        : '선택';
+
+    $('#archiveSelectAllBtn').hidden =
+      !archiveSelectionMode;
+    $('#archiveSelectAllBtn').textContent =
+      allSelected
+        ? '전체 선택 해제'
+        : '전체 선택';
+
+    $('#archiveClearSelectionBtn').hidden =
+      !archiveSelectionMode
+      || count === 0;
+
+    $('#archiveSelectedCount').hidden =
+      !archiveSelectionMode;
+    $('#archiveSelectedCount').textContent =
+      `${count}개 선택`;
+
+    const deleteButton =
+      $('#archiveBulkDeleteBtn');
+    deleteButton.hidden =
+      !archiveSelectionMode;
+    deleteButton.disabled =
+      count === 0;
+  }
+
+  async function deleteNotesByIds(noteIds) {
+    const ids =
+      new Set(noteIds.filter(Boolean));
+
+    if (!ids.size) return false;
+
+    noteDeleteInProgress = true;
+    cloudMutationRevision += 1;
+    clearTimeout(cloudSaveTimer);
+
+    try {
+      state.notes =
+        state.notes.filter(
+          note => !ids.has(note.id)
+        );
+
+      if (ids.has(currentNoteId)) {
+        currentNoteId = null;
+      }
+
+      if (ids.has(currentNoteViewId)) {
+        currentNoteViewId = null;
+      }
+
+      localStorage.setItem(
+        STORAGE_KEY,
+        JSON.stringify(state)
+      );
+
+      if (currentUser) {
+        setSyncStatus(
+          '삭제 내용 저장 중…',
+          'syncing'
+        );
+
+        const saved =
+          await pushCloudData();
+
+        if (!saved) {
+          alert(
+            '이 브라우저에서는 삭제되었지만 클라우드 동기화에 실패했어요. 네트워크를 확인한 뒤 다시 시도해주세요.'
+          );
+        }
+      }
+
+      return true;
+    } finally {
+      noteDeleteInProgress = false;
+    }
+  }
+
+  async function deleteSelectedArchiveNotes() {
+    const ids =
+      [...selectedArchiveNoteIds];
+
+    if (
+      !ids.length
+      || !confirm(
+        `선택한 자료 ${ids.length}개를 삭제할까요? 삭제한 자료는 복구할 수 없어요.`
+      )
+    ) {
+      return;
+    }
+
+    await deleteNotesByIds(ids);
+    resetArchiveSelection();
+    render();
+  }
+
   function renderFolderGridView() {
     renderArchiveBrowserControls();
 
@@ -642,6 +816,8 @@
         `${notes.length}개의 메모`;
     }
 
+    renderArchiveBulkBar(notes);
+
     noteGrid.classList.toggle(
       'list-mode',
       !gridMode && !memoAlbumMode
@@ -673,7 +849,19 @@
       const card =
         document.createElement('div');
 
-      card.className = 'note-card';
+      card.className =
+        'note-card'
+        + (
+          archiveSelectionMode
+            ? ' selection-mode'
+            : ''
+        )
+        + (
+          selectedArchiveNoteIds
+            .has(note.id)
+            ? ' selected'
+            : ''
+        );
 
       card.style.setProperty(
         '--folder-color',
@@ -686,6 +874,11 @@
       );
 
       card.innerHTML = `
+        ${
+          archiveSelectionMode
+            ? archiveSelectionButton(note.id)
+            : ''
+        }
         <span class="note-card-template">${escapeHtml(templateCardLabel(note))}</span>
         <div class="note-card-top">
           <div class="note-card-title">
@@ -741,7 +934,21 @@
 
       card.addEventListener(
         'click',
-        () => openNoteView(note.id)
+        event => {
+          if (
+            event.target.closest(
+              '[data-note-select]'
+            )
+            || archiveSelectionMode
+          ) {
+            toggleArchiveNoteSelection(
+              note.id
+            );
+            return;
+          }
+
+          openNoteView(note.id);
+        }
       );
 
       noteGrid.appendChild(card);
@@ -1000,16 +1207,11 @@
     openEditor(note.id);
   }
 
-  function deleteCurrentNote() {
+  async function deleteCurrentNote() {
     if (!currentNoteId) return;
 
-    state.notes =
-      state.notes.filter(
-        note =>
-          note.id !== currentNoteId
-      );
-
-    saveData();
+    const deletedNoteId =
+      currentNoteId;
 
     currentNoteId = null;
     currentNoteViewId = null;
@@ -1017,6 +1219,10 @@
     editorView.hidden = true;
     editorView.style.display = 'none';
     folderGridView.hidden = false;
+
+    await deleteNotesByIds([
+      deletedNoteId
+    ]);
 
     render();
   }

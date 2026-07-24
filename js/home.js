@@ -188,10 +188,10 @@ function renderTemplatePreview(template) {
       command: 'memo'
     },
     todo: {
-      kicker: '02 · TO DO LIST',
-      title: '오늘 할 일 정리하기',
-      desc: '해야 할 일을 한곳에 모아두고, 완료한 항목을 하나씩 체크해보세요.',
-      action: '할 일 열기',
+      kicker: '02 · POST-IT',
+      title: '용도에 맞는 종이 한 장',
+      desc: '투두·쇼핑·위시·위클리·해빗 트래커를 종이 질감의 포스트잇으로 기록해보세요.',
+      action: '새 포스트잇 만들기',
       command: 'todo'
     },
     moodboard: {
@@ -223,7 +223,26 @@ function renderTemplatePreview(template) {
     .sort((first, second) => second.updatedAt - first.updatedAt)
     .slice(0, 3);
   const todoItems = template === 'todo'
-    ? `<ul class="template-preview-list">${todos.slice(0, 4).map(todo => `<li>${escapeHtml(todo.text)}</li>`).join('') || '<li>아직 등록된 할 일이 없어요.</li>'}</ul>`
+    ? `
+      <ul class="template-preview-list">
+        ${
+          recentNotes[0]
+            ? ensurePostitData(
+                recentNotes[0]
+              ).items
+                .filter(item => item.text)
+                .slice(0, 4)
+                .map(
+                  item => `
+                    <li>${escapeHtml(item.text)}</li>
+                  `
+                )
+                .join('')
+              || '<li>아직 작성된 항목이 없어요.</li>'
+            : '<li>아직 작성된 포스트잇이 없어요.</li>'
+        }
+      </ul>
+    `
     : '';
   const recentHtml = recentNotes.length
     ? `

@@ -117,12 +117,14 @@
 }
 
 .note-card.selection-mode,
-.memo-album-card.selection-mode {
+.memo-album-card.selection-mode,
+.postit-album-card.selection-mode {
   cursor: pointer;
 }
 
 .note-card.selected,
-.memo-album-card.selected {
+.memo-album-card.selected,
+.postit-album-card.selected {
   border-color: #7c9dc0;
   box-shadow:
     0 0 0 3px rgba(124, 157, 192, .14),

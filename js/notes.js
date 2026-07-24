@@ -72,7 +72,7 @@
       calendarView.hidden = true;
       todoView.hidden = false;
 
-      breadcrumb.textContent = '할 일';
+      breadcrumb.textContent = '포스트잇';
 
       renderTodos();
       return;
@@ -299,7 +299,7 @@
       calendarView.hidden = true;
       todoView.hidden = false;
 
-      breadcrumb.textContent = '할 일';
+      breadcrumb.textContent = '포스트잇';
 
       renderTodos();
     } else {
@@ -351,9 +351,25 @@
       }
 
       if (browseSecondaryFilter !== 'all') {
-        notes = notes.filter(
-          note => getBrowseSecondaryValue(note) === browseSecondaryFilter
-        );
+        notes = notes.filter(note => {
+          if (
+            browseTemplate === 'todo'
+          ) {
+            const tags =
+              ensurePostitData(note).tags;
+
+            return browseSecondaryFilter
+              === '태그 없음'
+                ? tags.length === 0
+                : tags.includes(
+                    browseSecondaryFilter
+                  );
+          }
+
+          return getBrowseSecondaryValue(
+            note
+          ) === browseSecondaryFilter;
+        });
       }
     } else if (currentView === 'starred') {
       notes =
@@ -398,6 +414,9 @@
     if ((note.template || 'memo') === 'links') {
       return note.linkData?.category || '미분류';
     }
+    if ((note.template || 'memo') === 'todo') {
+      return ensurePostitData(note).tags[0] || '태그 없음';
+    }
     return 'all';
   }
 
@@ -417,17 +436,42 @@
 
     const supportsSecondary =
       browseMode === 'template'
-      && ['links', 'collection'].includes(browseTemplate);
+      && ['todo', 'links', 'collection'].includes(browseTemplate);
 
     archiveSecondaryFilters.hidden = !supportsSecondary;
     archiveSecondaryFilters.innerHTML = '';
 
     if (supportsSecondary) {
-      const values = [...new Set(
-        state.notes
-          .filter(note => (note.template || 'memo') === browseTemplate)
-          .map(getBrowseSecondaryValue)
-      )];
+      const values = [
+        ...new Set(
+          state.notes
+            .filter(
+              note =>
+                (note.template || 'memo')
+                === browseTemplate
+            )
+            .flatMap(note => {
+              if (
+                browseTemplate
+                === 'todo'
+              ) {
+                const tags =
+                  ensurePostitData(note)
+                    .tags;
+
+                return tags.length
+                  ? tags
+                  : ['태그 없음'];
+              }
+
+              return [
+                getBrowseSecondaryValue(
+                  note
+                )
+              ];
+            })
+        )
+      ];
 
       ['all', ...values].forEach(value => {
         const button = document.createElement('button');
@@ -437,6 +481,8 @@
         button.textContent = value === 'all' ? '전체' : value;
         button.addEventListener('click', () => {
           browseSecondaryFilter = value;
+          memoAlbumPage = 1;
+          postitAlbumPage = 1;
           renderFolderGridView();
         });
         archiveSecondaryFilters.appendChild(button);
@@ -449,8 +495,30 @@
   function noteCardPreview(note) {
     const template = note.template || 'memo';
     if (template === 'todo') {
-      const remaining = todos.filter(todo => !todo.done).length;
-      return `남은 할 일 ${remaining}개 · 전체 ${todos.length}개`;
+      const data =
+        ensurePostitData(note);
+
+      if (data.type === 'weekly') {
+        return data.weekly
+          .map(item => item.text)
+          .filter(Boolean)
+          .join(' · ')
+          || '비어 있는 위클리 플랜';
+      }
+
+      if (data.type === 'habit') {
+        return data.habits
+          .map(item => item.text)
+          .filter(Boolean)
+          .join(' · ')
+          || '비어 있는 해빗 트래커';
+      }
+
+      return data.items
+        .map(item => item.text)
+        .filter(Boolean)
+        .join(' · ')
+        || '비어 있는 포스트잇';
     }
     if (template === 'moodboard') {
       const board = note.moodboard || { items: [] };
@@ -468,7 +536,7 @@
   function templateCardLabel(note) {
     return ({
       memo: 'MEMO',
-      todo: 'TO DO',
+      todo: 'POST-IT',
       moodboard: 'MOODBOARD',
       links: 'LINK',
       collection: note.collectionData?.type?.toUpperCase?.() || 'COLLECTION'
@@ -794,9 +862,15 @@
       currentView === 'all'
       && browseMode === 'template'
       && browseTemplate === 'memo';
+    const postitAlbumMode =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate === 'todo';
 
     $('#memoAlbumBar').hidden =
       !memoAlbumMode;
+    $('#postitAlbumBar').hidden =
+      !postitAlbumMode;
 
     if (memoAlbumMode) {
       const query =
@@ -816,15 +890,42 @@
         `${notes.length}개의 메모`;
     }
 
+    if (postitAlbumMode) {
+      const query =
+        postitAlbumSearchTerm
+          .trim()
+          .toLowerCase();
+
+      if (query) {
+        notes = notes.filter(note =>
+          `${
+            note.title || ''
+          } ${postitSearchText(note)}`
+            .toLowerCase()
+            .includes(query)
+        );
+      }
+
+      $('#postitAlbumResultCount')
+        .textContent =
+          `${notes.length}개의 포스트잇`;
+    }
+
     renderArchiveBulkBar(notes);
 
     noteGrid.classList.toggle(
       'list-mode',
-      !gridMode && !memoAlbumMode
+      !gridMode
+      && !memoAlbumMode
+      && !postitAlbumMode
     );
     noteGrid.classList.toggle(
       'memo-album-grid',
       memoAlbumMode
+    );
+    noteGrid.classList.toggle(
+      'postit-album-grid',
+      postitAlbumMode
     );
 
     noteGrid.innerHTML = '';
@@ -833,11 +934,20 @@
       notes.length !== 0;
 
     if (memoAlbumMode) {
+      $('#postitAlbumPagination')
+        .hidden = true;
       renderMemoAlbum(notes);
       return;
     }
 
     $('#memoAlbumPagination').hidden = true;
+
+    if (postitAlbumMode) {
+      renderPostitAlbum(notes);
+      return;
+    }
+
+    $('#postitAlbumPagination').hidden = true;
 
     notes.forEach(note => {
       const folder =
@@ -1199,6 +1309,10 @@
       createdAt: Date.now(),
       updatedAt: Date.now()
     };
+
+    if (template === 'todo') {
+      ensurePostitData(note);
+    }
 
     state.notes.unshift(note);
 

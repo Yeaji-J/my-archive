@@ -158,7 +158,7 @@
           </button>
           <button type="button" data-sidebar-template="todo">
             <span class="sidebar-template-index">02</span>
-            <span>할 일</span>
+            <span>포스트잇</span>
             <small data-template-count="todo">0</small>
           </button>
           <button type="button" data-sidebar-template="moodboard">
@@ -311,7 +311,7 @@
           <section class="template-file" aria-label="작성 템플릿">
             <div class="template-tabs" id="templateTabs">
               <button class="template-tab active" data-template="memo" type="button"><span>01</span>메모</button>
-              <button class="template-tab" data-template="todo" type="button"><span>02</span>할 일</button>
+              <button class="template-tab" data-template="todo" type="button"><span>02</span>포스트잇</button>
               <button class="template-tab" data-template="moodboard" type="button"><span>03</span>무드보드</button>
               <button class="template-tab" data-template="links" type="button"><span>04</span>링크</button>
               <button class="template-tab" data-template="collection" type="button"><span>05</span>컬렉션</button>
@@ -359,7 +359,7 @@
           <div class="archive-template-filters" id="archiveTemplateFilters" hidden>
             <button type="button" class="active" data-template-filter="all">전체</button>
             <button type="button" data-template-filter="memo">메모</button>
-            <button type="button" data-template-filter="todo">할 일</button>
+            <button type="button" data-template-filter="todo">포스트잇</button>
             <button type="button" data-template-filter="moodboard">무드보드</button>
             <button type="button" data-template-filter="links">링크</button>
             <button type="button" data-template-filter="collection">컬렉션</button>
@@ -408,8 +408,23 @@
           </label>
         </div>
 
+        <div class="postit-album-bar" id="postitAlbumBar" hidden>
+          <div>
+            <strong>02 · POST-IT ALBUM</strong>
+            <span id="postitAlbumResultCount">0개의 포스트잇</span>
+          </div>
+          <label class="postit-album-search">
+            <svg viewBox="0 0 24 24">
+              <circle cx="11" cy="11" r="7" stroke-width="1.6" />
+              <path d="M21 21l-4.3-4.3" stroke-linecap="round" stroke-width="1.6" />
+            </svg>
+            <input type="search" id="postitAlbumSearch" placeholder="제목, 내용, 태그 검색">
+          </label>
+        </div>
+
         <div class="note-grid" id="noteGrid"></div>
         <nav class="memo-album-pagination" id="memoAlbumPagination" hidden aria-label="메모 페이지 이동"></nav>
+        <nav class="postit-album-pagination" id="postitAlbumPagination" hidden aria-label="포스트잇 페이지 이동"></nav>
 
         <div class="empty-state" id="emptyState" hidden>
           <div class="empty-icon"></div>
@@ -688,7 +703,7 @@
         <div class="todo-page">
           <div class="todo-card">
             <h2 class="todo-title">
-              To Do List
+              Post-it Notes
             </h2>
 
             <form
@@ -698,7 +713,7 @@
               <input
                 type="text"
                 id="todoInput"
-                placeholder="할 일을 입력하세요"
+                placeholder="포스트잇 항목을 입력하세요"
                 maxlength="120"
                 autocomplete="off"
               >
@@ -728,7 +743,7 @@
               id="todoEmpty"
               hidden
             >
-              아직 할 일이 없어요. 위에서 추가해보세요.
+              아직 작성된 포스트잇이 없어요.
             </p>
           </div>
         </div>
@@ -743,7 +758,7 @@
         <div class="editor-folder-shell">
           <nav class="editor-template-tabs" id="editorTemplateTabs" aria-label="작성 템플릿">
             <button type="button" class="editor-template-tab active" data-editor-template="memo"><span>01</span>메모</button>
-            <button type="button" class="editor-template-tab" data-editor-template="todo"><span>02</span>할 일</button>
+            <button type="button" class="editor-template-tab" data-editor-template="todo"><span>02</span>포스트잇</button>
             <button type="button" class="editor-template-tab" data-editor-template="moodboard"><span>03</span>무드보드</button>
             <button type="button" class="editor-template-tab" data-editor-template="links"><span>04</span>링크</button>
             <button type="button" class="editor-template-tab" data-editor-template="collection"><span>05</span>컬렉션</button>
@@ -821,20 +836,79 @@
               </div>
             </div>
 
-            <div class="editor-template-panel editor-todo-panel" id="todoEditorPanel" hidden>
-              <div class="editor-todo-head">
-                <div>
-                  <span>TO DO LIST</span>
-                  <h2>해야 할 일을 가볍게 정리해요.</h2>
+            <div class="editor-template-panel postit-editor-panel" id="todoEditorPanel" hidden>
+              <div class="postit-editor-layout">
+                <div class="postit-paper-stage">
+                  <div class="postit-paper postit-skin-blue postit-font-pretendard" id="postitEditorPaper">
+                    <input
+                      class="postit-paper-title"
+                      id="postitHeadingInput"
+                      type="text"
+                      maxlength="50"
+                      value="TO DO LIST"
+                      aria-label="포스트잇 제목"
+                    >
+                    <div class="postit-paper-content" id="postitEditorContent"></div>
+                  </div>
                 </div>
-                <strong id="editorTodoCount">0</strong>
+
+                <aside class="postit-control-panel">
+                  <section>
+                    <span class="postit-control-label">TYPE</span>
+                    <div class="postit-type-grid">
+                      <button type="button" data-postit-type="habit">해빗 트래커</button>
+                      <button type="button" data-postit-type="todo" class="active">투두 리스트</button>
+                      <button type="button" data-postit-type="weekly">위클리 플랜</button>
+                      <button type="button" data-postit-type="wish">위시 리스트</button>
+                      <button type="button" data-postit-type="shopping">쇼핑 리스트</button>
+                    </div>
+                  </section>
+
+                  <section>
+                    <span class="postit-control-label">PAPER</span>
+                    <div class="postit-skin-grid">
+                      <button type="button" data-postit-skin="cream" style="--postit-swatch:#FEF7CB" aria-label="크림"></button>
+                      <button type="button" data-postit-skin="blue" class="active" style="--postit-swatch:#ACBCCD" aria-label="블루"></button>
+                      <button type="button" data-postit-skin="purple" style="--postit-swatch:#C3C2D9" aria-label="퍼플"></button>
+                      <button type="button" data-postit-skin="pink" style="--postit-swatch:#F0C7D9" aria-label="핑크"></button>
+                      <button type="button" data-postit-skin="green" style="--postit-swatch:#9CA078" aria-label="그린"></button>
+                    </div>
+                  </section>
+
+                  <section class="postit-control-row">
+                    <label>
+                      <span class="postit-control-label">FONT</span>
+                      <select id="postitFontSelect">
+                        <option value="pretendard">Pretendard</option>
+                        <option value="handwriting">이서윤체</option>
+                        <option value="serif">Serif</option>
+                      </select>
+                    </label>
+                    <label>
+                      <span class="postit-control-label">SIZE</span>
+                      <select id="postitFontSizeSelect">
+                        <option value="14">14px</option>
+                        <option value="16" selected>16px</option>
+                        <option value="18">18px</option>
+                        <option value="20">20px</option>
+                      </select>
+                    </label>
+                  </section>
+
+                  <section>
+                    <label class="postit-tag-field">
+                      <span class="postit-control-label">TAGS</span>
+                      <input id="postitTagsInput" type="text" placeholder="업무, 장보기, 7월 목표">
+                    </label>
+                    <p class="postit-control-help">쉼표로 구분하면 뷰페이지에서 태그별로 볼 수 있어요.</p>
+                    <div class="postit-tag-preview" id="postitTagPreview"></div>
+                  </section>
+
+                  <button class="postit-add-row" id="postitAddRowBtn" type="button">
+                    + 항목 추가
+                  </button>
+                </aside>
               </div>
-              <form class="editor-todo-form" id="editorTodoForm">
-                <input type="text" id="editorTodoInput" maxlength="120" autocomplete="off" placeholder="새로운 할 일을 입력하세요">
-                <button type="submit">추가</button>
-              </form>
-              <ul class="editor-todo-list" id="editorTodoList"></ul>
-              <p class="editor-todo-empty" id="editorTodoEmpty">아직 할 일이 없어요.</p>
             </div>
 
             <div class="editor-template-panel moodboard-panel" id="moodboardEditorPanel" hidden>

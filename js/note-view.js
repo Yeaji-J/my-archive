@@ -4,7 +4,7 @@
 
 const NOTE_TYPE_LABELS = {
   memo: '01 · BASIC NOTE',
-  todo: '02 · TO DO LIST',
+  todo: '02 · POST-IT',
   moodboard: '03 · MOODBOARD',
   links: '04 · LINKS',
   collection: '05 · COLLECTION'
@@ -65,7 +65,7 @@ function renderNoteView(note = getViewedNote()) {
     ? ensureCollectionData(note).type || '기타'
     : '';
 
-  if (note.template === 'todo') renderTodoNoteView(content);
+  if (note.template === 'todo') renderTodoNoteView(content, note);
   else if (note.template === 'moodboard') renderMoodboardNoteView(content, note);
   else if (note.template === 'links') renderLinkNoteView(content, note);
   else if (note.template === 'collection') renderCollectionNoteView(content, note);
@@ -89,42 +89,39 @@ function renderMemoNoteView(content, note) {
   content.appendChild(body);
 }
 
-function renderTodoNoteView(content) {
-  const completed = todos.filter(todo => todo.done).length;
-  const percent = todos.length ? Math.round(completed / todos.length * 100) : 0;
-  const summary = document.createElement('div');
-  summary.className = 'note-view-todo-summary';
-  summary.innerHTML = `
-    <div><span>오늘의 진행률</span><strong>${completed} / ${todos.length}</strong></div>
-    <div class="note-view-progress"><i style="width:${percent}%"></i></div>
-    <small>${percent}% 완료</small>
-  `;
-  content.appendChild(summary);
+function renderTodoNoteView(content, note) {
+  const data =
+    ensurePostitData(note);
+  const paper =
+    document.createElement('div');
 
-  const list = document.createElement('ul');
-  list.className = 'note-view-todos';
+  paper.className =
+    `${postitPaperClass(data)} postit-detail-paper`;
+  paper.style.setProperty(
+    '--postit-font-size',
+    `${data.fontSize}px`
+  );
 
-  if (!todos.length) {
-    list.innerHTML = '<li class="note-view-memo">아직 등록된 할 일이 없어요.</li>';
-  }
+  const heading =
+    document.createElement('h2');
+  heading.className =
+    'postit-detail-heading';
+  heading.textContent =
+    data.heading;
 
-  todos.forEach(todo => {
-    const item = document.createElement('li');
-    item.className = 'note-view-todo' + (todo.done ? ' done' : '');
-    item.innerHTML = `
-      <button type="button" aria-label="완료 상태 변경"><svg viewBox="0 0 24 24"><path d="M5 13l4 4L19 7" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" /></svg></button>
-      <span></span>
-    `;
-    item.querySelector('span').textContent = todo.text;
-    item.querySelector('button').addEventListener('click', () => {
-      todo.done = !todo.done;
-      saveTodos();
-      renderNoteView();
-    });
-    list.appendChild(item);
-  });
+  const body =
+    document.createElement('div');
+  body.className =
+    'postit-paper-content';
 
-  content.appendChild(list);
+  renderPostitBody(
+    body,
+    note,
+    true
+  );
+
+  paper.append(heading, body);
+  content.appendChild(paper);
 }
 
 function renderMoodboardNoteView(content, note) {

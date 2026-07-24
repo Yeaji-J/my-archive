@@ -140,6 +140,9 @@ function templateSearchText(note) {
   if (note.template === 'moodboard') {
     ensureMoodboard(note).items.filter(item => item.type === 'text').forEach(item => parts.push(item.text));
   }
+  if (note.template === 'todo') {
+    parts.push(postitSearchText(note));
+  }
   return parts.filter(Boolean).join(' ').toLowerCase();
 }
 
@@ -147,7 +150,25 @@ function templateFilterValue(note, template) {
   if (template === 'links') return ensureLinkData(note).category || '미분류';
   if (template === 'collection') return ensureCollectionData(note).type || '기타';
   if (template === 'memo') return state.folders.find(folder => folder.id === note.folderId)?.name || '폴더 없음';
+  if (template === 'todo') return ensurePostitData(note).tags[0] || '태그 없음';
   return '전체';
+}
+
+function templateFilterValues(note, template) {
+  if (template === 'todo') {
+    const tags =
+      ensurePostitData(note).tags;
+    return tags.length
+      ? tags
+      : ['태그 없음'];
+  }
+
+  return [
+    templateFilterValue(
+      note,
+      template
+    )
+  ];
 }
 
 function renderTemplateLibraryBar(template) {
@@ -155,7 +176,17 @@ function renderTemplateLibraryBar(template) {
   const filter = $('#editorTemplateFilter');
   const wrap = $('#editorLibraryResults');
   const notes = state.notes.filter(note => (note.template || 'memo') === template);
-  const filterValues = [...new Set(notes.map(note => templateFilterValue(note, template)))].filter(value => value !== '전체');
+  const filterValues = [
+    ...new Set(
+      notes.flatMap(
+        note =>
+          templateFilterValues(
+            note,
+            template
+          )
+      )
+    )
+  ].filter(value => value !== '전체');
   const previousFilter = filter.dataset.template === template ? filter.value : 'all';
 
   filter.dataset.template = template;
@@ -165,7 +196,12 @@ function renderTemplateLibraryBar(template) {
   const query = search.value.trim().toLowerCase();
   const filtered = notes.filter(note => {
     const matchesQuery = !query || templateSearchText(note).includes(query);
-    const matchesFilter = filter.value === 'all' || templateFilterValue(note, template) === filter.value;
+    const matchesFilter =
+      filter.value === 'all'
+      || templateFilterValues(
+        note,
+        template
+      ).includes(filter.value);
     return matchesQuery && matchesFilter;
   });
 

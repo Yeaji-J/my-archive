@@ -38,7 +38,10 @@
             browseSecondaryFilter = 'all';
             memoAlbumPage = 1;
             memoAlbumSearchTerm = '';
+            postitAlbumPage = 1;
+            postitAlbumSearchTerm = '';
             $('#memoAlbumSearch').value = '';
+            $('#postitAlbumSearch').value = '';
             resetArchiveSelection();
             setView('all');
           });
@@ -52,7 +55,10 @@
             browseSecondaryFilter = 'all';
             memoAlbumPage = 1;
             memoAlbumSearchTerm = '';
+            postitAlbumPage = 1;
+            postitAlbumSearchTerm = '';
             $('#memoAlbumSearch').value = '';
+            $('#postitAlbumSearch').value = '';
             resetArchiveSelection();
             if (currentView !== 'all') {
               setView('all');
@@ -77,7 +83,10 @@
             browseSecondaryFilter = 'all';
             memoAlbumPage = 1;
             memoAlbumSearchTerm = '';
+            postitAlbumPage = 1;
+            postitAlbumSearchTerm = '';
             $('#memoAlbumSearch').value = '';
+            $('#postitAlbumSearch').value = '';
             resetArchiveSelection();
             renderFolderGridView();
           });
@@ -134,6 +143,17 @@
       }
     );
 
+  $('#postitAlbumSearch')
+    .addEventListener(
+      'input',
+      event => {
+        postitAlbumSearchTerm =
+          event.target.value;
+        postitAlbumPage = 1;
+        renderFolderGridView();
+      }
+    );
+
   $('#archiveSelectModeBtn')
     .addEventListener(
       'click',
@@ -160,6 +180,24 @@
 
           notes = notes.filter(note =>
             `${note.title || ''} ${note.content || ''}`
+              .toLowerCase()
+              .includes(query)
+          );
+        }
+
+        if (
+          browseTemplate === 'todo'
+          && postitAlbumSearchTerm.trim()
+        ) {
+          const query =
+            postitAlbumSearchTerm
+              .trim()
+              .toLowerCase();
+
+          notes = notes.filter(note =>
+            `${
+              note.title || ''
+            } ${postitSearchText(note)}`
               .toLowerCase()
               .includes(query)
           );

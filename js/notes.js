@@ -551,6 +551,108 @@
     })[note.template || 'memo'];
   }
 
+  function archivePaperTextLength(note) {
+    return templateSearchText(note)
+      .replace(/\s+/g, ' ')
+      .trim()
+      .length;
+  }
+
+  function applyArchivePaperPresentation(
+    element,
+    note,
+    index,
+    {
+      minHeight = 230,
+      maxHeight = 480,
+      charsPerStep = 90,
+      stepHeight = 42,
+      extraHeight = 0
+    } = {}
+  ) {
+    const textLength =
+      archivePaperTextLength(note);
+    const contentHeight =
+      Math.ceil(
+        textLength
+        / Math.max(1, charsPerStep)
+      )
+      * stepHeight;
+    const height =
+      Math.max(
+        minHeight,
+        Math.min(
+          maxHeight,
+          minHeight
+          + contentHeight
+          + extraHeight
+        )
+      );
+    const tilts = [
+      -0.8,
+      0.45,
+      -0.25,
+      0.75,
+      -0.5,
+      0.2
+    ];
+    const shifts = [
+      0,
+      8,
+      -5,
+      5,
+      -8,
+      3
+    ];
+
+    element.classList.add(
+      'archive-paper-item'
+    );
+    element.classList.toggle(
+      'is-stacked',
+      index % 5 === 1
+      || index % 7 === 5
+    );
+    element.style.setProperty(
+      '--paper-height',
+      `${height}px`
+    );
+    element.style.setProperty(
+      '--paper-tilt',
+      `${tilts[index % tilts.length]}deg`
+    );
+    element.style.setProperty(
+      '--paper-shift-x',
+      `${shifts[index % shifts.length]}px`
+    );
+    element.style.setProperty(
+      '--paper-layer-color',
+      (
+        state.folders.find(
+          folder =>
+            folder.id === note.folderId
+        )?.color
+        || '#C3C2D9'
+      )
+    );
+  }
+
+  function archivePaperHoverMeta(
+    note,
+    label =
+      templateCardLabel(note)
+  ) {
+    return `
+      <span class="archive-paper-meta">
+        <small>${escapeHtml(label)}</small>
+        <strong>
+          ${escapeHtml(note.title || '제목 없음')}
+        </strong>
+        <time>${formatDate(note.updatedAt)}</time>
+      </span>
+    `;
+  }
+
   function folderPreviewMarkup(note) {
     const template =
       note.template || 'memo';

@@ -420,7 +420,7 @@ function renderMemoAlbum(notes) {
 
   notes
     .slice(start, start + MEMO_PAGE_SIZE)
-    .forEach(note => {
+    .forEach((note, index) => {
       const memo = ensureMemoData(note);
       const card = document.createElement('article');
       card.className =
@@ -435,6 +435,21 @@ function renderMemoAlbum(notes) {
             ? ' selected'
             : ''
         );
+      applyArchivePaperPresentation(
+        card,
+        note,
+        index,
+        {
+          minHeight: 250,
+          maxHeight: 520,
+          charsPerStep: 105,
+          stepHeight: 48,
+          extraHeight:
+            memo.html.includes('<img')
+              ? 80
+              : 0
+        }
+      );
       card.innerHTML = `
         ${
           archiveSelectionMode
@@ -445,10 +460,7 @@ function renderMemoAlbum(notes) {
           <span class="memo-album-preview">
             ${memoPreviewHtml(note)}
           </span>
-          <span class="memo-album-copy">
-            <strong>${escapeHtml(note.title || '제목 없음')}</strong>
-            <small>${formatDate(note.updatedAt)}</small>
-          </span>
+          ${archivePaperHoverMeta(note, '01 · MEMO')}
         </button>
         <button
           class="memo-album-star ${note.starred ? 'active' : ''}"

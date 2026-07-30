@@ -434,7 +434,7 @@ function renderMoodboardAlbum(notes) {
   renderTemplateAlbumPagination(
     'moodboard',
     notes
-  ).forEach(note => {
+  ).forEach((note, index) => {
     const data = ensureMoodboard(note);
     const card =
       document.createElement('article');
@@ -443,6 +443,22 @@ function renderMoodboardAlbum(notes) {
         `moodboard-album-card moodboard-skin-${data.skin}`,
         note
       );
+    applyArchivePaperPresentation(
+      card,
+      note,
+      index,
+      {
+        minHeight: 270,
+        maxHeight: 430,
+        charsPerStep: 120,
+        stepHeight: 28,
+        extraHeight:
+          Math.min(
+            100,
+            data.items.length * 10
+          )
+      }
+    );
     card.innerHTML = `
       ${
         archiveSelectionMode
@@ -468,6 +484,7 @@ function renderMoodboardAlbum(notes) {
               : ''
           }
         </span>
+        ${archivePaperHoverMeta(note, '03 · MOODBOARD')}
       </button>
     `;
     bindSpecializedCard(
@@ -496,6 +513,17 @@ function renderLinkArchiveList(notes) {
         'link-archive-row',
         note
       );
+    applyArchivePaperPresentation(
+      row,
+      note,
+      index,
+      {
+        minHeight: 170,
+        maxHeight: 320,
+        charsPerStep: 72,
+        stepHeight: 34
+      }
+    );
     row.innerHTML = `
       ${
         archiveSelectionMode
@@ -503,20 +531,26 @@ function renderLinkArchiveList(notes) {
           : ''
       }
       <button class="link-archive-open" type="button">
-        <span class="link-archive-number">${String(index + 1).padStart(2, '0')}</span>
-        <span class="link-archive-copy">
-          <strong>${escapeHtml(data.siteName || note.title || '제목 없음')}</strong>
-          ${
-            data.description
-              ? `<small>${escapeHtml(data.description)}</small>`
-              : ''
-          }
+        <span class="link-paper-content">
+          <small>
+            ${
+              escapeHtml(
+                data.category
+                || `LINK ${String(index + 1).padStart(2, '0')}`
+              )
+            }
+          </small>
+          <p>
+            ${
+              escapeHtml(
+                data.description
+                || '간단한 설명이 없는 링크예요.'
+              )
+            }
+          </p>
+          <span>${escapeHtml(data.url || '주소 없음')}</span>
         </span>
-        ${
-          data.category
-            ? `<span class="link-archive-category">${escapeHtml(data.category)}</span>`
-            : ''
-        }
+        ${archivePaperHoverMeta(note, '04 · LINK')}
       </button>
       ${
         href
@@ -549,7 +583,7 @@ function renderCollectionAlbum(notes) {
   renderTemplateAlbumPagination(
     'collection',
     notes
-  ).forEach(note => {
+  ).forEach((note, index) => {
     const data =
       ensureCollectionData(note);
     const card =
@@ -559,6 +593,21 @@ function renderCollectionAlbum(notes) {
         'collection-album-card',
         note
       );
+    applyArchivePaperPresentation(
+      card,
+      note,
+      index,
+      {
+        minHeight: 300,
+        maxHeight: 470,
+        charsPerStep: 115,
+        stepHeight: 38,
+        extraHeight:
+          data.cover
+            ? 65
+            : 0
+      }
+    );
     card.dataset.collectionType =
       data.type || '기타';
     card.innerHTML = `
@@ -575,10 +624,12 @@ function renderCollectionAlbum(notes) {
               : `<span>${escapeHtml(data.type || 'COLLECTION')}</span>`
           }
         </span>
-        <span class="collection-album-copy">
-          <small>${escapeHtml(data.type || '기타')}</small>
-          <strong>${escapeHtml(note.title || '제목 없음')}</strong>
-        </span>
+        ${
+          archivePaperHoverMeta(
+            note,
+            `05 · ${data.type || 'COLLECTION'}`
+          )
+        }
       </button>
     `;
     bindSpecializedCard(

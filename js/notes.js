@@ -2084,12 +2084,23 @@
     });
 
     if (templateOverviewMode) {
-      requestAnimationFrame(
-        () =>
-          setupTemplateOverviewBoard(
+      if (
+        typeof window
+          .initializeTemplateOverviewBoard
+        === 'function'
+      ) {
+        window
+          .initializeTemplateOverviewBoard(
             notes
-          )
-      );
+          );
+      } else {
+        requestAnimationFrame(
+          () =>
+            setupTemplateOverviewBoard(
+              notes
+            )
+        );
+      }
     }
   }
 

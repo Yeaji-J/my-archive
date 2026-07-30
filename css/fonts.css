@@ -1,0 +1,68 @@
+@import url('../assets/fonts/gowun-dodum/400.css');
+@import url('../assets/fonts/gowun-batang/400.css');
+@import url('../assets/fonts/nanum-pen-script/400.css');
+@import url('../assets/fonts/gaegu/400.css');
+@import url('../assets/fonts/dongle/400.css');
+@import url('../assets/fonts/black-han-sans/400.css');
+@import url('../assets/fonts/song-myung/400.css');
+
+@font-face {
+  font-family: "Pretendard";
+  src:
+    url("../assets/fonts/pretendard/Pretendard-Regular.subset.woff2")
+    format("woff2");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard";
+  src:
+    url("../assets/fonts/pretendard/Pretendard-SemiBold.subset.woff2")
+    format("woff2");
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard";
+  src:
+    url("../assets/fonts/pretendard/Pretendard-Bold.subset.woff2")
+    format("woff2");
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "IsYun";
+  src:
+    url("../assets/fonts/lee-seoyun/leeseoyun-normal.woff")
+    format("woff");
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  --font-pretendard:
+    "Pretendard", sans-serif;
+  --font-lee-seoyun:
+    "IsYun", "Pretendard", sans-serif;
+  --font-gowun-dodum:
+    "Gowun Dodum", "Pretendard", sans-serif;
+  --font-gowun-batang:
+    "Gowun Batang", serif;
+  --font-nanum-pen:
+    "Nanum Pen Script", cursive;
+  --font-gaegu:
+    "Gaegu", cursive;
+  --font-dongle:
+    "Dongle", sans-serif;
+  --font-black-han:
+    "Black Han Sans", sans-serif;
+  --font-song-myung:
+    "Song Myung", serif;
+}

@@ -296,6 +296,12 @@ function setEditorTemplate(template, updateNote = true) {
 
   if (template === 'links') renderLinkEditor();
   if (template === 'collection') renderCollectionEditor();
+  if (
+    typeof applyEditorFont
+    === 'function'
+  ) {
+    applyEditorFont(note);
+  }
   renderTemplateLibraryBar(template);
 }
 
@@ -350,6 +356,16 @@ function renderMoodboard() {
     if (item.type === 'text') {
       element.style.fontSize =
         `${Number(item.fontSize) || 21}px`;
+      if (
+        typeof archiveFontStack
+        === 'function'
+      ) {
+        element.style.fontFamily =
+          archiveFontStack(
+            item.fontKey
+            || note.fontKey
+          );
+      }
     }
 
     if (item.type === 'image') {
@@ -444,6 +460,12 @@ function updateMoodboardItemControls() {
       .textContent = '—';
     $('#moodboardItemRotationValue')
       .textContent = '—';
+    if (
+      typeof syncMoodboardFontControl
+      === 'function'
+    ) {
+      syncMoodboardFontControl(null);
+    }
     return;
   }
 
@@ -479,6 +501,12 @@ function updateMoodboardItemControls() {
     .textContent = `${fontSize}px`;
   $('#moodboardItemRotationValue')
     .textContent = `${rotation}°`;
+  if (
+    typeof syncMoodboardFontControl
+    === 'function'
+  ) {
+    syncMoodboardFontControl(item);
+  }
 }
 
 function updateSelectedMoodboardSize(

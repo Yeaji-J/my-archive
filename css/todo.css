@@ -330,6 +330,46 @@
     serif;
 }
 
+.postit-font-lee-seoyun {
+  font-family:
+    var(--font-lee-seoyun);
+}
+
+.postit-font-gowun-dodum {
+  font-family:
+    var(--font-gowun-dodum);
+}
+
+.postit-font-gowun-batang {
+  font-family:
+    var(--font-gowun-batang);
+}
+
+.postit-font-nanum-pen {
+  font-family:
+    var(--font-nanum-pen);
+}
+
+.postit-font-gaegu {
+  font-family:
+    var(--font-gaegu);
+}
+
+.postit-font-dongle {
+  font-family:
+    var(--font-dongle);
+}
+
+.postit-font-black-han {
+  font-family:
+    var(--font-black-han);
+}
+
+.postit-font-song-myung {
+  font-family:
+    var(--font-song-myung);
+}
+
 .postit-paper-title,
 .postit-detail-heading,
 .postit-preview-heading {

@@ -44,8 +44,14 @@ const POSTIT_SKINS = [
 ];
 const POSTIT_FONTS = [
   'pretendard',
-  'handwriting',
-  'serif'
+  'lee-seoyun',
+  'gowun-dodum',
+  'gowun-batang',
+  'nanum-pen',
+  'gaegu',
+  'dongle',
+  'black-han',
+  'song-myung'
 ];
 const POSTIT_WEEKDAYS = [
   ['MON', '월요일'],
@@ -157,6 +163,12 @@ function ensurePostitData(note) {
     data.skin =
       POSTIT_TYPES[data.type].skin;
   }
+  if (data.font === 'handwriting') {
+    data.font = 'lee-seoyun';
+  } else if (data.font === 'serif') {
+    data.font = 'gowun-batang';
+  }
+
   if (!POSTIT_FONTS.includes(data.font)) {
     data.font = 'pretendard';
   }
@@ -946,7 +958,7 @@ function renderPostitEditor(
   $('#postitHeadingInput').value =
     data.heading;
   $('#postitFontSelect').value =
-    data.font;
+    note.fontKey || data.font;
   $('#postitFontSizeSelect').value =
     String(data.fontSize);
   $('#postitTagsInput').value =
@@ -1483,7 +1495,15 @@ $('#postitFontSelect')
       if (!note) return;
       ensurePostitData(note).font =
         event.target.value;
+      note.fontKey =
+        event.target.value;
       renderPostitEditor(note);
+      if (
+        typeof applyEditorFont
+        === 'function'
+      ) {
+        applyEditorFont(note);
+      }
       schedulePostitSave();
     }
   );

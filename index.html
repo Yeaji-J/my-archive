@@ -22,6 +22,7 @@
     }
   </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
+  <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260724-save-sync1">
   <link rel="stylesheet" href="css/notes.css?v=20260730-moodboard-tools1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
@@ -829,6 +830,20 @@
                 뒤로
               </button>
               <div class="editor-toolbar-right">
+                <label class="editor-font-control" title="현재 작성물 글꼴">
+                  <span>FONT</span>
+                  <select id="editorFontSelect" aria-label="현재 작성물 글꼴">
+                    <option value="pretendard">Pretendard</option>
+                    <option value="lee-seoyun">이서윤체</option>
+                    <option value="gowun-dodum">고운돋움</option>
+                    <option value="gowun-batang">고운바탕</option>
+                    <option value="nanum-pen">나눔펜</option>
+                    <option value="gaegu">개구체</option>
+                    <option value="dongle">동글체</option>
+                    <option value="black-han">검은고딕</option>
+                    <option value="song-myung">송명체</option>
+                  </select>
+                </label>
                 <select id="folderSelect" class="folder-select"></select>
                 <button class="icon-btn" id="starBtn" title="즐겨찾기" aria-label="즐겨찾기">
                   <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z" /></svg>
@@ -930,8 +945,14 @@
                       <span class="postit-control-label">FONT</span>
                       <select id="postitFontSelect">
                         <option value="pretendard">Pretendard</option>
-                        <option value="handwriting">이서윤체</option>
-                        <option value="serif">Serif</option>
+                        <option value="lee-seoyun">이서윤체</option>
+                        <option value="gowun-dodum">고운돋움</option>
+                        <option value="gowun-batang">고운바탕</option>
+                        <option value="nanum-pen">나눔펜</option>
+                        <option value="gaegu">개구체</option>
+                        <option value="dongle">동글체</option>
+                        <option value="black-han">검은고딕</option>
+                        <option value="song-myung">송명체</option>
                       </select>
                     </label>
                     <label>
@@ -1021,6 +1042,20 @@
                   <label class="moodboard-range-field moodboard-text-size-field" id="moodboardTextSizeField">
                     <span>글자 <output id="moodboardTextSizeValue">21px</output></span>
                     <input type="range" id="moodboardTextSize" min="12" max="54" step="1" value="21" disabled>
+                  </label>
+                  <label class="moodboard-font-field" id="moodboardFontField">
+                    <span>글꼴</span>
+                    <select id="moodboardFontSelect" disabled>
+                      <option value="pretendard">Pretendard</option>
+                      <option value="lee-seoyun">이서윤체</option>
+                      <option value="gowun-dodum">고운돋움</option>
+                      <option value="gowun-batang">고운바탕</option>
+                      <option value="nanum-pen">나눔펜</option>
+                      <option value="gaegu">개구체</option>
+                      <option value="dongle">동글체</option>
+                      <option value="black-han">검은고딕</option>
+                      <option value="song-myung">송명체</option>
+                    </select>
                   </label>
                   <label class="moodboard-range-field">
                     <span>기울기 <output id="moodboardItemRotationValue">0°</output></span>
@@ -1565,6 +1600,7 @@
   <script src="js/moodboard.js?v=20260730-moodboard-tools1"></script>
   <script src="js/templates.js?v=20260730-moodboard-tools1"></script>
   <script src="js/note-view.js?v=20260730-moodboard-tools1"></script>
+  <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260724-media4"></script>
   <script src="js/events.js?v=20260730-free-board4"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>

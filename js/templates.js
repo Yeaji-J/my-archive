@@ -292,7 +292,10 @@ function bindSpecializedCard(
     );
 }
 
-function moodboardPreviewItem(item) {
+function moodboardPreviewItem(
+  item,
+  note
+) {
   const left =
     Math.max(0, Number(item.x) || 0) / 10;
   const top =
@@ -325,6 +328,11 @@ function moodboardPreviewItem(item) {
     `transform:rotate(${Number(item.rotation) || 0}deg)`,
     item.type === 'text'
       ? `font-size:${Math.max(7, (Number(item.fontSize) || 21) * .48)}px`
+      : '',
+    item.type === 'text'
+      && typeof archiveFontStack
+        === 'function'
+      ? `font-family:${archiveFontStack(item.fontKey || note?.fontKey)}`
       : ''
   ].join(';');
 
@@ -446,6 +454,13 @@ function renderMoodboardAlbum(notes) {
         `moodboard-album-card moodboard-skin-${data.skin}`,
         note
       );
+    card.style.setProperty(
+      '--archive-note-font',
+      typeof archiveFontStack
+        === 'function'
+        ? archiveFontStack(noteFontKey(note))
+        : '"Pretendard", sans-serif'
+    );
     card.innerHTML = `
       ${
         archiveSelectionMode
@@ -463,7 +478,17 @@ function renderMoodboardAlbum(notes) {
               ? `<img class="moodboard-album-drawing" src="${escapeHtml(data.drawing)}" alt="">`
               : ''
           }
-          ${data.items.map(moodboardPreviewItem).join('')}
+          ${
+            data.items
+              .map(
+                item =>
+                  moodboardPreviewItem(
+                    item,
+                    note
+                  )
+              )
+              .join('')
+          }
           ${
             !data.items.length
             && !data.drawing
@@ -499,6 +524,13 @@ function renderLinkArchiveList(notes) {
         'link-archive-row',
         note
       );
+    row.style.setProperty(
+      '--archive-note-font',
+      typeof archiveFontStack
+        === 'function'
+        ? archiveFontStack(noteFontKey(note))
+        : '"Pretendard", sans-serif'
+    );
     row.innerHTML = `
       ${
         archiveSelectionMode
@@ -562,6 +594,13 @@ function renderCollectionAlbum(notes) {
         'collection-album-card',
         note
       );
+    card.style.setProperty(
+      '--archive-note-font',
+      typeof archiveFontStack
+        === 'function'
+        ? archiveFontStack(noteFontKey(note))
+        : '"Pretendard", sans-serif'
+    );
     card.dataset.collectionType =
       data.type || '기타';
     card.innerHTML = `

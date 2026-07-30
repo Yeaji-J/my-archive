@@ -1881,6 +1881,13 @@
         '--folder-color',
         folder?.color || '#dce8f3'
       );
+      card.style.setProperty(
+        '--archive-note-font',
+        typeof archiveFontStack
+          === 'function'
+          ? archiveFontStack(noteFontKey(note))
+          : '"Pretendard", sans-serif'
+      );
 
       card.classList.toggle(
         'no-folder',
@@ -2169,6 +2176,13 @@
     editorView.style.display = 'flex';
 
     setEditorTemplate(note.template, false);
+
+    if (
+      typeof applyEditorFont
+      === 'function'
+    ) {
+      applyEditorFont(note);
+    }
 
     if (!note.template) {
       noteTitle.focus();

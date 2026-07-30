@@ -1037,9 +1037,56 @@
   gap: 8px;
 }
 
+.editor-font-control {
+  height: 32px;
+  padding: 0 5px 0 9px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  pointer-events: auto;
+}
+
+.editor-font-control > span {
+  color: var(--text-tertiary);
+  font-family: "Pretendard", sans-serif;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .1em;
+}
+
+.editor-font-control select {
+  max-width: 112px;
+  padding: 0 20px 0 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text);
+  font-size: 12px;
+  cursor: pointer;
+}
+
 .editor-toolbar button,
 .editor-toolbar select {
   pointer-events: auto;
+}
+
+.editor-heading,
+.memo-rich-editor,
+.postit-paper,
+.link-editor-panel input,
+.link-editor-panel textarea,
+.link-preview-card,
+.collection-editor-panel input,
+.collection-editor-panel textarea,
+.collection-editor-panel [contenteditable="true"] {
+  font-family:
+    var(
+      --archive-note-font,
+      var(--font-pretendard)
+    );
 }
 
 .folder-select {
@@ -1517,6 +1564,35 @@
   cursor: pointer;
 }
 
+.moodboard-font-field {
+  display: block;
+  margin-top: 8px;
+}
+
+.moodboard-font-field > span {
+  display: block;
+  margin-bottom: 4px;
+  color: #777d84;
+  font-size: 9.5px;
+}
+
+.moodboard-font-field select {
+  width: 100%;
+  height: 31px;
+  padding: 0 8px;
+  border: 1px solid
+    rgba(84, 96, 113, .1);
+  border-radius: 7px;
+  outline: 0;
+  background: #fff;
+  color: #6f7781;
+  font-size: 10.5px;
+}
+
+.moodboard-font-field select:disabled {
+  cursor: default;
+}
+
 .moodboard-item-controls.is-disabled {
   opacity: .52;
 }
@@ -1855,9 +1931,10 @@
     rgba(255,255,255,.76);
   color: #4d5157;
   font-family:
-    'IsYun',
-    "Pretendard",
-    sans-serif;
+    var(
+      --archive-note-font,
+      var(--font-lee-seoyun)
+    );
   font-size: 21px;
   line-height: 1.5;
   cursor: text;
@@ -2025,6 +2102,11 @@
   border-radius: 20px;
   background: #fff;
   box-shadow: 0 22px 58px rgba(69, 79, 95, .075);
+  font-family:
+    var(
+      --archive-note-font,
+      var(--font-pretendard)
+    );
 }
 
 .note-detail-paper::before {
@@ -2483,9 +2565,10 @@
   background: rgba(255, 255, 255, .72);
   color: #5C3621;
   font-family:
-    'IsYun',
-    "Pretendard",
-    sans-serif;
+    var(
+      --archive-note-font,
+      var(--font-pretendard)
+    );
   font-size: clamp(7px, .75vw, 12px);
   line-height: 1.35;
   white-space: pre-wrap;
@@ -2872,6 +2955,22 @@
   height: 100%;
   overflow: hidden;
   color: rgba(92, 54, 33, .76);
+  font-family:
+    var(
+      --archive-note-font,
+      var(--font-pretendard)
+    );
+}
+
+.note-card,
+.link-archive-row,
+.collection-album-card,
+.memo-album-card {
+  font-family:
+    var(
+      --archive-note-font,
+      var(--font-pretendard)
+    );
 }
 
 .memo-album-preview-content h3 {

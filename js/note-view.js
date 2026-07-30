@@ -44,6 +44,17 @@ function renderNoteView(note = getViewedNote()) {
   content.innerHTML = '';
   const paper = content.closest('.note-detail-paper');
   paper.className = `note-detail-paper detail-template-${note.template || 'memo'}`;
+  if (
+    typeof archiveFontStack
+    === 'function'
+  ) {
+    paper.style.setProperty(
+      '--archive-note-font',
+      archiveFontStack(
+        note.fontKey
+      )
+    );
+  }
   if ((note.template || 'memo') === 'memo') {
     const memo = ensureMemoData(note);
     paper.classList.add(`memo-skin-${memo.skin}`);
@@ -133,6 +144,16 @@ function renderMoodboardNoteView(content, note) {
     if (item.type === 'text') {
       element.style.fontSize =
         `${Number(item.fontSize) || 21}px`;
+      if (
+        typeof archiveFontStack
+        === 'function'
+      ) {
+        element.style.fontFamily =
+          archiveFontStack(
+            item.fontKey
+            || note.fontKey
+          );
+      }
     }
 
     if (item.type === 'image') {

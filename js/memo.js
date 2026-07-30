@@ -435,6 +435,13 @@ function renderMemoAlbum(notes) {
             ? ' selected'
             : ''
         );
+      card.style.setProperty(
+        '--archive-note-font',
+        typeof archiveFontStack
+          === 'function'
+          ? archiveFontStack(noteFontKey(note))
+          : '"Pretendard", sans-serif'
+      );
       card.innerHTML = `
         ${
           archiveSelectionMode

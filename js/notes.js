@@ -567,39 +567,39 @@
       archivePaperTextLength(note);
     const sizes = {
       memo: {
-        width: 270,
-        minHeight: 260,
-        maxHeight: 430,
-        charsPerStep: 105,
-        stepHeight: 42
+        width: 230,
+        minHeight: 220,
+        maxHeight: 340,
+        charsPerStep: 120,
+        stepHeight: 32
       },
       todo: {
-        width: 230,
-        minHeight: 310,
-        maxHeight: 420,
-        charsPerStep: 90,
-        stepHeight: 34
-      },
-      moodboard: {
-        width: 340,
-        minHeight: 250,
-        maxHeight: 310,
-        charsPerStep: 150,
-        stepHeight: 24
-      },
-      links: {
-        width: 300,
-        minHeight: 175,
-        maxHeight: 250,
-        charsPerStep: 100,
+        width: 205,
+        minHeight: 270,
+        maxHeight: 340,
+        charsPerStep: 110,
         stepHeight: 28
       },
+      moodboard: {
+        width: 290,
+        minHeight: 210,
+        maxHeight: 250,
+        charsPerStep: 150,
+        stepHeight: 20
+      },
+      links: {
+        width: 250,
+        minHeight: 145,
+        maxHeight: 200,
+        charsPerStep: 100,
+        stepHeight: 22
+      },
       collection: {
-        width: 180,
-        minHeight: 270,
-        maxHeight: 330,
+        width: 150,
+        minHeight: 225,
+        maxHeight: 280,
         charsPerStep: 140,
-        stepHeight: 24
+        stepHeight: 20
       }
     };
     const size =
@@ -665,7 +665,15 @@
                 card.style.top
               ) || 0
             )
-            + card.offsetHeight
+            + (
+              card.offsetHeight
+              || parseFloat(
+                card.style.getPropertyValue(
+                  '--paper-height'
+                )
+              )
+              || 0
+            )
           ),
         0
       );
@@ -720,15 +728,29 @@
         card.classList.add('dragging');
         card.style.zIndex =
           String(nextZIndex());
-        card.setPointerCapture(
-          event.pointerId
+        if (card.setPointerCapture) {
+          card.setPointerCapture(
+            event.pointerId
+          );
+        }
+        document.addEventListener(
+          'pointermove',
+          moveDrag
         );
+        document.addEventListener(
+          'pointerup',
+          finishDrag
+        );
+        document.addEventListener(
+          'pointercancel',
+          finishDrag
+        );
+        event.stopPropagation();
         event.preventDefault();
       }
     );
 
-    card.addEventListener(
-      'pointermove',
+    const moveDrag =
       event => {
         if (
           !drag
@@ -760,8 +782,17 @@
         const maximumX =
           Math.max(
             0,
-            board.clientWidth
-            - card.offsetWidth
+            (
+              board.clientWidth
+              || board.getBoundingClientRect()
+                .width
+            )
+            - (
+              card.offsetWidth
+              || templateOverviewSize(
+                note
+              ).width
+            )
           );
         const nextX =
           Math.max(
@@ -784,8 +815,8 @@
         updateTemplateOverviewHeight(
           board
         );
-      }
-    );
+        event.preventDefault();
+      };
 
     const finishDrag =
       event => {
@@ -802,9 +833,22 @@
         card.classList.remove(
           'dragging'
         );
+        document.removeEventListener(
+          'pointermove',
+          moveDrag
+        );
+        document.removeEventListener(
+          'pointerup',
+          finishDrag
+        );
+        document.removeEventListener(
+          'pointercancel',
+          finishDrag
+        );
 
         if (
-          card.hasPointerCapture(
+          card.hasPointerCapture
+          && card.hasPointerCapture(
             event.pointerId
           )
         ) {
@@ -817,6 +861,7 @@
 
         card.dataset.dragged = 'true';
         note.overviewLayout = {
+          version: 2,
           x:
             parseFloat(
               card.style.left
@@ -828,19 +873,15 @@
           z:
             Number(
               card.style.zIndex
-            ) || 1
+            ) || 1,
+          boardWidth:
+            board.clientWidth
+            || board.getBoundingClientRect()
+              .width
+            || 0
         };
         saveData();
       };
-
-    card.addEventListener(
-      'pointerup',
-      finishDrag
-    );
-    card.addEventListener(
-      'pointercancel',
-      finishDrag
-    );
   }
 
   function setupTemplateOverviewBoard(
@@ -863,12 +904,16 @@
 
     const boardWidth =
       Math.max(
-        320,
+        280,
         board.clientWidth
+        || board.getBoundingClientRect()
+          .width
+        || 960
       );
-    const gap = 26;
-    let cursorX = 8;
-    let cursorY = 16;
+    const gap = 28;
+    const edge = 12;
+    let cursorX = edge;
+    let cursorY = 18;
     let rowHeight = 0;
     let highestZ =
       Math.max(
@@ -876,7 +921,10 @@
         ...notes.map(
           note =>
             Number(
-              note.overviewLayout?.z
+              note.overviewLayout
+                ?.version === 2
+                ? note.overviewLayout.z
+                : 0
             ) || 0
         )
       );
@@ -889,27 +937,38 @@
     cards.forEach(
       (card, index) => {
         const note = notes[index];
+        const size =
+          templateOverviewSize(note);
         const cardWidth =
-          card.offsetWidth
-          || templateOverviewSize(
-            note
-          ).width;
+          Math.min(
+            size.width,
+            boardWidth
+          );
         const cardHeight =
-          card.offsetHeight
-          || templateOverviewSize(
-            note
-          ).height;
+          size.height;
         const saved =
-          note.overviewLayout;
+          note.overviewLayout
+            ?.version === 2
+            ? note.overviewLayout
+            : null;
         let x;
         let y;
 
         if (saved) {
+          const scale =
+            saved.boardWidth > 0
+              ? boardWidth
+                / saved.boardWidth
+              : 1;
           x = Math.max(
             0,
             Math.min(
-              Number(saved.x) || 0,
-              boardWidth - cardWidth
+              (Number(saved.x) || 0)
+              * scale,
+              Math.max(
+                0,
+                boardWidth - cardWidth
+              )
             )
           );
           y = Math.max(
@@ -920,9 +979,9 @@
           if (
             cursorX + cardWidth
             > boardWidth
-            && cursorX > 8
+            && cursorX > edge
           ) {
-            cursorX = 8;
+            cursorX = edge;
             cursorY +=
               rowHeight + gap;
             rowHeight = 0;
@@ -941,6 +1000,10 @@
 
         card.style.left = `${x}px`;
         card.style.top = `${y}px`;
+        card.style.width =
+          `${cardWidth}px`;
+        card.title =
+          '끌어서 원하는 위치에 놓기';
         card.style.zIndex =
           String(
             Number(saved?.z)
@@ -1436,6 +1499,9 @@
 
     $('#folderListToolbar').hidden =
       !folderListMode;
+
+    $('#templateOverviewTools').hidden =
+      !templateOverviewMode;
 
     if (folderListMode) {
       $('#folderListResultCount')

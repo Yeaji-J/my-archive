@@ -14,6 +14,36 @@
   overflow: visible;
 }
 
+.template-overview-tools {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: rgba(92, 54, 33, .58);
+  font-size: 12px;
+}
+
+.template-overview-tools[hidden] {
+  display: none;
+}
+
+.template-overview-tools button {
+  padding: 7px 12px;
+  border: 1px solid
+    rgba(92, 54, 33, .14);
+  border-radius: 999px;
+  background: rgba(255, 255, 255, .82);
+  color: #5c3621;
+  font: inherit;
+  font-weight: 650;
+  cursor: pointer;
+}
+
+.template-overview-tools button:hover {
+  background: #fff;
+  border-color: rgba(92, 54, 33, .25);
+}
+
 .template-overview-paper.archive-paper-item {
   position: absolute;
   width: min(
@@ -281,6 +311,10 @@
 }
 
 @media (max-width: 620px) {
+  .template-overview-tools span {
+    display: none;
+  }
+
   .template-overview-paper
   .archive-paper-meta {
     opacity: 1;

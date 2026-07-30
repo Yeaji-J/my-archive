@@ -693,106 +693,122 @@
   ) {
     let drag = null;
 
-    card.addEventListener(
-      'dragstart',
-      event => event.preventDefault()
-    );
-
-    card.addEventListener(
-      'pointerdown',
+    const pointFromEvent =
       event => {
-        if (
-          event.button !== 0
-          || event.target.closest(
-            'a, button, input, textarea, select'
-          )
-        ) {
-          return;
-        }
+        const touch =
+          event.touches?.[0]
+          || event.changedTouches?.[0];
 
-        drag = {
-          pointerId: event.pointerId,
-          startClientX: event.clientX,
-          startClientY: event.clientY,
-          startX:
+        return {
+          x:
+            touch?.clientX
+            ?? event.clientX,
+          y:
+            touch?.clientY
+            ?? event.clientY
+        };
+      };
+
+    const removeDragListeners =
+      () => {
+        document.removeEventListener(
+          'mousemove',
+          moveDrag
+        );
+        document.removeEventListener(
+          'mouseup',
+          finishDrag
+        );
+        document.removeEventListener(
+          'touchmove',
+          moveDrag
+        );
+        document.removeEventListener(
+          'touchend',
+          finishDrag
+        );
+        document.removeEventListener(
+          'touchcancel',
+          finishDrag
+        );
+      };
+
+    const finishDrag =
+      event => {
+        if (!drag) return;
+
+        const moved = drag.moved;
+        drag = null;
+        card.classList.remove(
+          'dragging'
+        );
+        removeDragListeners();
+
+        if (!moved) return;
+
+        card.dataset.dragged = 'true';
+        note.overviewLayout = {
+          version: 3,
+          x:
             parseFloat(
               card.style.left
             ) || 0,
-          startY:
+          y:
             parseFloat(
               card.style.top
             ) || 0,
-          moved: false
+          z:
+            Number(
+              card.style.zIndex
+            ) || 1,
+          boardWidth:
+            board.clientWidth
+            || board.getBoundingClientRect()
+              .width
+            || 0
         };
-
-        card.classList.add('dragging');
-        card.style.zIndex =
-          String(nextZIndex());
-        if (card.setPointerCapture) {
-          card.setPointerCapture(
-            event.pointerId
-          );
-        }
-        document.addEventListener(
-          'pointermove',
-          moveDrag
-        );
-        document.addEventListener(
-          'pointerup',
-          finishDrag
-        );
-        document.addEventListener(
-          'pointercancel',
-          finishDrag
-        );
-        event.stopPropagation();
+        saveData();
         event.preventDefault();
-      }
-    );
+      };
 
     const moveDrag =
       event => {
-        if (
-          !drag
-          || drag.pointerId
-            !== event.pointerId
-        ) {
-          return;
-        }
+        if (!drag) return;
 
+        const point =
+          pointFromEvent(event);
         const deltaX =
-          event.clientX
-          - drag.startClientX;
+          point.x - drag.startClientX;
         const deltaY =
-          event.clientY
-          - drag.startClientY;
+          point.y - drag.startClientY;
 
         if (
           !drag.moved
           && Math.hypot(
             deltaX,
             deltaY
-          ) < 5
+          ) < 3
         ) {
           return;
         }
 
         drag.moved = true;
 
+        const boardWidth =
+          board.clientWidth
+          || board.getBoundingClientRect()
+            .width;
+        const cardWidth =
+          card.getBoundingClientRect()
+            .width
+          || card.offsetWidth
+          || templateOverviewSize(
+            note
+          ).width;
         const maximumX =
           Math.max(
             0,
-            (
-              board.clientWidth
-              || board.getBoundingClientRect()
-                .width
-            )
-            - (
-              card.offsetWidth
-              || templateOverviewSize(
-                note
-              ).width
-            )
+            boardWidth - cardWidth
           );
         const nextX =
           Math.max(
@@ -818,70 +834,81 @@
         event.preventDefault();
       };
 
-    const finishDrag =
+    const startDrag =
       event => {
         if (
-          !drag
-          || drag.pointerId
-            !== event.pointerId
+          event.type === 'mousedown'
+          && event.button !== 0
         ) {
           return;
         }
 
-        const moved = drag.moved;
-        drag = null;
-        card.classList.remove(
-          'dragging'
-        );
-        document.removeEventListener(
-          'pointermove',
-          moveDrag
-        );
-        document.removeEventListener(
-          'pointerup',
-          finishDrag
-        );
-        document.removeEventListener(
-          'pointercancel',
-          finishDrag
-        );
+        removeDragListeners();
 
-        if (
-          card.hasPointerCapture
-          && card.hasPointerCapture(
-            event.pointerId
-          )
-        ) {
-          card.releasePointerCapture(
-            event.pointerId
-          );
-        }
-
-        if (!moved) return;
-
-        card.dataset.dragged = 'true';
-        note.overviewLayout = {
-          version: 2,
-          x:
+        const point =
+          pointFromEvent(event);
+        drag = {
+          startClientX: point.x,
+          startClientY: point.y,
+          startX:
             parseFloat(
               card.style.left
             ) || 0,
-          y:
+          startY:
             parseFloat(
               card.style.top
             ) || 0,
-          z:
-            Number(
-              card.style.zIndex
-            ) || 1,
-          boardWidth:
-            board.clientWidth
-            || board.getBoundingClientRect()
-              .width
-            || 0
+          moved: false
         };
-        saveData();
+
+        card.classList.add('dragging');
+        card.style.zIndex =
+          String(nextZIndex());
+
+        if (
+          event.type === 'touchstart'
+        ) {
+          document.addEventListener(
+            'touchmove',
+            moveDrag,
+            { passive: false }
+          );
+          document.addEventListener(
+            'touchend',
+            finishDrag
+          );
+          document.addEventListener(
+            'touchcancel',
+            finishDrag
+          );
+        } else {
+          document.addEventListener(
+            'mousemove',
+            moveDrag
+          );
+          document.addEventListener(
+            'mouseup',
+            finishDrag
+          );
+        }
+
+        event.stopPropagation();
+        event.preventDefault();
       };
+
+    card.addEventListener(
+      'dragstart',
+      event => event.preventDefault()
+    );
+    card.addEventListener(
+      'mousedown',
+      startDrag
+    );
+    card.addEventListener(
+      'touchstart',
+      startDrag,
+      { passive: false }
+    );
   }
 
   function setupTemplateOverviewBoard(
@@ -922,7 +949,7 @@
           note =>
             Number(
               note.overviewLayout
-                ?.version === 2
+                ?.version === 3
                 ? note.overviewLayout.z
                 : 0
             ) || 0
@@ -948,7 +975,7 @@
           size.height;
         const saved =
           note.overviewLayout
-            ?.version === 2
+            ?.version === 3
             ? note.overviewLayout
             : null;
         let x;

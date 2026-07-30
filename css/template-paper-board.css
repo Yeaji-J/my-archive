@@ -63,6 +63,8 @@
   cursor: grab;
   touch-action: none;
   user-select: none;
+  -webkit-user-drag: none;
+  will-change: left, top;
   transition:
     filter .18s ease,
     transform .18s ease;
@@ -115,6 +117,7 @@
   border: 0;
   border-radius: 0;
   background: transparent;
+  pointer-events: none;
 }
 
 .template-overview-surface > img,
@@ -123,6 +126,7 @@
   height: 100%;
   min-height: 0;
   border-radius: 0;
+  pointer-events: none;
 }
 
 /* 메모는 종이 자체만 보이게 */

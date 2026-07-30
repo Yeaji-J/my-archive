@@ -937,28 +937,43 @@
           .width
         || 960
       );
-    const gap = 28;
     const edge = 12;
-    let cursorX = edge;
-    let cursorY = 18;
-    let rowHeight = 0;
-    let highestZ =
+    const columns =
       Math.max(
         1,
-        ...notes.map(
-          note =>
-            Number(
-              note.overviewLayout
-                ?.version === 4
-                ? note.overviewLayout.z
-                : 0
-            ) || 0
+        Math.min(
+          5,
+          Math.floor(
+            boardWidth / 220
+          )
         )
       );
-    const nextZIndex =
-      () => {
-        highestZ += 1;
-        return highestZ;
+    const laneWidth =
+      boardWidth / columns;
+    const rowStep = 238;
+    const seededValue =
+      (value, salt) => {
+        const source =
+          `${value}:${salt}`;
+        let hash = 2166136261;
+
+        for (
+          let index = 0;
+          index < source.length;
+          index += 1
+        ) {
+          hash ^=
+            source.charCodeAt(index);
+          hash =
+            Math.imul(
+              hash,
+              16777619
+            );
+        }
+
+        return (
+          (hash >>> 0) % 10000
+        ) / 10000;
       };
 
     cards.forEach(
@@ -966,27 +981,28 @@
         const note = notes[index];
         const size =
           templateOverviewSize(note);
-        const cardWidth =
-          Math.min(
-            size.width,
-            boardWidth
-          );
-        const cardHeight =
-          size.height;
         const saved =
           note.overviewLayout
-            ?.version === 4
+            ?.version === 5
             ? note.overviewLayout
             : null;
+        const scale =
+          saved?.boardWidth > 0
+            ? boardWidth
+              / saved.boardWidth
+            : 1;
+        const cardWidth =
+          Math.min(
+            saved?.width > 0
+              ? saved.width * scale
+              : size.width,
+            boardWidth
+          );
         let x;
         let y;
+        let z;
 
         if (saved) {
-          const scale =
-            saved.boardWidth > 0
-              ? boardWidth
-                / saved.boardWidth
-              : 1;
           x = Math.max(
             0,
             Math.min(
@@ -1002,26 +1018,61 @@
             0,
             Number(saved.y) || 0
           );
+          z =
+            Number(saved.z)
+            || index + 1;
         } else {
-          if (
-            cursorX + cardWidth
-            > boardWidth
-            && cursorX > edge
-          ) {
-            cursorX = edge;
-            cursorY +=
-              rowHeight + gap;
-            rowHeight = 0;
-          }
+          const column =
+            index % columns;
+          const row =
+            Math.floor(
+              index / columns
+            );
+          const jitterX =
+            (
+              seededValue(
+                note.id,
+                'x'
+              ) - .5
+            )
+            * Math.min(
+              76,
+              laneWidth * .34
+            );
+          const jitterY =
+            (
+              seededValue(
+                note.id,
+                'y'
+              ) - .5
+            ) * 92;
+          const baseX =
+            column * laneWidth
+            + (
+              laneWidth
+              - cardWidth
+            ) / 2;
 
-          x = cursorX;
-          y = cursorY;
-          cursorX +=
-            cardWidth + gap;
-          rowHeight =
-            Math.max(
-              rowHeight,
-              cardHeight
+          x = Math.max(
+            0,
+            Math.min(
+              boardWidth - cardWidth,
+              baseX + jitterX
+            )
+          );
+          y = Math.max(
+            12,
+            28
+            + row * rowStep
+            + jitterY
+          );
+          z =
+            10
+            + Math.floor(
+              seededValue(
+                note.id,
+                'z'
+              ) * 70
             );
         }
 
@@ -1032,16 +1083,156 @@
         card.title =
           '끌어서 원하는 위치에 놓기';
         card.style.zIndex =
-          String(
-            Number(saved?.z)
-            || index + 1
-          );
+          String(z);
       }
     );
 
     updateTemplateOverviewHeight(
       board
     );
+  }
+
+  function alignTemplateOverviewBoard() {
+    const board = noteGrid;
+    const cards = [
+      ...board.querySelectorAll(
+        '.template-overview-paper'
+      )
+    ];
+
+    if (
+      !board.classList.contains(
+        'template-overview-board'
+      )
+      || !cards.length
+    ) {
+      return;
+    }
+
+    const width =
+      Math.max(
+        280,
+        board.clientWidth
+        || board.getBoundingClientRect()
+          .width
+        || 960
+      );
+    const edge = 12;
+    const columnGap = 18;
+    const rowGap = 32;
+    const columns =
+      width >= 1080
+        ? 5
+        : Math.max(
+            1,
+            Math.min(
+              4,
+              Math.floor(
+                width / 220
+              )
+            )
+          );
+    const slotWidth =
+      (
+        width
+        - edge * 2
+        - columnGap
+          * (columns - 1)
+      ) / columns;
+    const rows = [];
+
+    cards.forEach(
+      (card, index) => {
+        const note =
+          state.notes.find(
+            item =>
+              item.id
+              === card.dataset.noteId
+          );
+
+        if (!note) return;
+
+        const row =
+          Math.floor(
+            index / columns
+          );
+        const size =
+          templateOverviewSize(note);
+
+        rows[row] =
+          Math.max(
+            rows[row] || 0,
+            size.height
+          );
+      }
+    );
+
+    const rowTops = [];
+    let nextTop = 20;
+
+    rows.forEach(
+      (height, index) => {
+        rowTops[index] = nextTop;
+        nextTop +=
+          height + rowGap;
+      }
+    );
+
+    cards.forEach(
+      (card, index) => {
+        const note =
+          state.notes.find(
+            item =>
+              item.id
+              === card.dataset.noteId
+          );
+
+        if (!note) return;
+
+        const size =
+          templateOverviewSize(note);
+        const displayWidth =
+          Math.min(
+            size.width,
+            Math.max(
+              110,
+              slotWidth - 4
+            )
+          );
+        const column =
+          index % columns;
+        const row =
+          Math.floor(
+            index / columns
+          );
+        const x =
+          edge
+          + column
+            * (
+              slotWidth
+              + columnGap
+            )
+          + (
+            slotWidth
+            - displayWidth
+          ) / 2;
+        const y =
+          rowTops[row] || 20;
+
+        note.overviewLayout = {
+          version: 5,
+          mode: 'aligned',
+          x,
+          y,
+          z: index + 1,
+          width: displayWidth,
+          boardWidth: width
+        };
+      }
+    );
+
+    saveData();
+    renderFolderGridView();
   }
 
   function archivePaperHoverMeta(

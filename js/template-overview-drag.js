@@ -138,7 +138,8 @@
 
       if (note) {
         note.overviewLayout = {
-          version: 4,
+          version: 5,
+          mode: 'manual',
           x:
             parseFloat(
               card.style.left
@@ -151,6 +152,8 @@
             Number(
               card.style.zIndex
             ) || 1,
+          width:
+            cardWidth(card),
           boardWidth:
             boardWidth(board)
         };
@@ -362,12 +365,7 @@
 
       if (!resetButton) return;
 
-      state.notes.forEach(note => {
-        delete note.overviewLayout;
-      });
-
-      saveData();
-      renderFolderGridView();
+      alignTemplateOverviewBoard();
 
       event.preventDefault();
       event.stopPropagation();

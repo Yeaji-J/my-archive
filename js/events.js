@@ -113,19 +113,6 @@
           });
         });
 
-      $('#templateOverviewResetBtn')
-        .addEventListener(
-          'click',
-          () => {
-            state.notes.forEach(note => {
-              delete note.overviewLayout;
-            });
-
-            saveData();
-            renderFolderGridView();
-          }
-        );
-
   $('#collapseBtn')
     .addEventListener(
       'click',

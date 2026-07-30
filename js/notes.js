@@ -949,7 +949,7 @@
           note =>
             Number(
               note.overviewLayout
-                ?.version === 3
+                ?.version === 4
                 ? note.overviewLayout.z
                 : 0
             ) || 0
@@ -975,7 +975,7 @@
           size.height;
         const saved =
           note.overviewLayout
-            ?.version === 3
+            ?.version === 4
             ? note.overviewLayout
             : null;
         let x;
@@ -1036,12 +1036,6 @@
             Number(saved?.z)
             || index + 1
           );
-        bindTemplateOverviewDrag(
-          card,
-          note,
-          board,
-          nextZIndex
-        );
       }
     );
 

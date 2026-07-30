@@ -396,6 +396,28 @@ svg {
   color: #5c3621;
 }
 
+.sidebar-template-list
+.sidebar-template-all {
+  margin-bottom: 5px;
+  background:
+    rgba(156, 160, 120, .075);
+  color: var(--text);
+  font-weight: 650;
+}
+
+.sidebar-template-list
+.sidebar-template-all:hover {
+  background:
+    rgba(156, 160, 120, .14);
+}
+
+.sidebar-template-list
+.sidebar-template-all.active {
+  background:
+    rgba(156, 160, 120, .2);
+  color: #5c3621;
+}
+
 .sidebar-template-index {
   color: #9ca078;
   font-size: 8px;

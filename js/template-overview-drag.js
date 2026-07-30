@@ -50,6 +50,19 @@
     }
   }
 
+  function readStateLayoutStore() {
+    if (
+      !state.templateOverviewLayouts
+      || typeof
+        state.templateOverviewLayouts
+        !== 'object'
+    ) {
+      state.templateOverviewLayouts = {};
+    }
+
+    return state.templateOverviewLayouts;
+  }
+
   function findNote(card) {
     return state.notes.find(
       note =>
@@ -195,9 +208,15 @@
     note,
     store
   ) {
+    const stateStore =
+      readStateLayoutStore();
+
     return (
       normalizedLayout(
         store[String(note.id)]
+      )
+      || normalizedLayout(
+        stateStore[String(note.id)]
       )
       || normalizedLayout(
         note.overviewLayout
@@ -309,6 +328,9 @@
     note.overviewLayout = layout;
     store[String(note.id)] =
       layout;
+    readStateLayoutStore()[
+      String(note.id)
+    ] = layout;
 
     return store;
   }
@@ -546,6 +568,34 @@
         );
       });
     });
+  }
+
+  function restoreVisibleBoard() {
+    const board =
+      document.querySelector(
+        '#noteGrid.template-overview-board'
+      );
+
+    if (
+      !board
+      || !board.querySelector(
+        '.template-overview-paper'
+      )
+    ) {
+      return;
+    }
+
+    const visibleNotes = [
+      ...board.querySelectorAll(
+        '.template-overview-paper'
+      )
+    ]
+      .map(findNote)
+      .filter(Boolean);
+
+    requestInitialize(
+      visibleNotes
+    );
   }
 
   function alignedColumns(width) {
@@ -995,8 +1045,68 @@
       }
     );
 
+  const boardObserver =
+    new MutationObserver(
+      mutations => {
+        const needsRestore =
+          mutations.some(
+            mutation =>
+              mutation.type
+                === 'childList'
+              && (
+                mutation.target.id
+                  === 'noteGrid'
+                || mutation.target.closest?.(
+                  '#noteGrid'
+                )
+              )
+          );
+
+        if (needsRestore) {
+          restoreVisibleBoard();
+        }
+      }
+    );
+
+  boardObserver.observe(
+    document.body,
+    {
+      childList: true,
+      subtree: true
+    }
+  );
+
+  [
+    'pageshow',
+    'popstate',
+    'hashchange'
+  ].forEach(eventName => {
+    window.addEventListener(
+      eventName,
+      restoreVisibleBoard
+    );
+  });
+
+  document.addEventListener(
+    'visibilitychange',
+    () => {
+      if (
+        document.visibilityState
+        === 'visible'
+      ) {
+        restoreVisibleBoard();
+      }
+    }
+  );
+
   window.initializeTemplateOverviewBoard =
     requestInitialize;
   window.alignTemplateOverviewBoard =
     alignBoard;
+
+  /*
+   * 초기 render()가 이 파일보다 먼저 실행된 경우에도
+   * 현재 화면의 저장 좌표를 즉시 되살립니다.
+   */
+  restoreVisibleBoard();
 })();

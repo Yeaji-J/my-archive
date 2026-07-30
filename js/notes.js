@@ -183,11 +183,13 @@
         const template =
           button.dataset.sidebarTemplate;
         const count =
-          state.notes.filter(
-            note =>
-              (note.template || 'memo')
-              === template
-          ).length;
+          template === 'all'
+            ? state.notes.length
+            : state.notes.filter(
+                note =>
+                  (note.template || 'memo')
+                  === template
+              ).length;
 
         const countElement =
           button.querySelector(

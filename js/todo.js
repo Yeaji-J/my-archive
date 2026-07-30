@@ -1161,7 +1161,7 @@ function renderPostitAlbum(notes) {
       start,
       start + POSTIT_PAGE_SIZE
     )
-    .forEach((note, index) => {
+    .forEach(note => {
       const data =
         ensurePostitData(note);
       const card =
@@ -1182,22 +1182,6 @@ function renderPostitAlbum(notes) {
             ? ' selected'
             : ''
         );
-      applyArchivePaperPresentation(
-        card,
-        note,
-        index,
-        {
-          minHeight: 280,
-          maxHeight: 520,
-          charsPerStep: 72,
-          stepHeight: 36,
-          extraHeight:
-            ['habit', 'time']
-              .includes(data.type)
-              ? 70
-              : 0
-        }
-      );
 
       if (archiveSelectionMode) {
         card.insertAdjacentHTML(
@@ -1219,16 +1203,19 @@ function renderPostitAlbum(notes) {
         note
       );
 
-      open.append(preview);
-      open.insertAdjacentHTML(
-        'beforeend',
-        archivePaperHoverMeta(
-          note,
-          `02 · ${
-            POSTIT_TYPES[data.type].label
-          }`
-        )
-      );
+      const copy =
+        document.createElement('span');
+      copy.className =
+        'postit-album-copy';
+      copy.innerHTML = `
+        <span class="postit-album-type">
+          ${escapeHtml(POSTIT_TYPES[data.type].label)}
+        </span>
+        <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+        <small>${formatDate(note.updatedAt)}</small>
+      `;
+
+      open.append(preview, copy);
       open.addEventListener(
         'click',
         () => {

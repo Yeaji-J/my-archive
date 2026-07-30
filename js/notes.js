@@ -1099,6 +1099,10 @@
       currentView === 'all'
       && browseMode === 'template'
       && browseTemplate !== 'all';
+    const templateOverviewMode =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate === 'all';
     const specializedTemplateMode =
       moodboardAlbumMode
       || linkArchiveMode
@@ -1186,6 +1190,10 @@
       collectionAlbumMode
     );
     noteGrid.classList.toggle(
+      'template-overview-board',
+      templateOverviewMode
+    );
+    noteGrid.classList.toggle(
       'folder-preview-grid',
       folderListMode
       && folderNoteViewMode === 'preview'
@@ -1239,7 +1247,7 @@
     $('#templateAlbumPagination').hidden =
       true;
 
-    notes.forEach(note => {
+    notes.forEach((note, index) => {
       const folder =
         state.folders.find(
           item =>
@@ -1273,7 +1281,74 @@
         !folder
       );
 
-      if (
+      if (templateOverviewMode) {
+        const template =
+          note.template || 'memo';
+        const heightOptions = {
+          memo: {
+            minHeight: 230,
+            maxHeight: 470,
+            charsPerStep: 105,
+            stepHeight: 44
+          },
+          todo: {
+            minHeight: 245,
+            maxHeight: 450,
+            charsPerStep: 78,
+            stepHeight: 38
+          },
+          moodboard: {
+            minHeight: 250,
+            maxHeight: 390,
+            charsPerStep: 120,
+            stepHeight: 30
+          },
+          links: {
+            minHeight: 185,
+            maxHeight: 310,
+            charsPerStep: 72,
+            stepHeight: 32
+          },
+          collection: {
+            minHeight: 270,
+            maxHeight: 430,
+            charsPerStep: 110,
+            stepHeight: 36
+          }
+        }[template];
+
+        card.classList.add(
+          'template-overview-paper',
+          `template-overview-${template}`
+        );
+        applyArchivePaperPresentation(
+          card,
+          note,
+          index,
+          heightOptions
+        );
+        card.innerHTML = `
+          <div class="template-overview-surface">
+            ${folderPreviewMarkup(note)}
+          </div>
+          ${
+            note.starred
+              ? `
+                <span
+                  class="template-overview-star"
+                  aria-label="즐겨찾기"
+                >★</span>
+              `
+              : ''
+          }
+          ${
+            archivePaperHoverMeta(
+              note,
+              templateCardLabel(note)
+            )
+          }
+        `;
+      } else if (
         folderListMode
         && folderNoteViewMode === 'preview'
       ) {

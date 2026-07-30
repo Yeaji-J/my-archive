@@ -119,7 +119,8 @@ function renderTodoNoteView(content, note) {
 function renderMoodboardNoteView(content, note) {
   const data = ensureMoodboard(note);
   const board = document.createElement('div');
-  board.className = 'note-view-moodboard';
+  board.className =
+    `note-view-moodboard moodboard-skin-${data.skin || 'paper'}`;
 
   data.items.forEach(item => {
     const element = document.createElement('div');
@@ -129,6 +130,10 @@ function renderMoodboardNoteView(content, note) {
     element.style.width = `${item.width || 220}px`;
     element.style.height = item.height ? `${item.height}px` : 'auto';
     element.style.transform = `rotate(${item.rotation || 0}deg)`;
+    if (item.type === 'text') {
+      element.style.fontSize =
+        `${Number(item.fontSize) || 21}px`;
+    }
 
     if (item.type === 'image') {
       const image = document.createElement('img');

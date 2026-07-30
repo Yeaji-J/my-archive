@@ -23,7 +23,7 @@
   </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/base.css?v=20260724-save-sync1">
-  <link rel="stylesheet" href="css/notes.css?v=20260730-free-board1">
+  <link rel="stylesheet" href="css/notes.css?v=20260730-moodboard-tools1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260730-free-board1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -975,29 +975,75 @@
             </div>
 
             <div class="editor-template-panel moodboard-panel" id="moodboardEditorPanel" hidden>
-              <div class="moodboard-toolbar">
-                <label class="moodboard-tool primary">
-                  사진 추가
-                  <input type="file" id="moodboardImageInput" accept="image/*" multiple hidden>
-                </label>
-                <button type="button" class="moodboard-tool" id="moodboardTextBtn">텍스트</button>
-                <button type="button" class="moodboard-tool" id="moodboardPenBtn">펜</button>
-                <label class="moodboard-color" title="펜 색상"><input type="color" id="moodboardPenColor" value="#596676"></label>
-                <select class="moodboard-width" id="moodboardPenWidth" aria-label="펜 굵기">
-                  <option value="2">얇게</option><option value="4" selected>보통</option><option value="7">굵게</option>
-                </select>
-                <span class="moodboard-tool-separator" aria-hidden="true"></span>
-                <button type="button" class="moodboard-tool" id="moodboardUndoBtn" disabled>↶ 되돌리기</button>
-                <button type="button" class="moodboard-tool" id="moodboardRedoBtn" disabled>↷ 다시 하기</button>
-                <div class="moodboard-skin-picker" aria-label="무드보드 스킨">
-                  <span>SKIN</span>
-                  <button type="button" class="active moodboard-skin-paper-swatch" data-moodboard-skin="paper" aria-label="기본 종이"></button>
-                  <button type="button" class="moodboard-skin-stripe-swatch" data-moodboard-skin="stripe-split" aria-label="스트라이프 분할"></button>
-                  <button type="button" class="moodboard-skin-dot-swatch" data-moodboard-skin="dot-footer" aria-label="도트와 단색"></button>
-                </div>
-                <button type="button" class="moodboard-tool" id="moodboardClearDrawing">선 지우기</button>
-                <button type="button" class="moodboard-tool danger" id="moodboardDeleteItem">선택 삭제</button>
-              </div>
+              <aside class="moodboard-toolbar" aria-label="무드보드 도구">
+                <section class="moodboard-tool-section">
+                  <span class="moodboard-tool-label">ADD</span>
+                  <div class="moodboard-tool-row">
+                    <label class="moodboard-tool primary">
+                      사진
+                      <input type="file" id="moodboardImageInput" accept="image/*" multiple hidden>
+                    </label>
+                    <button type="button" class="moodboard-tool" id="moodboardTextBtn">텍스트</button>
+                  </div>
+                </section>
+
+                <section class="moodboard-tool-section">
+                  <span class="moodboard-tool-label">TOOL</span>
+                  <div class="moodboard-tool-grid">
+                    <button type="button" class="moodboard-tool active" id="moodboardMoveBtn">이동</button>
+                    <button type="button" class="moodboard-tool" id="moodboardPenBtn">펜</button>
+                    <button type="button" class="moodboard-tool" id="moodboardEraserBtn">지우개</button>
+                  </div>
+                  <div class="moodboard-drawing-options">
+                    <label class="moodboard-color" title="펜 색상">
+                      <input type="color" id="moodboardPenColor" value="#5C3621">
+                    </label>
+                    <select class="moodboard-width" id="moodboardPenWidth" aria-label="펜과 지우개 굵기">
+                      <option value="2">얇게</option>
+                      <option value="4" selected>보통</option>
+                      <option value="7">굵게</option>
+                    </select>
+                  </div>
+                </section>
+
+                <section class="moodboard-tool-section moodboard-item-controls is-disabled" id="moodboardItemControls">
+                  <span class="moodboard-tool-label">SELECTED ITEM</span>
+                  <label class="moodboard-range-field">
+                    <span>크기 <output id="moodboardItemSizeValue">220</output></span>
+                    <input type="range" id="moodboardItemSize" min="80" max="620" step="5" value="220" disabled>
+                  </label>
+                  <label class="moodboard-range-field moodboard-text-size-field" id="moodboardTextSizeField">
+                    <span>글자 <output id="moodboardTextSizeValue">21px</output></span>
+                    <input type="range" id="moodboardTextSize" min="12" max="54" step="1" value="21" disabled>
+                  </label>
+                  <label class="moodboard-range-field">
+                    <span>기울기 <output id="moodboardItemRotationValue">0°</output></span>
+                    <input type="range" id="moodboardItemRotation" min="-30" max="30" step="1" value="0" disabled>
+                  </label>
+                </section>
+
+                <section class="moodboard-tool-section">
+                  <div class="moodboard-skin-picker" aria-label="무드보드 스킨">
+                    <span>SKIN</span>
+                    <button type="button" class="active moodboard-skin-paper-swatch" data-moodboard-skin="paper" aria-label="기본 종이"></button>
+                    <button type="button" class="moodboard-skin-stripe-swatch" data-moodboard-skin="stripe-split" aria-label="핑크 스트라이프 왼쪽"></button>
+                    <button type="button" class="moodboard-skin-dot-swatch" data-moodboard-skin="dot-footer" aria-label="핑크 도트 왼쪽"></button>
+                    <button type="button" class="moodboard-skin-stripe-blue-swatch" data-moodboard-skin="stripe-blue-right" aria-label="블루 스트라이프 오른쪽"></button>
+                    <button type="button" class="moodboard-skin-stripe-green-swatch" data-moodboard-skin="stripe-green-left" aria-label="그린 스트라이프 왼쪽"></button>
+                    <button type="button" class="moodboard-skin-dot-purple-swatch" data-moodboard-skin="dot-purple-right" aria-label="퍼플 도트 오른쪽"></button>
+                    <button type="button" class="moodboard-skin-dot-yellow-swatch" data-moodboard-skin="dot-yellow-left" aria-label="옐로 도트 왼쪽"></button>
+                  </div>
+                </section>
+
+                <section class="moodboard-tool-section moodboard-tool-actions">
+                  <div class="moodboard-tool-row">
+                    <button type="button" class="moodboard-tool" id="moodboardUndoBtn" disabled>↶ 되돌리기</button>
+                    <button type="button" class="moodboard-tool" id="moodboardRedoBtn" disabled>↷ 다시 하기</button>
+                  </div>
+                  <button type="button" class="moodboard-tool" id="moodboardClearDrawing">전체 선 삭제</button>
+                  <button type="button" class="moodboard-tool danger" id="moodboardDeleteItem">선택 요소 삭제</button>
+                </section>
+              </aside>
               <div class="moodboard-canvas-wrap" id="moodboardCanvasWrap" tabindex="0">
                 <div class="moodboard-guide" id="moodboardGuide">
                   사진을 끌어다 놓거나 텍스트와 펜으로 자유롭게 채워보세요.
@@ -1510,9 +1556,9 @@
   <script src="js/calendar.js?v=20260724-media4"></script>
   <script src="js/home.js?v=20260724-folder-browser1"></script>
   <script src="js/memo.js?v=20260730-template-overview2"></script>
-  <script src="js/moodboard.js?v=20260724-writer-rail1"></script>
-  <script src="js/templates.js?v=20260730-template-overview2"></script>
-  <script src="js/note-view.js?v=20260724-templates345"></script>
+  <script src="js/moodboard.js?v=20260730-moodboard-tools1"></script>
+  <script src="js/templates.js?v=20260730-moodboard-tools1"></script>
+  <script src="js/note-view.js?v=20260730-moodboard-tools1"></script>
   <script src="js/router.js?v=20260724-media4"></script>
   <script src="js/events.js?v=20260724-folder-browser1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>

@@ -3,7 +3,7 @@
 /* ---------------- Template editor / Moodboard ---------------- */
 
 let selectedMoodboardItemId = null;
-let moodboardPenActive = false;
+let moodboardToolMode = 'move';
 let moodboardSaveTimer = null;
 let moodboardDrawing = false;
 let moodboardLastPoint = null;
@@ -14,7 +14,11 @@ let moodboardHistoryIndex = -1;
 const MOODBOARD_SKINS = [
   'paper',
   'stripe-split',
-  'dot-footer'
+  'dot-footer',
+  'stripe-blue-right',
+  'stripe-green-left',
+  'dot-purple-right',
+  'dot-yellow-left'
 ];
 
 function getCurrentNote() {
@@ -317,6 +321,8 @@ function renderMoodboard() {
     $('#moodboardCanvasWrap');
   canvasWrap.className =
     `moodboard-canvas-wrap moodboard-skin-${board.skin}`;
+  canvasWrap.dataset.tool =
+    moodboardToolMode;
 
   document
     .querySelectorAll(
@@ -341,6 +347,10 @@ function renderMoodboard() {
     element.style.width = `${item.width || (item.type === 'image' ? 240 : 220)}px`;
     element.style.height = item.height ? `${item.height}px` : 'auto';
     element.style.transform = `rotate(${item.rotation || 0}deg)`;
+    if (item.type === 'text') {
+      element.style.fontSize =
+        `${Number(item.fontSize) || 21}px`;
+    }
 
     if (item.type === 'image') {
       const image = document.createElement('img');
@@ -365,6 +375,7 @@ function renderMoodboard() {
     element.addEventListener('pointerup', () => {
       item.width = element.offsetWidth;
       item.height = element.offsetHeight;
+      updateMoodboardItemControls();
       scheduleMoodboardSave();
     });
 
@@ -373,6 +384,7 @@ function renderMoodboard() {
 
   $('#moodboardGuide').hidden = board.items.length > 0 || Boolean(board.drawing);
   resizeMoodboardCanvas(board.drawing);
+  updateMoodboardItemControls();
 }
 
 function selectMoodboardItem(itemId) {
@@ -380,11 +392,235 @@ function selectMoodboardItem(itemId) {
   document.querySelectorAll('.moodboard-item').forEach(element => {
     element.classList.toggle('selected', element.dataset.itemId === itemId);
   });
+  updateMoodboardItemControls();
+}
+
+function selectedMoodboardItem() {
+  const note = getCurrentNote();
+
+  if (!note) return null;
+
+  return ensureMoodboard(note)
+    .items
+    .find(
+      item =>
+        item.id
+        === selectedMoodboardItemId
+    ) || null;
+}
+
+function updateMoodboardItemControls() {
+  const item =
+    selectedMoodboardItem();
+  const controls =
+    $('#moodboardItemControls');
+  const sizeInput =
+    $('#moodboardItemSize');
+  const textSizeInput =
+    $('#moodboardTextSize');
+  const rotationInput =
+    $('#moodboardItemRotation');
+  const textSizeField =
+    $('#moodboardTextSizeField');
+  const disabled = !item;
+
+  controls.classList.toggle(
+    'is-disabled',
+    disabled
+  );
+  sizeInput.disabled = disabled;
+  rotationInput.disabled = disabled;
+  textSizeInput.disabled =
+    disabled
+    || item?.type !== 'text';
+  textSizeField.hidden =
+    Boolean(item)
+    && item.type !== 'text';
+
+  if (!item) {
+    $('#moodboardItemSizeValue')
+      .textContent = '—';
+    $('#moodboardTextSizeValue')
+      .textContent = '—';
+    $('#moodboardItemRotationValue')
+      .textContent = '—';
+    return;
+  }
+
+  const width =
+    Math.round(
+      Number(item.width)
+      || (
+        item.type === 'image'
+          ? 240
+          : 220
+      )
+    );
+  const fontSize =
+    Math.round(
+      Number(item.fontSize)
+      || 21
+    );
+  const rotation =
+    Math.round(
+      Number(item.rotation)
+      || 0
+    );
+
+  sizeInput.value =
+    String(width);
+  textSizeInput.value =
+    String(fontSize);
+  rotationInput.value =
+    String(rotation);
+  $('#moodboardItemSizeValue')
+    .textContent = `${width}px`;
+  $('#moodboardTextSizeValue')
+    .textContent = `${fontSize}px`;
+  $('#moodboardItemRotationValue')
+    .textContent = `${rotation}°`;
+}
+
+function updateSelectedMoodboardSize(
+  nextWidth
+) {
+  const item =
+    selectedMoodboardItem();
+
+  if (!item) return;
+
+  const width =
+    Math.max(
+      80,
+      Number(nextWidth) || 80
+    );
+  const previousWidth =
+    Math.max(
+      1,
+      Number(item.width)
+      || (
+        item.type === 'image'
+          ? 240
+          : 220
+      )
+    );
+  const previousHeight =
+    Math.max(
+      1,
+      Number(item.height)
+      || (
+        item.type === 'image'
+          ? 180
+          : 70
+      )
+    );
+  const ratio =
+    previousHeight
+    / previousWidth;
+
+  item.width = width;
+  item.height =
+    Math.max(
+      item.type === 'image'
+        ? 60
+        : 44,
+      Math.round(width * ratio)
+    );
+
+  const element =
+    document.querySelector(
+      `.moodboard-item[data-item-id="${CSS.escape(item.id)}"]`
+    );
+
+  if (element) {
+    element.style.width =
+      `${item.width}px`;
+    element.style.height =
+      `${item.height}px`;
+  }
+
+  $('#moodboardItemSizeValue')
+    .textContent =
+      `${Math.round(width)}px`;
+  scheduleMoodboardSave();
+}
+
+function updateSelectedMoodboardTextSize(
+  nextSize
+) {
+  const item =
+    selectedMoodboardItem();
+
+  if (
+    !item
+    || item.type !== 'text'
+  ) {
+    return;
+  }
+
+  item.fontSize =
+    Math.max(
+      12,
+      Number(nextSize) || 21
+    );
+
+  const element =
+    document.querySelector(
+      `.moodboard-item[data-item-id="${CSS.escape(item.id)}"]`
+    );
+
+  if (element) {
+    element.style.fontSize =
+      `${item.fontSize}px`;
+  }
+
+  $('#moodboardTextSizeValue')
+    .textContent =
+      `${Math.round(item.fontSize)}px`;
+  scheduleMoodboardSave();
+}
+
+function updateSelectedMoodboardRotation(
+  nextRotation
+) {
+  const item =
+    selectedMoodboardItem();
+
+  if (!item) return;
+
+  item.rotation =
+    Math.max(
+      -30,
+      Math.min(
+        30,
+        Number(nextRotation) || 0
+      )
+    );
+
+  const element =
+    document.querySelector(
+      `.moodboard-item[data-item-id="${CSS.escape(item.id)}"]`
+    );
+
+  if (element) {
+    element.style.transform =
+      `rotate(${item.rotation}deg)`;
+  }
+
+  $('#moodboardItemRotationValue')
+    .textContent =
+      `${Math.round(item.rotation)}°`;
+  scheduleMoodboardSave();
 }
 
 function makeMoodboardItemDraggable(element, item) {
   element.addEventListener('pointerdown', event => {
-    if (moodboardPenActive || event.button !== 0) return;
+    if (
+      moodboardToolMode !== 'move'
+      || event.button !== 0
+    ) {
+      return;
+    }
     const elementRect = element.getBoundingClientRect();
     const onResizeHandle =
       event.clientX > elementRect.right - 20
@@ -500,7 +736,17 @@ function addMoodboardText() {
   const note = getCurrentNote();
   if (!note) return;
   const board = ensureMoodboard(note);
-  const item = { id: uid(), type: 'text', text: '텍스트를 입력하세요', x: 70, y: 70, width: 220, height: 70, rotation: 0 };
+  const item = {
+    id: uid(),
+    type: 'text',
+    text: '텍스트를 입력하세요',
+    x: 70,
+    y: 70,
+    width: 220,
+    height: 70,
+    rotation: 0,
+    fontSize: 21
+  };
   board.items.push(item);
   selectedMoodboardItemId = item.id;
   scheduleMoodboardSave();
@@ -532,12 +778,55 @@ function resizeMoodboardCanvas(savedDrawing = '') {
   }
 }
 
-function toggleMoodboardPen() {
-  moodboardPenActive = !moodboardPenActive;
-  $('#moodboardPenBtn').classList.toggle('active', moodboardPenActive);
-  $('#moodboardDrawingCanvas').classList.toggle('drawing', moodboardPenActive);
-  selectedMoodboardItemId = null;
-  document.querySelectorAll('.moodboard-item').forEach(item => item.classList.remove('selected'));
+function setMoodboardTool(
+  mode
+) {
+  if (
+    ![
+      'move',
+      'pen',
+      'eraser'
+    ].includes(mode)
+  ) {
+    return;
+  }
+
+  moodboardToolMode = mode;
+
+  $('#moodboardMoveBtn')
+    .classList.toggle(
+      'active',
+      mode === 'move'
+    );
+  $('#moodboardPenBtn')
+    .classList.toggle(
+      'active',
+      mode === 'pen'
+    );
+  $('#moodboardEraserBtn')
+    .classList.toggle(
+      'active',
+      mode === 'eraser'
+    );
+
+  const canvas =
+    $('#moodboardDrawingCanvas');
+
+  canvas.classList.toggle(
+    'drawing',
+    mode === 'pen'
+  );
+  canvas.classList.toggle(
+    'erasing',
+    mode === 'eraser'
+  );
+
+  $('#moodboardCanvasWrap')
+    .dataset.tool = mode;
+
+  if (mode !== 'move') {
+    selectMoodboardItem(null);
+  }
 }
 
 function moodboardCanvasPoint(event) {
@@ -550,7 +839,17 @@ function moodboardCanvasPoint(event) {
 }
 
 function beginMoodboardDrawing(event) {
-  if (!moodboardPenActive) return;
+  if (
+    ![
+      'pen',
+      'eraser'
+    ].includes(
+      moodboardToolMode
+    )
+  ) {
+    return;
+  }
+
   moodboardDrawing = true;
   moodboardLastPoint = moodboardCanvasPoint(event);
   event.currentTarget.setPointerCapture(event.pointerId);
@@ -561,11 +860,23 @@ function continueMoodboardDrawing(event) {
   const canvas = $('#moodboardDrawingCanvas');
   const point = moodboardCanvasPoint(event);
   const context = canvas.getContext('2d');
+  context.globalCompositeOperation =
+    moodboardToolMode === 'eraser'
+      ? 'destination-out'
+      : 'source-over';
   context.beginPath();
   context.moveTo(moodboardLastPoint.x, moodboardLastPoint.y);
   context.lineTo(point.x, point.y);
   context.strokeStyle = $('#moodboardPenColor').value;
-  context.lineWidth = Number($('#moodboardPenWidth').value);
+  context.lineWidth =
+    Number(
+      $('#moodboardPenWidth').value
+    )
+    * (
+      moodboardToolMode === 'eraser'
+        ? 4
+        : 1
+    );
   context.lineCap = 'round';
   context.lineJoin = 'round';
   context.stroke();
@@ -575,6 +886,10 @@ function continueMoodboardDrawing(event) {
 function endMoodboardDrawing() {
   if (!moodboardDrawing) return;
   moodboardDrawing = false;
+  $('#moodboardDrawingCanvas')
+    .getContext('2d')
+    .globalCompositeOperation =
+      'source-over';
   const note = getCurrentNote();
   if (!note) return;
   ensureMoodboard(note).drawing = $('#moodboardDrawingCanvas').toDataURL('image/png');
@@ -588,7 +903,42 @@ document.querySelectorAll('[data-editor-template]').forEach(tab => {
 
 $('#moodboardImageInput').addEventListener('change', event => addMoodboardImages(event.target.files));
 $('#moodboardTextBtn').addEventListener('click', addMoodboardText);
-$('#moodboardPenBtn').addEventListener('click', toggleMoodboardPen);
+$('#moodboardMoveBtn').addEventListener(
+  'click',
+  () => setMoodboardTool('move')
+);
+$('#moodboardPenBtn').addEventListener(
+  'click',
+  () => setMoodboardTool('pen')
+);
+$('#moodboardEraserBtn').addEventListener(
+  'click',
+  () => setMoodboardTool('eraser')
+);
+$('#moodboardItemSize')
+  .addEventListener(
+    'input',
+    event =>
+      updateSelectedMoodboardSize(
+        event.target.value
+      )
+  );
+$('#moodboardTextSize')
+  .addEventListener(
+    'input',
+    event =>
+      updateSelectedMoodboardTextSize(
+        event.target.value
+      )
+  );
+$('#moodboardItemRotation')
+  .addEventListener(
+    'input',
+    event =>
+      updateSelectedMoodboardRotation(
+        event.target.value
+      )
+  );
 $('#moodboardUndoBtn').addEventListener(
   'click',
   () => restoreMoodboardHistory(-1)

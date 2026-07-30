@@ -322,7 +322,10 @@ function moodboardPreviewItem(item) {
     `top:${Math.min(top, 90)}%`,
     `width:${Math.min(width, 72)}%`,
     `height:${Math.min(height, 70)}%`,
-    `transform:rotate(${Number(item.rotation) || 0}deg)`
+    `transform:rotate(${Number(item.rotation) || 0}deg)`,
+    item.type === 'text'
+      ? `font-size:${Math.max(7, (Number(item.fontSize) || 21) * .48)}px`
+      : ''
   ].join(';');
 
   if (item.type === 'image') {

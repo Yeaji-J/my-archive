@@ -1,103 +1,78 @@
 /* ========================================
-   Template overview · loose paper layout
+   Template overview · free arrangement
    Applies only to 템플릿별 → 전체.
 ======================================== */
 
 .template-overview-board {
+  position: relative;
   display: block;
   width: 100%;
-  max-width: 1440px;
-  margin: 0 auto;
-  padding: 18px 12px 42px;
-  column-count: 4;
-  column-gap: 22px;
-  column-fill: balance;
+  min-height: 420px;
+  margin: 0;
+  padding: 0;
   background: transparent;
+  overflow: visible;
 }
 
 .template-overview-paper.archive-paper-item {
-  position: relative;
-  z-index: 1;
-  width: 100%;
-  min-width: 0;
+  position: absolute;
+  width: min(
+    var(--paper-width, 270px),
+    100%
+  );
   height: var(--paper-height, 300px);
-  margin: 0 0 24px;
-  display: inline-block;
-  break-inside: avoid;
+  min-width: 0;
+  min-height: 0;
+  padding: 0;
+  display: block;
   overflow: visible;
-  border: 1px solid rgba(92, 54, 33, .13);
+  border: 0;
   border-radius: 0;
-  background: #fff;
-  isolation: isolate;
-  box-shadow:
-    0 15px 24px rgba(69, 57, 48, .1),
-    0 3px 6px rgba(69, 57, 48, .06);
-  transform:
-    translateX(var(--paper-shift-x, 0))
-    rotate(var(--paper-tilt, 0deg));
-  transform-origin: center;
+  background: transparent;
+  box-shadow: none;
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
   transition:
-    transform .22s ease,
-    box-shadow .22s ease;
-  vertical-align: top;
-}
-
-.template-overview-paper.archive-paper-item.is-stacked {
-  z-index: 2;
-  margin-top: -28px;
+    filter .18s ease,
+    transform .18s ease;
 }
 
 .template-overview-paper.archive-paper-item::before,
 .template-overview-paper.archive-paper-item::after {
-  position: absolute;
-  z-index: -2;
-  inset: 5px -6px -7px 6px;
-  border: 1px solid rgba(92, 54, 33, .09);
-  border-radius: 0;
-  background:
-    color-mix(
-      in srgb,
-      var(--paper-layer-color, #C3C2D9) 18%,
-      #fff 82%
-    );
-  box-shadow: 0 7px 14px rgba(69, 57, 48, .06);
-  content: "";
-  opacity: 0;
-  transform: rotate(1.7deg);
-}
-
-.template-overview-paper.archive-paper-item::after {
-  z-index: -3;
-  inset: 9px -10px -12px 10px;
-  transform: rotate(-1.1deg);
-}
-
-.template-overview-paper.archive-paper-item.is-stacked::before {
-  opacity: .92;
-}
-
-.template-overview-paper.archive-paper-item.is-stacked::after {
-  opacity: .68;
+  display: none;
+  content: none;
 }
 
 .template-overview-paper.archive-paper-item:hover,
 .template-overview-paper.archive-paper-item:focus-within {
-  z-index: 12;
-  box-shadow:
-    0 23px 36px rgba(69, 57, 48, .14),
-    0 5px 10px rgba(69, 57, 48, .07);
-  transform:
-    translateX(var(--paper-shift-x, 0))
-    translateY(-8px)
-    rotate(0deg);
+  transform: translateY(-3px);
+  filter:
+    drop-shadow(
+      0 14px 16px
+      rgba(69, 57, 48, .1)
+    );
+}
+
+.template-overview-paper.archive-paper-item.dragging {
+  cursor: grabbing;
+  filter:
+    drop-shadow(
+      0 20px 22px
+      rgba(69, 57, 48, .15)
+    );
+  transform: scale(1.015);
+  transition: none;
 }
 
 .template-overview-paper.archive-paper-item.selected {
-  outline: 3px solid rgba(124, 157, 192, .48);
-  outline-offset: 4px;
+  outline: 3px solid
+    rgba(124, 157, 192, .48);
+  outline-offset: 5px;
 }
 
-.template-overview-paper .archive-card-check {
+.template-overview-paper
+.archive-card-check {
   z-index: 24;
 }
 
@@ -106,8 +81,10 @@
   width: 100%;
   height: 100%;
   min-height: 0;
-  overflow: hidden;
-  background: #fff;
+  overflow: visible;
+  border: 0;
+  border-radius: 0;
+  background: transparent;
 }
 
 .template-overview-surface > img,
@@ -118,71 +95,115 @@
   border-radius: 0;
 }
 
-.template-overview-surface
-.folder-preview-cover {
+/* 메모는 종이 자체만 보이게 */
+.template-overview-memo
+.folder-preview-memo {
   display: block;
-  object-fit: cover;
+  overflow: hidden;
+  border: 1px solid
+    rgba(92, 54, 33, .12);
+  border-radius: 0;
+  box-shadow:
+    0 9px 20px
+    rgba(69, 57, 48, .08);
 }
 
-.template-overview-surface
-.folder-preview-memo,
-.template-overview-surface
-.folder-preview-postit,
-.template-overview-surface
-.folder-preview-board,
-.template-overview-surface
-.folder-preview-link {
-  display: flex;
-}
-
-.template-overview-surface
+.template-overview-memo
 .folder-preview-memo-copy {
   width: 100%;
   height: 100%;
-  padding: 22px 20px 86px;
+  padding: 22px 20px 88px;
   overflow: hidden;
 }
 
-.template-overview-surface
+/* 포스트잇은 별도 카드 없이 포스트잇만 */
+.template-overview-todo
 .folder-preview-postit {
-  padding: 26px 22px 92px;
+  padding: 27px 23px 92px;
+  display: flex;
+  overflow: hidden;
   justify-content: flex-start;
+  border: 0;
+  border-radius: 0;
+  box-shadow:
+    0 10px 21px
+    rgba(69, 57, 48, .09);
 }
 
-.template-overview-surface
+/* 무드보드는 실제 보드 비율 유지 */
+.template-overview-moodboard
+.folder-preview-board {
+  display: block;
+  overflow: hidden;
+  border: 0;
+  border-radius: 0;
+  box-shadow:
+    0 10px 24px
+    rgba(69, 57, 48, .1);
+}
+
+/* 링크는 얇은 메모지 한 장처럼 */
+.template-overview-links
 .folder-preview-link {
-  padding: 28px 22px 92px;
+  padding: 26px 22px 82px;
+  display: flex;
+  overflow: hidden;
   justify-content: flex-start;
+  border: 1px solid
+    rgba(92, 54, 33, .1);
+  border-radius: 0;
   background:
     repeating-linear-gradient(
       180deg,
       #fff 0 31px,
-      rgba(172, 188, 205, .28) 32px
+      rgba(172, 188, 205, .25) 32px
     );
+  box-shadow:
+    0 8px 18px
+    rgba(69, 57, 48, .07);
 }
 
-.template-overview-surface
-.folder-preview-board {
-  overflow: hidden;
+/* 컬렉션은 책/포스터 표지만 노출 */
+.template-overview-collection
+.folder-preview-cover {
+  display: block;
+  object-fit: cover;
+  border: 0;
+  border-radius: 0;
+  box-shadow:
+    8px 10px 18px
+    rgba(48, 42, 38, .15);
 }
 
-.template-overview-surface
+.template-overview-collection
 .folder-preview-empty {
-  color: rgba(92, 54, 33, .56);
+  display: grid;
+  width: 100%;
+  height: 100%;
+  place-items: center;
+  border: 1px solid
+    rgba(92, 54, 33, .14);
+  background: #f4efe6;
+  box-shadow:
+    8px 10px 18px
+    rgba(48, 42, 38, .12);
+  color: rgba(92, 54, 33, .6);
 }
 
 .template-overview-star {
   position: absolute;
   z-index: 16;
-  top: 12px;
-  right: 12px;
+  top: 11px;
+  right: 11px;
   display: grid;
   width: 28px;
   height: 28px;
   place-items: center;
-  border: 1px solid rgba(92, 54, 33, .1);
+  border: 1px solid
+    rgba(92, 54, 33, .1);
   border-radius: 50%;
-  background: rgba(255, 255, 255, .84);
+  background:
+    rgba(255, 255, 255, .86);
   color: #d9b84f;
   font-size: 14px;
 }
@@ -194,8 +215,8 @@
   right: 0;
   bottom: 0;
   left: 0;
-  min-height: 108px;
-  padding: 38px 18px 16px;
+  min-height: 104px;
+  padding: 38px 17px 15px;
   display: flex;
   flex-direction: column;
   justify-content: flex-end;
@@ -210,10 +231,10 @@
   color: #2d2926;
   opacity: 0;
   pointer-events: none;
-  transform: translateY(12px);
+  transform: translateY(10px);
   transition:
-    opacity .2s ease,
-    transform .2s ease;
+    opacity .18s ease,
+    transform .18s ease;
 }
 
 .template-overview-paper:hover
@@ -259,40 +280,7 @@
   font-size: 11px;
 }
 
-.template-overview-links {
-  min-height: 0;
-}
-
-.template-overview-collection
-.template-overview-surface {
-  background: #f7f4ef;
-}
-
-@media (max-width: 1180px) {
-  .template-overview-board {
-    column-count: 3;
-  }
-}
-
-@media (max-width: 860px) {
-  .template-overview-board {
-    padding-inline: 8px;
-    column-count: 2;
-  }
-}
-
-@media (max-width: 560px) {
-  .template-overview-board {
-    padding: 10px 2px 28px;
-    column-count: 1;
-  }
-
-  .template-overview-paper.archive-paper-item,
-  .template-overview-paper.archive-paper-item.is-stacked {
-    margin-top: 0;
-    transform: none;
-  }
-
+@media (max-width: 620px) {
   .template-overview-paper
   .archive-paper-meta {
     opacity: 1;

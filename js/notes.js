@@ -558,82 +558,405 @@
       .length;
   }
 
-  function applyArchivePaperPresentation(
-    element,
-    note,
-    index,
-    {
-      minHeight = 230,
-      maxHeight = 480,
-      charsPerStep = 90,
-      stepHeight = 42,
-      extraHeight = 0
-    } = {}
+  function templateOverviewSize(
+    note
   ) {
+    const template =
+      note.template || 'memo';
     const textLength =
       archivePaperTextLength(note);
+    const sizes = {
+      memo: {
+        width: 270,
+        minHeight: 260,
+        maxHeight: 430,
+        charsPerStep: 105,
+        stepHeight: 42
+      },
+      todo: {
+        width: 230,
+        minHeight: 310,
+        maxHeight: 420,
+        charsPerStep: 90,
+        stepHeight: 34
+      },
+      moodboard: {
+        width: 340,
+        minHeight: 250,
+        maxHeight: 310,
+        charsPerStep: 150,
+        stepHeight: 24
+      },
+      links: {
+        width: 300,
+        minHeight: 175,
+        maxHeight: 250,
+        charsPerStep: 100,
+        stepHeight: 28
+      },
+      collection: {
+        width: 180,
+        minHeight: 270,
+        maxHeight: 330,
+        charsPerStep: 140,
+        stepHeight: 24
+      }
+    };
+    const size =
+      sizes[template] || sizes.memo;
     const contentHeight =
       Math.ceil(
         textLength
-        / Math.max(1, charsPerStep)
-      )
-      * stepHeight;
-    const height =
-      Math.max(
-        minHeight,
-        Math.min(
-          maxHeight,
-          minHeight
-          + contentHeight
-          + extraHeight
+        / Math.max(
+          1,
+          size.charsPerStep
         )
-      );
-    const tilts = [
-      -0.8,
-      0.45,
-      -0.25,
-      0.75,
-      -0.5,
-      0.2
-    ];
-    const shifts = [
-      0,
-      8,
-      -5,
-      5,
-      -8,
-      3
-    ];
+      )
+      * size.stepHeight;
+
+    return {
+      width: size.width,
+      height: Math.max(
+        size.minHeight,
+        Math.min(
+          size.maxHeight,
+          size.minHeight
+          + contentHeight
+        )
+      )
+    };
+  }
+
+  function applyTemplateOverviewPresentation(
+    element,
+    note
+  ) {
+    const size =
+      templateOverviewSize(note);
 
     element.classList.add(
       'archive-paper-item'
     );
-    element.classList.toggle(
-      'is-stacked',
-      index % 5 === 1
-      || index % 7 === 5
+    element.style.setProperty(
+      '--paper-width',
+      `${size.width}px`
     );
     element.style.setProperty(
       '--paper-height',
-      `${height}px`
+      `${size.height}px`
     );
-    element.style.setProperty(
-      '--paper-tilt',
-      `${tilts[index % tilts.length]}deg`
-    );
-    element.style.setProperty(
-      '--paper-shift-x',
-      `${shifts[index % shifts.length]}px`
-    );
-    element.style.setProperty(
-      '--paper-layer-color',
-      (
-        state.folders.find(
-          folder =>
-            folder.id === note.folderId
-        )?.color
-        || '#C3C2D9'
+  }
+
+  function updateTemplateOverviewHeight(
+    board = noteGrid
+  ) {
+    const cards = [
+      ...board.querySelectorAll(
+        '.template-overview-paper'
       )
+    ];
+    const bottom =
+      cards.reduce(
+        (maximum, card) =>
+          Math.max(
+            maximum,
+            (
+              parseFloat(
+                card.style.top
+              ) || 0
+            )
+            + card.offsetHeight
+          ),
+        0
+      );
+
+    board.style.height =
+      `${Math.max(
+        420,
+        bottom + 54
+      )}px`;
+  }
+
+  function bindTemplateOverviewDrag(
+    card,
+    note,
+    board,
+    nextZIndex
+  ) {
+    let drag = null;
+
+    card.addEventListener(
+      'dragstart',
+      event => event.preventDefault()
+    );
+
+    card.addEventListener(
+      'pointerdown',
+      event => {
+        if (
+          event.button !== 0
+          || event.target.closest(
+            'a, button, input, textarea, select'
+          )
+        ) {
+          return;
+        }
+
+        drag = {
+          pointerId: event.pointerId,
+          startClientX: event.clientX,
+          startClientY: event.clientY,
+          startX:
+            parseFloat(
+              card.style.left
+            ) || 0,
+          startY:
+            parseFloat(
+              card.style.top
+            ) || 0,
+          moved: false
+        };
+
+        card.classList.add('dragging');
+        card.style.zIndex =
+          String(nextZIndex());
+        card.setPointerCapture(
+          event.pointerId
+        );
+        event.preventDefault();
+      }
+    );
+
+    card.addEventListener(
+      'pointermove',
+      event => {
+        if (
+          !drag
+          || drag.pointerId
+            !== event.pointerId
+        ) {
+          return;
+        }
+
+        const deltaX =
+          event.clientX
+          - drag.startClientX;
+        const deltaY =
+          event.clientY
+          - drag.startClientY;
+
+        if (
+          !drag.moved
+          && Math.hypot(
+            deltaX,
+            deltaY
+          ) < 5
+        ) {
+          return;
+        }
+
+        drag.moved = true;
+
+        const maximumX =
+          Math.max(
+            0,
+            board.clientWidth
+            - card.offsetWidth
+          );
+        const nextX =
+          Math.max(
+            0,
+            Math.min(
+              maximumX,
+              drag.startX + deltaX
+            )
+          );
+        const nextY =
+          Math.max(
+            0,
+            drag.startY + deltaY
+          );
+
+        card.style.left =
+          `${nextX}px`;
+        card.style.top =
+          `${nextY}px`;
+        updateTemplateOverviewHeight(
+          board
+        );
+      }
+    );
+
+    const finishDrag =
+      event => {
+        if (
+          !drag
+          || drag.pointerId
+            !== event.pointerId
+        ) {
+          return;
+        }
+
+        const moved = drag.moved;
+        drag = null;
+        card.classList.remove(
+          'dragging'
+        );
+
+        if (
+          card.hasPointerCapture(
+            event.pointerId
+          )
+        ) {
+          card.releasePointerCapture(
+            event.pointerId
+          );
+        }
+
+        if (!moved) return;
+
+        card.dataset.dragged = 'true';
+        note.overviewLayout = {
+          x:
+            parseFloat(
+              card.style.left
+            ) || 0,
+          y:
+            parseFloat(
+              card.style.top
+            ) || 0,
+          z:
+            Number(
+              card.style.zIndex
+            ) || 1
+        };
+        saveData();
+      };
+
+    card.addEventListener(
+      'pointerup',
+      finishDrag
+    );
+    card.addEventListener(
+      'pointercancel',
+      finishDrag
+    );
+  }
+
+  function setupTemplateOverviewBoard(
+    notes
+  ) {
+    const board = noteGrid;
+    const cards = [
+      ...board.querySelectorAll(
+        '.template-overview-paper'
+      )
+    ];
+
+    if (
+      !board.classList.contains(
+        'template-overview-board'
+      )
+    ) {
+      return;
+    }
+
+    const boardWidth =
+      Math.max(
+        320,
+        board.clientWidth
+      );
+    const gap = 26;
+    let cursorX = 8;
+    let cursorY = 16;
+    let rowHeight = 0;
+    let highestZ =
+      Math.max(
+        1,
+        ...notes.map(
+          note =>
+            Number(
+              note.overviewLayout?.z
+            ) || 0
+        )
+      );
+    const nextZIndex =
+      () => {
+        highestZ += 1;
+        return highestZ;
+      };
+
+    cards.forEach(
+      (card, index) => {
+        const note = notes[index];
+        const cardWidth =
+          card.offsetWidth
+          || templateOverviewSize(
+            note
+          ).width;
+        const cardHeight =
+          card.offsetHeight
+          || templateOverviewSize(
+            note
+          ).height;
+        const saved =
+          note.overviewLayout;
+        let x;
+        let y;
+
+        if (saved) {
+          x = Math.max(
+            0,
+            Math.min(
+              Number(saved.x) || 0,
+              boardWidth - cardWidth
+            )
+          );
+          y = Math.max(
+            0,
+            Number(saved.y) || 0
+          );
+        } else {
+          if (
+            cursorX + cardWidth
+            > boardWidth
+            && cursorX > 8
+          ) {
+            cursorX = 8;
+            cursorY +=
+              rowHeight + gap;
+            rowHeight = 0;
+          }
+
+          x = cursorX;
+          y = cursorY;
+          cursorX +=
+            cardWidth + gap;
+          rowHeight =
+            Math.max(
+              rowHeight,
+              cardHeight
+            );
+        }
+
+        card.style.left = `${x}px`;
+        card.style.top = `${y}px`;
+        card.style.zIndex =
+          String(
+            Number(saved?.z)
+            || index + 1
+          );
+        bindTemplateOverviewDrag(
+          card,
+          note,
+          board,
+          nextZIndex
+        );
+      }
+    );
+
+    updateTemplateOverviewHeight(
+      board
     );
   }
 
@@ -1193,6 +1516,11 @@
       'template-overview-board',
       templateOverviewMode
     );
+    if (!templateOverviewMode) {
+      noteGrid.style.removeProperty(
+        'height'
+      );
+    }
     noteGrid.classList.toggle(
       'folder-preview-grid',
       folderListMode
@@ -1284,48 +1612,16 @@
       if (templateOverviewMode) {
         const template =
           note.template || 'memo';
-        const heightOptions = {
-          memo: {
-            minHeight: 230,
-            maxHeight: 470,
-            charsPerStep: 105,
-            stepHeight: 44
-          },
-          todo: {
-            minHeight: 245,
-            maxHeight: 450,
-            charsPerStep: 78,
-            stepHeight: 38
-          },
-          moodboard: {
-            minHeight: 250,
-            maxHeight: 390,
-            charsPerStep: 120,
-            stepHeight: 30
-          },
-          links: {
-            minHeight: 185,
-            maxHeight: 310,
-            charsPerStep: 72,
-            stepHeight: 32
-          },
-          collection: {
-            minHeight: 270,
-            maxHeight: 430,
-            charsPerStep: 110,
-            stepHeight: 36
-          }
-        }[template];
 
         card.classList.add(
           'template-overview-paper',
           `template-overview-${template}`
         );
-        applyArchivePaperPresentation(
+        card.dataset.noteId =
+          note.id;
+        applyTemplateOverviewPresentation(
           card,
-          note,
-          index,
-          heightOptions
+          note
         );
         card.innerHTML = `
           <div class="template-overview-surface">
@@ -1474,6 +1770,16 @@
         'click',
         event => {
           if (
+            card.dataset.dragged
+            === 'true'
+          ) {
+            card.dataset.dragged =
+              'false';
+            event.preventDefault();
+            return;
+          }
+
+          if (
             event.target.closest(
               '[data-note-select]'
             )
@@ -1491,6 +1797,15 @@
 
       noteGrid.appendChild(card);
     });
+
+    if (templateOverviewMode) {
+      requestAnimationFrame(
+        () =>
+          setupTemplateOverviewBoard(
+            notes
+          )
+      );
+    }
   }
 
   function formatDate(timestamp) {

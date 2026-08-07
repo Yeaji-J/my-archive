@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260807-surface-colors1">
-  <link rel="stylesheet" href="css/notes.css?v=20260807-template-new1">
+  <link rel="stylesheet" href="css/notes.css?v=20260807-memo-blocks1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260807-light-paper1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -882,16 +882,40 @@
                   <button type="button" data-memo-command="center" title="가운데 정렬">가운데</button>
                 </div>
                 <div class="memo-tool-group" aria-label="입력">
-                  <button type="button" data-memo-command="bullet" title="가운뎃점 입력">· 기호</button>
+                  <button type="button" data-memo-command="bold" title="굵게 (Ctrl+B)"><strong>B</strong></button>
+                  <button type="button" data-memo-command="strike" title="취소선 (Ctrl+Shift+X)"><s>S</s></button>
+                  <button type="button" data-memo-command="link" title="링크 (Ctrl+K)">링크</button>
                   <label class="memo-image-tool">
                     사진
                     <input type="file" id="memoImageInput" accept="image/*" multiple hidden>
                   </label>
                 </div>
-                <div class="memo-tool-group memo-column-tools" aria-label="단 구성">
-                  <button type="button" data-memo-columns="1" class="active">1단</button>
-                  <button type="button" data-memo-columns="2">2단</button>
-                </div>
+                <label class="memo-inline-control">
+                  <span>FONT</span>
+                  <select id="memoFontFamilySelect" aria-label="선택한 글씨의 폰트">
+                    <option value="pretendard">Pretendard</option>
+                    <option value="lee-seoyun">이서윤체</option>
+                    <option value="gowun-dodum">고운돋움</option>
+                    <option value="gowun-batang">고운바탕</option>
+                    <option value="nanum-pen">나눔펜</option>
+                    <option value="gaegu">개구체</option>
+                    <option value="dongle">동글체</option>
+                    <option value="black-han">검은고딕</option>
+                    <option value="song-myung">송명체</option>
+                  </select>
+                </label>
+                <label class="memo-inline-control memo-size-control">
+                  <span>SIZE</span>
+                  <select id="memoFontSizeSelect" aria-label="선택한 글씨의 크기">
+                    <option value="12">12px</option>
+                    <option value="14">14px</option>
+                    <option value="15" selected>15px</option>
+                    <option value="16">16px</option>
+                    <option value="18">18px</option>
+                    <option value="20">20px</option>
+                    <option value="24">24px</option>
+                  </select>
+                </label>
                 <div class="memo-skin-picker" id="memoSkinPicker" aria-label="기본 스킨">
                   <span>SKIN</span>
                   <button type="button" data-memo-skin="pink-grid" title="핑크 미세 그리드"></button>
@@ -1608,7 +1632,7 @@
   <script src="js/chat.js?v=20260724-save-sync1"></script>
   <script src="js/calendar.js?v=20260724-media4"></script>
   <script src="js/home.js?v=20260724-folder-browser1"></script>
-  <script src="js/memo.js?v=20260730-template-overview2"></script>
+  <script src="js/memo.js?v=20260807-memo-blocks1"></script>
   <script src="js/moodboard.js?v=20260730-moodboard-tools1"></script>
   <script src="js/templates.js?v=20260730-moodboard-tools1"></script>
   <script src="js/note-view.js?v=20260730-moodboard-tools1"></script>

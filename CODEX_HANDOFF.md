@@ -158,9 +158,14 @@ Writing/editor requirements already represented in the UI:
 - contenteditable rich memo
 - paragraph/body vs subtitle styles; a selected existing range should be convertible in both directions
 - left / center alignment
-- `·` insertion
+- selected-text font family and font-size controls
+- selected text can become a hyperlink by pasting an `http`, `https`, or `mailto` URL; saved memo links are bold + underlined and open safely in a new tab
+- `Ctrl/Cmd+B` bold, `Ctrl/Cmd+Shift+X` strikethrough, and `Ctrl/Cmd+K` link shortcuts
+- `Alt+183` inserts `·`; the former dedicated `· 기호` toolbar button is intentionally removed
 - numeric token behavior: number followed by Space can become a subtle rounded/gray number marker
-- 1-column / 2-column layout
+- Notion-style block handles: drag vertically to reorder, or to the left/right edge of another block to create any number of columns
+- the former global 1-column / 2-column toolbar is intentionally removed; saved `.memo-block-row` / `.memo-block-column` structure is the layout source of truth
+- memo body line-height is intentionally tightened to about two-thirds of the earlier value
 - four paper skins: pink micro-grid, yellow line, blue dot, purple grid
 - image insertion
 - toolbar should remain reachable when the memo gets long (sticky/fixed behavior)
@@ -453,6 +458,15 @@ Related UI improvements:
 - `closeSidebarMobile` moved into `js/core.js` so hash-route restoration cannot call it before it exists
 
 The previous moodboard transparent text background and per-item 400 / 600 / 700 weight behavior remains in place.
+
+Template 01 memo editor was expanded:
+
+- selected text supports nine inline fonts and seven inline sizes; the markup is sanitized into safe `data-memo-font` / `data-memo-size` spans and restores after reload
+- pasting a safe URL onto a non-collapsed text selection creates a bold, underlined link; unsafe protocols are rejected
+- bold, strikethrough, link, and `Alt+183` shortcuts were added while the dedicated middle-dot button was removed
+- Enter creates durable paragraph blocks with draggable `⋮⋮` handles; left/right drop zones create n-column grid rows, and the layout survives save + reload
+- the previous global 1단/2단 control and CSS column-count rendering were removed
+- memo editor, detail, and album-preview line spacing were tightened
 
 ## 17. Recommended first Codex prompt
 

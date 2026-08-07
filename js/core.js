@@ -1016,6 +1016,13 @@ const STORAGE_KEY = 'archive.data.v1';
       document.querySelector(selector);
 
   const sidebar = $('#sidebar');
+
+  function closeSidebarMobile() {
+    sidebar.classList.remove(
+      'mobile-open'
+    );
+  }
+
   const folderList = $('#folderList');
   const folderGrid = $('#folderGrid');
   const noteGrid = $('#noteGrid');

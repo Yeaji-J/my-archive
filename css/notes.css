@@ -1142,10 +1142,10 @@
   cursor: pointer;
 }
 
-.editor-template-tab:nth-child(2) { background: #d7e6ee; }
-.editor-template-tab:nth-child(3) { background: #ddd8eb; }
-.editor-template-tab:nth-child(4) { background: #eedbd0; }
-.editor-template-tab:nth-child(5) { background: #eee9db; }
+.editor-template-tab:nth-child(2) { background: var(--archive-surface-blue); }
+.editor-template-tab:nth-child(3) { background: var(--archive-surface-purple); }
+.editor-template-tab:nth-child(4) { background: var(--archive-surface-pink); }
+.editor-template-tab:nth-child(5) { background: var(--archive-surface-yellow); }
 .editor-template-tab span { display: block; margin-bottom: 2px; font-size: 8px; opacity: .62; }
 .editor-template-tab.active { height: 67px; color: #3f4a55; transform: translateY(-2px); }
 .editor-template-tab.pending { color: #a09c94; }
@@ -2248,16 +2248,6 @@
 
 /* ---------- 01 Memo rich editor / album ---------- */
 
-:root {
-  --archive-brown: #5c3621;
-  --archive-gray: #959595;
-  --archive-olive: #9ca078;
-  --archive-blue: #acbccd;
-  --archive-purple: #c3c2d9;
-  --archive-pink: #f0c7d9;
-  --archive-yellow: #fef7cb;
-}
-
 .memo-format-toolbar {
   position: sticky;
   z-index: 30;
@@ -3182,6 +3172,36 @@
   font-size: 11px;
 }
 
+.template-list-new {
+  display: inline-flex;
+  min-height: 32px;
+  padding: 0 12px;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  border: 1px solid rgba(156, 160, 120, .3);
+  border-radius: 999px;
+  background: var(--archive-surface-yellow);
+  color: var(--archive-brown);
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform .15s ease,
+    background-color .15s ease;
+}
+
+.template-list-new:hover {
+  background: #fff4bd;
+  transform: translateY(-1px);
+}
+
+.template-list-new svg {
+  width: 12px;
+  height: 12px;
+}
+
 .memo-album-search {
   width: min(350px, 42vw);
   display: flex;
@@ -3350,12 +3370,19 @@
     padding: 7px 8px;
   }
   .template-list-bar {
-    align-items: center;
-    flex-direction: row;
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+  .template-list-controls {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
   .template-list-search {
-    width: 220px;
+    width: min(100%, 320px);
     min-width: 180px;
+    flex: 1 1 190px;
   }
   .memo-album-bar { align-items: flex-start; flex-direction: column; }
   .memo-album-search { width: 100%; }

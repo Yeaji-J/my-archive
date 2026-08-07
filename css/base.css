@@ -15,6 +15,18 @@
   --accent-soft: rgba(71, 127, 185, 0.14);
   --danger: #ff3b30;
   --star: #ff9f0a;
+  --archive-brown: #5c3621;
+  --archive-gray: #959595;
+  --archive-olive: #9ca078;
+  --archive-blue: #acbccd;
+  --archive-purple: #c3c2d9;
+  --archive-pink: #f0c7d9;
+  --archive-yellow: #fef7cb;
+  --archive-surface-green: #e9ebdd;
+  --archive-surface-blue: #e6edf3;
+  --archive-surface-purple: #eceaf4;
+  --archive-surface-pink: #fbeaf1;
+  --archive-surface-yellow: #fef9dc;
   --radius-lg: 20px;
   --radius-md: 14px;
   --radius-sm: 10px;

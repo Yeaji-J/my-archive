@@ -1,14 +1,6 @@
 'use strict';
 
-/* ---------------- Sidebar mobile ---------------- */
-
-  function closeSidebarMobile() {
-    sidebar.classList.remove(
-      'mobile-open'
-    );
-  }
-
-  /* ---------------- Event wiring ---------------- */
+/* ---------------- Event wiring ---------------- */
 
       document
         .querySelectorAll('.nav-item')
@@ -164,6 +156,21 @@
         templateAlbumPages.moodboard = 1;
         templateAlbumPages.collection = 1;
         renderFolderGridView();
+      }
+    );
+
+  $('#templateListNewBtn')
+    .addEventListener(
+      'click',
+      () => {
+        if (
+          browseMode !== 'template'
+          || browseTemplate === 'all'
+        ) {
+          return;
+        }
+
+        createNote(browseTemplate);
       }
     );
 

@@ -217,7 +217,7 @@
 }
 
 .postit-paper {
-  --postit-paper: #ACBCCD;
+  --postit-paper: var(--archive-surface-blue);
   --postit-ink: #5C3621;
   --postit-font-size: 16px;
   --postit-accent: #7F9FC0;
@@ -237,8 +237,8 @@
   background-color:
     color-mix(
       in srgb,
-      var(--postit-paper) 68%,
-      #fff 32%
+      var(--postit-paper) 88%,
+      #fff 12%
     );
   background-image:
     radial-gradient(
@@ -291,23 +291,23 @@
 }
 
 .postit-skin-cream {
-  --postit-paper: #FEF7CB;
+  --postit-paper: var(--archive-surface-yellow);
 }
 
 .postit-skin-blue {
-  --postit-paper: #ACBCCD;
+  --postit-paper: var(--archive-surface-blue);
 }
 
 .postit-skin-purple {
-  --postit-paper: #C3C2D9;
+  --postit-paper: var(--archive-surface-purple);
 }
 
 .postit-skin-pink {
-  --postit-paper: #F0C7D9;
+  --postit-paper: var(--archive-surface-pink);
 }
 
 .postit-skin-green {
-  --postit-paper: #9CA078;
+  --postit-paper: var(--archive-surface-green);
 }
 
 .postit-font-pretendard {

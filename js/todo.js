@@ -3,6 +3,9 @@
 /* ---------------- 02 Post-it template ---------------- */
 
 const POSTIT_PAGE_SIZE = 12;
+const POSTIT_TIME_SNAPSHOT_PREFIX =
+  'archive.postit-time.v1.';
+const restoredPostitTimeData = new WeakSet();
 const POSTIT_TYPES = {
   habit: {
     label: '해빗 트래커',
@@ -133,6 +136,139 @@ function normalizePostitColor(
     : fallback;
 }
 
+function normalizePostitTimeBlock(
+  value,
+  fallbackColor = ''
+) {
+  if (
+    value
+    && typeof value === 'object'
+  ) {
+    return normalizePostitColor(
+      value.color,
+      ''
+    );
+  }
+
+  if (value === true) {
+    return normalizePostitColor(
+      fallbackColor,
+      ''
+    );
+  }
+
+  return normalizePostitColor(
+    value,
+    ''
+  );
+}
+
+function postitTimeSnapshotKey(noteId) {
+  return POSTIT_TIME_SNAPSHOT_PREFIX
+    + String(noteId || '');
+}
+
+function serializePostitTimeSlots(
+  timeSlots,
+  fallbackColor = ''
+) {
+  return (timeSlots || []).map(slot => ({
+    id: slot.id || uid(),
+    hour: String(slot.hour || ''),
+    label: String(slot.label || ''),
+    blocks: Array.from(
+      { length: 6 },
+      (_, index) =>
+        normalizePostitTimeBlock(
+          slot.blocks?.[index],
+          fallbackColor
+        )
+    )
+  }));
+}
+
+function persistPostitTimeSnapshot(
+  note,
+  data
+) {
+  if (!note?.id || data?.type !== 'time') {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      postitTimeSnapshotKey(note.id),
+      JSON.stringify({
+        savedAt: Date.now(),
+        timeSlots:
+          serializePostitTimeSlots(
+            data.timeSlots,
+            data.accentColor
+          )
+      })
+    );
+  } catch (error) {
+    console.warn(
+      'Could not save time tracker recovery snapshot',
+      error
+    );
+  }
+}
+
+function restorePostitTimeSnapshot(
+  note,
+  data
+) {
+  if (
+    !note?.id
+    || restoredPostitTimeData.has(data)
+  ) {
+    return;
+  }
+
+  restoredPostitTimeData.add(data);
+
+  try {
+    const snapshot = JSON.parse(
+      localStorage.getItem(
+        postitTimeSnapshotKey(note.id)
+      ) || 'null'
+    );
+    const snapshotSavedAt =
+      Number(snapshot?.savedAt) || 0;
+
+    if (
+      !Array.isArray(snapshot?.timeSlots)
+      || snapshotSavedAt
+        < (Number(note.updatedAt) || 0)
+    ) {
+      return;
+    }
+
+    data.timeSlots = snapshot.timeSlots;
+    note.updatedAt = Math.max(
+      Number(note.updatedAt) || 0,
+      snapshotSavedAt
+    );
+
+    setTimeout(() => {
+      if (
+        typeof saveData === 'function'
+        && state.notes?.some(
+          item => item.id === note.id
+        )
+      ) {
+        saveData();
+      }
+    }, 0);
+  } catch (error) {
+    console.warn(
+      'Could not restore time tracker recovery snapshot',
+      error
+    );
+  }
+}
+
 function ensurePostitData(note) {
   if (
     !note.postitData
@@ -206,6 +342,11 @@ function ensurePostitData(note) {
     data.timeSlots = blankTimeSlots();
   }
 
+  restorePostitTimeSnapshot(
+    note,
+    data
+  );
+
   data.items.forEach(item => {
     item.id = item.id || uid();
     item.text = item.text || '';
@@ -229,32 +370,37 @@ function ensurePostitData(note) {
       habit.checked = [];
     }
   });
-  data.timeSlots =
-    blankTimeSlots().map(
-      (fallback, index) => {
-        const current =
-          data.timeSlots[index]
-          || {};
-        const blocks =
-          Array.from(
-            { length: 6 },
-            (_, blockIndex) =>
-              normalizePostitColor(
-                current.blocks
-                  ?.[blockIndex],
-                ''
-              )
-          );
-
-        return {
-          id: current.id || fallback.id,
-          hour: fallback.hour,
-          label:
-            String(current.label || ''),
-          blocks
-        };
+  const fallbackTimeSlots =
+    blankTimeSlots();
+  data.timeSlots.length =
+    fallbackTimeSlots.length;
+  fallbackTimeSlots.forEach(
+    (fallback, index) => {
+      if (
+        !data.timeSlots[index]
+        || typeof data.timeSlots[index]
+          !== 'object'
+      ) {
+        data.timeSlots[index] = {};
       }
-    );
+
+      const current =
+        data.timeSlots[index];
+      current.id =
+        current.id || fallback.id;
+      current.hour = fallback.hour;
+      current.label =
+        String(current.label || '');
+      current.blocks = Array.from(
+        { length: 6 },
+        (_, blockIndex) =>
+          normalizePostitTimeBlock(
+            current.blocks?.[blockIndex],
+            data.accentColor
+          )
+      );
+    }
+  );
 
   if (
     !/^\d{4}-\d{2}$/
@@ -297,6 +443,10 @@ function schedulePostitSave() {
 
   note.updatedAt = Date.now();
   updateEditorMeta(note);
+  persistPostitTimeSnapshot(
+    note,
+    ensurePostitData(note)
+  );
   saveData();
 
   clearTimeout(postitSaveTimer);
@@ -693,16 +843,19 @@ function applyPostitTimeBlock(
   color,
   cell
 ) {
-  slot.blocks[blockIndex] = color;
+  const normalizedColor =
+    normalizePostitTimeBlock(color);
+  slot.blocks[blockIndex] =
+    normalizedColor;
   cell.classList.toggle(
     'painted',
-    Boolean(color)
+    Boolean(normalizedColor)
   );
   cell.style.backgroundColor =
-    color || '';
+    normalizedColor;
   cell.setAttribute(
     'aria-pressed',
-    color ? 'true' : 'false'
+    normalizedColor ? 'true' : 'false'
   );
   schedulePostitSave();
 }
@@ -1465,12 +1618,48 @@ $('#postitCustomColor')
     }
   );
 
+function finishPostitTimePainting() {
+  const shouldFlush =
+    postitTimePainting;
+  postitTimePainting = false;
+  postitTimePaintColor = '';
+
+  if (!shouldFlush) return;
+
+  const note = getCurrentNote();
+  if (
+    !note
+    || note.template !== 'todo'
+  ) {
+    return;
+  }
+
+  const data = ensurePostitData(note);
+  if (data.type !== 'time') return;
+
+  note.updatedAt = Date.now();
+  persistPostitTimeSnapshot(note, data);
+  saveData();
+
+  if (
+    typeof persistDurableState
+    === 'function'
+  ) {
+    persistDurableState(true);
+  }
+}
+
 document.addEventListener(
   'pointerup',
-  () => {
-    postitTimePainting = false;
-    postitTimePaintColor = '';
-  }
+  finishPostitTimePainting
+);
+document.addEventListener(
+  'pointercancel',
+  finishPostitTimePainting
+);
+window.addEventListener(
+  'blur',
+  finishPostitTimePainting
 );
 
 $('#postitHeadingInput')

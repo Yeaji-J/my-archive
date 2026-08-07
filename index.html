@@ -23,12 +23,12 @@
   </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
-  <link rel="stylesheet" href="css/base.css?v=20260724-save-sync1">
-  <link rel="stylesheet" href="css/notes.css?v=20260730-moodboard-tools1">
+  <link rel="stylesheet" href="css/base.css?v=20260807-surface-colors1">
+  <link rel="stylesheet" href="css/notes.css?v=20260807-template-new1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
-  <link rel="stylesheet" href="css/todo.css?v=20260730-free-board1">
+  <link rel="stylesheet" href="css/todo.css?v=20260807-light-paper1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
-  <link rel="stylesheet" href="css/home.css?v=20260724-folder-browser1">
+  <link rel="stylesheet" href="css/home.css?v=20260807-surface-colors1">
   <link rel="stylesheet" href="css/responsive-theme.css?v=20260724-media4">
   <link rel="stylesheet" href="css/theme.css?v=20260724-skin-switch1">
   <link rel="stylesheet" href="css/template-paper-board.css?v=20260730-free-board3">
@@ -459,6 +459,13 @@
               </svg>
               <input type="search" id="templateListSearch" placeholder="제목과 내용 검색">
             </label>
+
+            <button class="template-list-new" id="templateListNewBtn" type="button">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 5v14M5 12h14" stroke-linecap="round" stroke-width="1.8" />
+              </svg>
+              <span>새 자료</span>
+            </button>
 
             <div class="archive-bulk-bar" id="archiveBulkBar" hidden>
               <div class="archive-bulk-summary">
@@ -937,11 +944,11 @@
                   <section>
                     <span class="postit-control-label">PAPER</span>
                     <div class="postit-skin-grid">
-                      <button type="button" data-postit-skin="cream" style="--postit-swatch:#FEF7CB" aria-label="크림"></button>
-                      <button type="button" data-postit-skin="blue" class="active" style="--postit-swatch:#ACBCCD" aria-label="블루"></button>
-                      <button type="button" data-postit-skin="purple" style="--postit-swatch:#C3C2D9" aria-label="퍼플"></button>
-                      <button type="button" data-postit-skin="pink" style="--postit-swatch:#F0C7D9" aria-label="핑크"></button>
-                      <button type="button" data-postit-skin="green" style="--postit-swatch:#9CA078" aria-label="그린"></button>
+                  <button type="button" data-postit-skin="cream" style="--postit-swatch:#FEF9DC" aria-label="크림"></button>
+                  <button type="button" data-postit-skin="blue" class="active" style="--postit-swatch:#E6EDF3" aria-label="블루"></button>
+                  <button type="button" data-postit-skin="purple" style="--postit-swatch:#ECEAF4" aria-label="퍼플"></button>
+                  <button type="button" data-postit-skin="pink" style="--postit-swatch:#FBEAF1" aria-label="핑크"></button>
+                  <button type="button" data-postit-skin="green" style="--postit-swatch:#E9EBDD" aria-label="그린"></button>
                     </div>
                   </section>
 
@@ -1593,9 +1600,9 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260724-folder-browser1"></script>
+  <script src="js/core.js?v=20260807-route-init1"></script>
   <script src="js/notes.js?v=20260730-free-board5"></script>
-  <script src="js/todo.js?v=20260730-template-overview2"></script>
+  <script src="js/todo.js?v=20260807-time-tracker2"></script>
   <script src="js/folders.js?v=20260724-media4"></script>
   <script src="js/auth.js?v=20260724-media4"></script>
   <script src="js/chat.js?v=20260724-save-sync1"></script>
@@ -1607,7 +1614,7 @@
   <script src="js/note-view.js?v=20260730-moodboard-tools1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260724-media4"></script>
-  <script src="js/events.js?v=20260730-free-board4"></script>
+  <script src="js/events.js?v=20260807-template-new1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

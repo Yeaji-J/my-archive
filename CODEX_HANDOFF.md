@@ -159,11 +159,15 @@ Writing/editor requirements already represented in the UI:
 - paragraph/body vs subtitle styles; a selected existing range should be convertible in both directions
 - left / center alignment
 - selected-text font family and font-size controls
+- the size control reflects the computed size at the clicked caret/text location, including a temporary value such as the 19px subtitle size
+- text color defaults to Archive brown but can be changed with the memo color control; safe colors persist in sanitized HTML
 - selected text can become a hyperlink by pasting an `http`, `https`, or `mailto` URL; saved memo links are bold + underlined and open safely in a new tab
 - `Ctrl/Cmd+B` bold, `Ctrl/Cmd+Shift+X` strikethrough, and `Ctrl/Cmd+K` link shortcuts
+- `Ctrl/Cmd+Z` undo and `Ctrl/Cmd+Y` / `Ctrl/Cmd+Shift+Z` redo; bold and strikethrough are true toggles from both shortcuts and toolbar buttons
 - `Alt+183` inserts `·`; the former dedicated `· 기호` toolbar button is intentionally removed
 - numeric token behavior: number followed by Space can become a subtle rounded/gray number marker
 - Notion-style block handles: drag vertically to reorder, or to the left/right edge of another block to create any number of columns
+- when a non-collapsed selection intersects multiple blocks, dragging the handle of one selected block moves the selected block group together
 - the former global 1-column / 2-column toolbar is intentionally removed; saved `.memo-block-row` / `.memo-block-column` structure is the layout source of truth
 - memo body line-height is intentionally tightened to about two-thirds of the earlier value
 - four paper skins: pink micro-grid, yellow line, blue dot, purple grid
@@ -467,6 +471,17 @@ Template 01 memo editor was expanded:
 - Enter creates durable paragraph blocks with draggable `⋮⋮` handles; left/right drop zones create n-column grid rows, and the layout survives save + reload
 - the previous global 1단/2단 control and CSS column-count rendering were removed
 - memo editor, detail, and album-preview line spacing were tightened
+
+Template 01 input/formatting regressions were then repaired:
+
+- Korean IME composition no longer triggers font-tag normalization or handle injection on every input event; composition is allowed to finish before any block decoration, preventing the body from intermittently rejecting Hangul
+- drag handles are now CSS pseudo-elements rather than `contenteditable=false` children, so they no longer corrupt caret, Home/End, or dragged-text selection boundaries
+- paragraph/subtitle conversion resolves exactly the blocks intersecting the preserved selection, including a collapsed caret block, instead of falling through to a stale lower range
+- bold/strikethrough toolbar states follow the caret and toggle off correctly; undo/redo shortcuts are integrated with the browser editing history
+- left-aligned memo images use zero side auto-margins, while centered blocks still center their images
+- memo paper grids/dots are lighter and denser; the lined skin has no red margin and uses an 18.45px repeat matched to the 15px body line-height
+- text color and click-location font-size inspection persist across save/reload
+- a selected multi-block group moves together when its handle is dragged
 
 ## 17. Recommended first Codex prompt
 

@@ -2321,6 +2321,29 @@
   width: 58px;
 }
 
+.memo-color-control {
+  padding-right: 8px;
+}
+
+.memo-color-control input {
+  width: 24px;
+  height: 22px;
+  padding: 1px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  cursor: pointer;
+}
+
+.memo-color-control input::-webkit-color-swatch-wrapper {
+  padding: 1px;
+}
+
+.memo-color-control input::-webkit-color-swatch {
+  border: 1px solid rgba(92, 54, 33, .16);
+  border-radius: 5px;
+}
+
 .memo-tool-group button:last-child,
 .memo-image-tool:last-child {
   border-right: 0;
@@ -2363,10 +2386,10 @@
   cursor: pointer;
 }
 
-.memo-skin-picker button:nth-of-type(1) { background-color: #fbf3f6; background-image: linear-gradient(rgba(240,199,217,.45) 1px, transparent 1px), linear-gradient(90deg, rgba(240,199,217,.45) 1px, transparent 1px); background-size: 6px 6px; }
-.memo-skin-picker button:nth-of-type(2) { background: repeating-linear-gradient(180deg, #fffbed 0 6px, rgba(172,188,205,.55) 7px); }
-.memo-skin-picker button:nth-of-type(3) { background-color: #edf3f7; background-image: radial-gradient(var(--archive-brown) .7px, transparent .8px); background-size: 6px 6px; }
-.memo-skin-picker button:nth-of-type(4) { background-color: #f1f0f6; background-image: linear-gradient(rgba(195,194,217,.7) 1px, transparent 1px), linear-gradient(90deg, rgba(195,194,217,.7) 1px, transparent 1px); background-size: 7px 7px; }
+.memo-skin-picker button:nth-of-type(1) { background-color: #fbf7f8; background-image: linear-gradient(rgba(240,199,217,.22) 1px, transparent 1px), linear-gradient(90deg, rgba(240,199,217,.22) 1px, transparent 1px); background-size: 5px 5px; }
+.memo-skin-picker button:nth-of-type(2) { background: repeating-linear-gradient(180deg, #fffbed 0 5px, rgba(172,188,205,.28) 6px); }
+.memo-skin-picker button:nth-of-type(3) { background-color: #f3f7f9; background-image: radial-gradient(rgba(92,54,33,.25) .55px, transparent .7px); background-size: 5px 5px; }
+.memo-skin-picker button:nth-of-type(4) { background-color: #f6f5f9; background-image: linear-gradient(rgba(195,194,217,.3) 1px, transparent 1px), linear-gradient(90deg, rgba(195,194,217,.3) 1px, transparent 1px); background-size: 5px 5px; }
 .memo-skin-picker button.active { outline: 2px solid var(--archive-brown); }
 
 .memo-editor-skin {
@@ -2378,35 +2401,37 @@
 }
 
 .memo-skin-pink-grid {
-  background-color: #fcf7f8;
+  background-color: #fdf9fa;
   background-image:
-    linear-gradient(rgba(240, 199, 217, .24) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(240, 199, 217, .24) 1px, transparent 1px),
-    linear-gradient(rgba(195, 194, 217, .12) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(195, 194, 217, .12) 1px, transparent 1px);
-  background-size: 20px 20px, 20px 20px, 5px 5px, 5px 5px;
+    linear-gradient(rgba(240, 199, 217, .15) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(240, 199, 217, .15) 1px, transparent 1px),
+    linear-gradient(rgba(195, 194, 217, .07) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(195, 194, 217, .07) 1px, transparent 1px);
+  background-size: 16px 16px, 16px 16px, 4px 4px, 4px 4px;
 }
 
 .memo-skin-yellow-line {
   background-color: #fffbed;
-  background-image:
-    linear-gradient(90deg, transparent 0 8%, rgba(240, 199, 217, .58) 8% 8.15%, transparent 8.15%),
-    repeating-linear-gradient(180deg, transparent 0 31px, rgba(172, 188, 205, .55) 32px);
+  background-image: repeating-linear-gradient(
+    180deg,
+    transparent 0 17.45px,
+    rgba(172, 188, 205, .3) 17.45px 18.45px
+  );
 }
 
 .memo-skin-blue-dot {
-  background-color: #eef3f6;
+  background-color: #f4f7f9;
   background-image:
-    radial-gradient(rgba(92, 54, 33, .62) .75px, transparent .9px);
-  background-size: 26px 26px;
+    radial-gradient(rgba(92, 54, 33, .22) .65px, transparent .8px);
+  background-size: 16px 16px;
 }
 
 .memo-skin-purple-grid {
-  background-color: #f0eff5;
+  background-color: #f7f6fa;
   background-image:
-    linear-gradient(rgba(195, 194, 217, .68) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(195, 194, 217, .68) 1px, transparent 1px);
-  background-size: 30px 30px;
+    linear-gradient(rgba(195, 194, 217, .28) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(195, 194, 217, .28) 1px, transparent 1px);
+  background-size: 18px 18px;
 }
 
 .memo-rich-editor {
@@ -2460,7 +2485,7 @@
   position: relative;
 }
 
-.memo-block-handle {
+.memo-editor-block::before {
   position: absolute;
   top: .12em;
   left: -22px;
@@ -2472,29 +2497,35 @@
   border-radius: 5px;
   opacity: 0;
   color: rgba(92, 54, 33, .42);
+  content: "⋮⋮";
   font-size: 12px;
   line-height: 1;
   letter-spacing: -4px;
   cursor: grab;
+  pointer-events: auto;
   user-select: none;
   transition:
     opacity .12s ease,
     background-color .12s ease;
 }
 
-.memo-editor-block:hover
-> .memo-block-handle,
-.memo-block-handle:focus {
+.memo-editor-block:hover::before,
+.memo-editor-block.dragging::before {
   opacity: 1;
   background: rgba(255, 255, 255, .72);
 }
 
-.memo-block-handle:active {
+.memo-editor-block.dragging::before {
   cursor: grabbing;
 }
 
 .memo-editor-block.dragging {
   opacity: .42;
+}
+
+.memo-editor-block.memo-block-selected {
+  background: color-mix(in srgb, var(--archive-blue) 12%, transparent);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--archive-blue) 35%, transparent);
 }
 
 .memo-editor-block.drop-before::before,
@@ -2580,10 +2611,16 @@
   display: block;
   max-width: min(100%, 760px);
   height: auto;
-  margin: 22px auto;
+  margin: 22px 0;
   border-radius: 9px;
   box-shadow: 0 12px 28px rgba(92, 54, 33, .1);
   break-inside: avoid;
+}
+
+.memo-rich-editor [style*="text-align: center"] .memo-inline-image,
+.note-view-memo [style*="text-align: center"] .memo-inline-image {
+  margin-right: auto;
+  margin-left: auto;
 }
 
 .note-view-memo {

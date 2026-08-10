@@ -35,12 +35,15 @@ let memoSavedRange = null;
 let memoDataSaveTimer = null;
 let memoPendingFontSize = 15;
 let memoPendingFontFamily = 'pretendard';
+let memoIsComposing = false;
 let memoAltCodeDigits = '';
 let memoDraggedBlock = null;
+let memoDraggedBlocks = [];
 let memoDropTarget = null;
 let memoDropZone = '';
-let memoBlockObserver = null;
 let memoPointerId = null;
+let memoToolbarUpdateFrame = null;
+let memoToolbarTargetElement = null;
 
 function escapeMemoText(value) {
   return escapeHtml(String(value || ''))
@@ -89,6 +92,22 @@ function normalizeMemoUrl(value) {
   }
 }
 
+function normalizeMemoColor(value) {
+  const color = String(value || '').trim();
+  if (/^#[0-9a-f]{3}(?:[0-9a-f]{3})?$/i.test(color)) {
+    return color.toLowerCase();
+  }
+  const rgb = color.match(
+    /^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/i
+  );
+  if (!rgb) return '';
+  return `#${rgb.slice(1, 4)
+    .map(channel => Math.min(255, Number(channel))
+      .toString(16)
+      .padStart(2, '0'))
+    .join('')}`;
+}
+
 function replaceMemoFontElement(
   element,
   options = {}
@@ -131,12 +150,19 @@ function replaceMemoFontElement(
       Number(element.getAttribute('size'))
     ]
   );
+  const textColor = normalizeMemoColor(
+    element.getAttribute('color')
+    || element.style.color
+  );
 
   if (MEMO_FONT_KEYS.includes(fontKey)) {
     span.dataset.memoFont = fontKey;
   }
   if (MEMO_FONT_SIZES.includes(fontSize)) {
     span.dataset.memoSize = String(fontSize);
+  }
+  if (textColor) {
+    span.style.color = textColor;
   }
 
   span.append(...element.childNodes);
@@ -215,6 +241,10 @@ function sanitizeMemoHtml(html) {
           .includes('line-through')
         || element.style.textDecorationLine
           .includes('line-through');
+      const textColor = normalizeMemoColor(
+        element.style.color
+        || element.getAttribute('color')
+      );
       element.removeAttribute('style');
 
       if (textAlign) {
@@ -227,6 +257,9 @@ function sanitizeMemoHtml(html) {
       ) {
         element.style.textDecoration =
           'line-through';
+      }
+      if (textColor) {
+        element.style.color = textColor;
       }
 
       [...element.attributes]
@@ -398,24 +431,36 @@ function persistMemoEditor(note = getCurrentNote()) {
 }
 
 function saveMemoSelection() {
+  if (memoIsComposing) return;
   const selection = window.getSelection();
   if (
     !selection.rangeCount
     || !noteContent.contains(selection.anchorNode)
+    || !noteContent.contains(selection.focusNode)
   ) {
     return;
   }
   memoSavedRange = selection.getRangeAt(0).cloneRange();
+  scheduleMemoToolbarUpdate();
 }
 
 function restoreMemoSelection() {
-  if (!memoSavedRange) {
+  if (
+    !memoSavedRange
+    || !memoSavedRange.startContainer.isConnected
+    || !memoSavedRange.endContainer.isConnected
+    || !noteContent.contains(
+      memoSavedRange.commonAncestorContainer
+    )
+  ) {
+    memoSavedRange = null;
     noteContent.focus();
-    return;
+    return false;
   }
   const selection = window.getSelection();
   selection.removeAllRanges();
   selection.addRange(memoSavedRange);
+  return true;
 }
 
 function memoSelectionRange() {
@@ -427,6 +472,162 @@ function memoSelectionRange() {
   )
     ? range
     : null;
+}
+
+function memoSelectionElement(range = memoSelectionRange()) {
+  if (!range) return null;
+  const node = range.startContainer;
+  return node.nodeType === Node.ELEMENT_NODE
+    ? node
+    : node.parentElement;
+}
+
+function memoBlocksForRange(range) {
+  if (!range) return [];
+  const blocks = memoEditableBlocks();
+
+  if (range.collapsed) {
+    const element = memoSelectionElement(range);
+    const block = element?.closest(
+      '.memo-editor-block'
+    );
+    return block ? [block] : [];
+  }
+
+  return blocks.filter(block => {
+    try {
+      return range.intersectsNode(block);
+    } catch (_error) {
+      return false;
+    }
+  });
+}
+
+function memoCssColorToHex(value) {
+  const match = String(value || '').match(
+    /^rgba?\(\s*(\d+)\D+(\d+)\D+(\d+)/i
+  );
+  if (!match) {
+    return normalizeMemoColor(value)
+      || '#5c3621';
+  }
+  return `#${match.slice(1, 4)
+    .map(channel => Number(channel)
+      .toString(16)
+      .padStart(2, '0'))
+    .join('')}`;
+}
+
+function setMemoSizeControlValue(size) {
+  const select = $('#memoFontSizeSelect');
+  if (!select || !Number.isFinite(size)) return;
+  select
+    .querySelector('[data-memo-current-size]')
+    ?.remove();
+  const value = String(Math.round(size));
+
+  if (!select.querySelector(`option[value="${value}"]`)) {
+    const option = document.createElement('option');
+    option.value = value;
+    option.textContent = `${value}px`;
+    option.dataset.memoCurrentSize = 'true';
+    select.appendChild(option);
+  }
+  select.value = value;
+}
+
+function updateMemoToolbarState() {
+  memoToolbarUpdateFrame = null;
+  const range = memoSelectionRange();
+  if (!range && !memoToolbarTargetElement) return;
+  const rangeElement = range
+    ? memoSelectionElement(range)
+    : null;
+  const element =
+    memoToolbarTargetElement?.isConnected
+    && noteContent.contains(memoToolbarTargetElement)
+      ? memoToolbarTargetElement
+      : rangeElement;
+  memoToolbarTargetElement = null;
+  if (!element) return;
+
+  const block = element.closest(
+    '.memo-editor-block'
+  );
+  const tagName = block?.tagName || '';
+  const alignment = block
+    ? getComputedStyle(block).textAlign
+    : 'left';
+
+  document
+    .querySelectorAll('[data-memo-command]')
+    .forEach(button => {
+      const command = button.dataset.memoCommand;
+      let active = false;
+      if (command === 'paragraph') active = tagName === 'P';
+      if (command === 'subtitle') active = tagName === 'H3';
+      if (command === 'left') active = alignment === 'left' || alignment === 'start';
+      if (command === 'center') active = alignment === 'center';
+      if (command === 'bold') active = document.queryCommandState('bold');
+      if (command === 'strike') active = document.queryCommandState('strikeThrough');
+      button.classList.toggle('active', active);
+      button.setAttribute('aria-pressed', String(active));
+    });
+
+  const fontSize = parseFloat(
+    getComputedStyle(element).fontSize
+  );
+  setMemoSizeControlValue(fontSize);
+  if (MEMO_FONT_SIZES.includes(Math.round(fontSize))) {
+    memoPendingFontSize = Math.round(fontSize);
+  }
+
+  const fontElement = element.closest(
+    '[data-memo-font]'
+  );
+  const fontKey = fontElement?.dataset.memoFont
+    || Object.keys(MEMO_FONT_FACES).find(key =>
+      getComputedStyle(element).fontFamily
+        .replace(/["']/g, '')
+        .split(',')[0]
+        .trim()
+      === MEMO_FONT_FACES[key]
+    )
+    || 'pretendard';
+  const fontSelect = $('#memoFontFamilySelect');
+  if (fontSelect) fontSelect.value = fontKey;
+  memoPendingFontFamily = fontKey;
+
+  const colorInput = $('#memoTextColorInput');
+  if (colorInput) {
+    colorInput.value = memoCssColorToHex(
+      getComputedStyle(element).color
+    );
+  }
+
+  const selectedBlocks = range
+    ? memoBlocksForRange(range)
+    : [];
+  memoEditableBlocks().forEach(candidate => {
+    candidate.classList.toggle(
+      'memo-block-selected',
+      Boolean(range && !range.collapsed)
+      && selectedBlocks.includes(candidate)
+    );
+  });
+}
+
+function scheduleMemoToolbarUpdate(target = null) {
+  if (
+    target instanceof Element
+    && noteContent.contains(target)
+  ) {
+    memoToolbarTargetElement = target;
+  }
+  if (memoToolbarUpdateFrame !== null) return;
+  memoToolbarUpdateFrame = requestAnimationFrame(
+    updateMemoToolbarState
+  );
 }
 
 function refreshMemoLinks() {
@@ -516,6 +717,7 @@ function applyMemoFontFamily(value) {
   noteContent.focus();
   saveMemoSelection();
   scheduleMemoSave();
+  scheduleMemoToolbarUpdate();
 }
 
 function applyMemoFontSize(value) {
@@ -545,6 +747,22 @@ function applyMemoFontSize(value) {
   noteContent.focus();
   saveMemoSelection();
   scheduleMemoSave();
+  scheduleMemoToolbarUpdate();
+}
+
+function applyMemoTextColor(value) {
+  const color = normalizeMemoColor(value);
+  if (!color) return;
+  restoreMemoSelection();
+  document.execCommand(
+    'foreColor',
+    false,
+    color
+  );
+  noteContent.focus();
+  saveMemoSelection();
+  scheduleMemoSave();
+  scheduleMemoToolbarUpdate();
 }
 
 function applyPendingMemoFontSizeMarkup() {
@@ -560,56 +778,30 @@ function applyPendingMemoFontSizeMarkup() {
 function replaceMemoSelectedBlocks(
   tagName
 ) {
-  const selection =
-    window.getSelection();
-
-  if (
-    !selection.rangeCount
-    || selection.isCollapsed
-  ) {
-    return false;
-  }
-
-  const range =
-    selection.getRangeAt(0);
-  const candidates = [
-    ...noteContent
-      .querySelectorAll(
-        'p, h3, div'
-      )
-  ].filter(element => {
-    if (
-      element.classList.contains(
-        'memo-block-row'
-      )
-      || element.classList.contains(
-        'memo-block-column'
-      )
-    ) {
-      return false;
-    }
-
-    try {
-      return range.intersectsNode(
-        element
-      );
-    } catch (_error) {
-      return false;
-    }
-  });
-
-  const blocks =
-    candidates.filter(
-      element =>
-        !candidates.some(
-          other =>
-            other !== element
-            && element.contains(other)
-        )
-    );
+  const selection = window.getSelection();
+  if (!selection.rangeCount) return false;
+  const range = selection.getRangeAt(0);
+  const wasCollapsed = range.collapsed;
+  const blocks = memoBlocksForRange(range);
 
   if (!blocks.length) {
     return false;
+  }
+
+  const activeBlock = blocks[0];
+  let collapsedTextOffset = 0;
+  if (wasCollapsed) {
+    const prefix = document.createRange();
+    prefix.selectNodeContents(activeBlock);
+    try {
+      prefix.setEnd(
+        range.startContainer,
+        range.startOffset
+      );
+      collapsedTextOffset = prefix.toString().length;
+    } catch (_error) {
+      collapsedTextOffset = 0;
+    }
   }
 
   const replacements =
@@ -625,8 +817,15 @@ function replaceMemoSelectedBlocks(
         document.createElement(
           tagName
         );
-      replacement.innerHTML =
-        block.innerHTML;
+      const handle = block.querySelector(
+        ':scope > .memo-block-handle'
+      );
+      [...block.childNodes].forEach(node => {
+        if (node !== handle) {
+          replacement.appendChild(node);
+        }
+      });
+      if (handle) replacement.prepend(handle);
 
       const alignment =
         block.style.textAlign
@@ -646,49 +845,64 @@ function replaceMemoSelectedBlocks(
 
   const nextRange =
     document.createRange();
-  nextRange.setStart(
-    replacements[0],
-    0
-  );
-  nextRange.setEnd(
-    replacements[
-      replacements.length - 1
-    ],
-    replacements[
-      replacements.length - 1
-    ].childNodes.length
-  );
+  if (wasCollapsed) {
+    const walker = document.createTreeWalker(
+      replacements[0],
+      NodeFilter.SHOW_TEXT,
+      {
+        acceptNode(node) {
+          return node.parentElement?.closest(
+            '.memo-block-handle'
+          )
+            ? NodeFilter.FILTER_REJECT
+            : NodeFilter.FILTER_ACCEPT;
+        }
+      }
+    );
+    let remaining = collapsedTextOffset;
+    let targetNode = null;
+    while (walker.nextNode()) {
+      targetNode = walker.currentNode;
+      if (remaining <= targetNode.length) break;
+      remaining -= targetNode.length;
+    }
+    if (targetNode) {
+      nextRange.setStart(
+        targetNode,
+        Math.min(remaining, targetNode.length)
+      );
+    } else {
+      nextRange.selectNodeContents(replacements[0]);
+      nextRange.collapse(false);
+    }
+    nextRange.collapse(true);
+  } else {
+    const first = replacements[0];
+    const last = replacements[replacements.length - 1];
+    nextRange.selectNodeContents(first);
+    const startOffset = first.firstElementChild
+      ?.classList.contains('memo-block-handle')
+        ? 1
+        : 0;
+    nextRange.setStart(first, startOffset);
+    nextRange.setEnd(last, last.childNodes.length);
+  }
 
   selection.removeAllRanges();
   selection.addRange(nextRange);
   memoSavedRange =
     nextRange.cloneRange();
+  decorateMemoBlocks();
 
   return true;
 }
 
 function runMemoCommand(command) {
-  restoreMemoSelection();
+  if (!restoreMemoSelection()) return;
   if (command === 'paragraph') {
-    if (
-      !replaceMemoSelectedBlocks('p')
-    ) {
-      document.execCommand(
-        'formatBlock',
-        false,
-        'p'
-      );
-    }
+    replaceMemoSelectedBlocks('p');
   } else if (command === 'subtitle') {
-    if (
-      !replaceMemoSelectedBlocks('h3')
-    ) {
-      document.execCommand(
-        'formatBlock',
-        false,
-        'h3'
-      );
-    }
+    replaceMemoSelectedBlocks('h3');
   } else if (command === 'left') {
     document.execCommand('justifyLeft');
   } else if (command === 'center') {
@@ -705,6 +919,7 @@ function runMemoCommand(command) {
   saveMemoSelection();
   persistMemoEditor();
   scheduleMemoSave();
+  scheduleMemoToolbarUpdate();
 }
 
 function convertMemoNumberToken(event) {
@@ -744,6 +959,8 @@ function convertMemoNumberToken(event) {
 function insertMemoParagraph(event) {
   if (
     event.key !== 'Enter'
+    || event.isComposing
+    || memoIsComposing
     || event.shiftKey
     || event.ctrlKey
     || event.metaKey
@@ -762,7 +979,6 @@ function insertMemoParagraph(event) {
     'insertParagraph',
     false
   );
-  decorateMemoBlocks();
   saveMemoSelection();
   scheduleMemoSave();
   return true;
@@ -817,6 +1033,13 @@ function memoEditableBlocks() {
 }
 
 function decorateMemoBlocks() {
+  if (memoIsComposing) return;
+  const selection = window.getSelection();
+  const activeRange =
+    selection.rangeCount
+    && noteContent.contains(selection.anchorNode)
+      ? selection.getRangeAt(0).cloneRange()
+      : null;
   const structuralParents = [
     noteContent,
     ...noteContent.querySelectorAll(
@@ -838,38 +1061,25 @@ function decorateMemoBlocks() {
   });
 
   memoEditableBlocks().forEach(block => {
-    block.classList.add(
-      'memo-editor-block'
-    );
-
-    if (
-      block.querySelector(
-        ':scope > .memo-block-handle'
-      )
-    ) {
-      return;
+    block.querySelectorAll(
+      ':scope > .memo-block-handle'
+    ).forEach(handle => handle.remove());
+    if (!block.classList.contains('memo-editor-block')) {
+      block.classList.add('memo-editor-block');
     }
-
-    const handle =
-      document.createElement('span');
-    handle.className =
-      'memo-block-handle';
-    handle.contentEditable = 'false';
-    handle.draggable = false;
-    handle.tabIndex = 0;
-    handle.setAttribute(
-      'role',
-      'button'
-    );
-    handle.setAttribute(
-      'aria-label',
-      '블록 이동'
-    );
-    handle.title =
-      '끌어서 순서 또는 단 구성 변경';
-    handle.textContent = '⋮⋮';
-    block.prepend(handle);
+    block.dataset.memoBlockHandle = 'true';
+    block.title = '왼쪽 손잡이를 끌어서 블록 이동';
   });
+
+  if (
+    activeRange
+    && activeRange.startContainer.isConnected
+    && activeRange.endContainer.isConnected
+  ) {
+    selection.removeAllRanges();
+    selection.addRange(activeRange);
+    memoSavedRange = activeRange.cloneRange();
+  }
 }
 
 function memoBlockFromTarget(target) {
@@ -966,25 +1176,44 @@ function memoEditableBlocksInColumn(
     );
 }
 
-function moveMemoBlock(
-  dragged,
+function sortMemoBlocks(blocks) {
+  return [...new Set(blocks)].sort((a, b) => {
+    if (a === b) return 0;
+    return a.compareDocumentPosition(b)
+      & Node.DOCUMENT_POSITION_FOLLOWING
+        ? -1
+        : 1;
+  });
+}
+
+function moveMemoBlocks(
+  draggedBlocks,
   target,
   zone
 ) {
+  const dragged = sortMemoBlocks(
+    draggedBlocks
+  ).filter(block =>
+    block?.isConnected
+    && noteContent.contains(block)
+  );
   if (
-    !dragged
+    !dragged.length
     || !target
-    || dragged === target
+    || dragged.includes(target)
   ) {
     return;
   }
 
-  const sourceColumn =
-    dragged.closest(
-      '.memo-block-column'
-    );
-  const sourceRow = sourceColumn
-    ?.closest('.memo-block-row');
+  const sourceRows = new Set(
+    dragged
+      .map(block => block.closest(
+        '.memo-block-row'
+      ))
+      .filter(Boolean)
+  );
+  const fragment = document.createDocumentFragment();
+  dragged.forEach(block => fragment.appendChild(block));
 
   if (zone === 'left' || zone === 'right') {
     const targetColumn =
@@ -995,7 +1224,7 @@ function moveMemoBlock(
       document.createElement('div');
     newColumn.className =
       'memo-block-column';
-    newColumn.appendChild(dragged);
+    newColumn.appendChild(fragment);
 
     if (targetColumn) {
       const row = targetColumn.closest(
@@ -1032,22 +1261,73 @@ function moveMemoBlock(
     }
   } else {
     target.parentNode.insertBefore(
-      dragged,
+      fragment,
       zone === 'before'
         ? target
         : target.nextSibling
     );
   }
 
-  cleanupMemoBlockRow(sourceRow);
+  sourceRows.forEach(cleanupMemoBlockRow);
   decorateMemoBlocks();
   persistMemoEditor();
   scheduleMemoSave();
 }
 
 function handleMemoShortcuts(event) {
+  if (event.isComposing || memoIsComposing) {
+    return false;
+  }
   const primary =
     event.ctrlKey || event.metaKey;
+
+  if (
+    primary
+    && event.key.toLowerCase() === 'a'
+  ) {
+    requestAnimationFrame(() => {
+      saveMemoSelection();
+      scheduleMemoToolbarUpdate();
+    });
+    return false;
+  }
+
+  if (
+    primary
+    && !event.shiftKey
+    && event.key.toLowerCase() === 'z'
+  ) {
+    event.preventDefault();
+    document.execCommand('undo');
+    requestAnimationFrame(() => {
+      decorateMemoBlocks();
+      saveMemoSelection();
+      scheduleMemoSave();
+      scheduleMemoToolbarUpdate();
+    });
+    return true;
+  }
+
+  if (
+    primary
+    && (
+      event.key.toLowerCase() === 'y'
+      || (
+        event.shiftKey
+        && event.key.toLowerCase() === 'z'
+      )
+    )
+  ) {
+    event.preventDefault();
+    document.execCommand('redo');
+    requestAnimationFrame(() => {
+      decorateMemoBlocks();
+      saveMemoSelection();
+      scheduleMemoSave();
+      scheduleMemoToolbarUpdate();
+    });
+    return true;
+  }
 
   if (
     primary
@@ -1170,6 +1450,7 @@ async function insertMemoImages(files) {
       console.error('Memo image failed', error);
     }
   }
+  decorateMemoBlocks();
   persistMemoEditor();
   scheduleMemoSave();
 }
@@ -1327,7 +1608,10 @@ document
   .forEach(button => {
     button.addEventListener(
       'mousedown',
-      event => event.preventDefault()
+      event => {
+        saveMemoSelection();
+        event.preventDefault();
+      }
     );
     button.addEventListener(
       'click',
@@ -1373,6 +1657,19 @@ $('#memoFontSizeSelect')
     )
   );
 
+$('#memoTextColorInput')
+  ?.addEventListener(
+    'pointerdown',
+    saveMemoSelection
+  );
+$('#memoTextColorInput')
+  ?.addEventListener(
+    'input',
+    event => applyMemoTextColor(
+      event.target.value
+    )
+  );
+
 noteContent.addEventListener(
   'keydown',
   event => {
@@ -1382,25 +1679,52 @@ noteContent.addEventListener(
     if (insertMemoParagraph(event)) {
       return;
     }
+    if (event.isComposing || memoIsComposing) {
+      return;
+    }
     convertMemoNumberToken(event);
   }
 );
 noteContent.addEventListener(
   'keyup',
   event => {
+    if (event.isComposing || memoIsComposing) return;
     finishMemoAltCode(event);
     saveMemoSelection();
   }
 );
-noteContent.addEventListener('mouseup', saveMemoSelection);
-noteContent.addEventListener('focus', saveMemoSelection);
-noteContent.addEventListener('input', () => {
-  applyPendingMemoFontSizeMarkup();
-  normalizeMemoCommandMarkup(
-    noteContent
-  );
-  decorateMemoBlocks();
+noteContent.addEventListener('mouseup', event => {
   saveMemoSelection();
+  scheduleMemoToolbarUpdate(event.target);
+});
+noteContent.addEventListener('click', event => {
+  if (!(event.target instanceof Element)) return;
+  memoToolbarTargetElement = event.target;
+  if (memoToolbarUpdateFrame !== null) {
+    cancelAnimationFrame(memoToolbarUpdateFrame);
+    memoToolbarUpdateFrame = null;
+  }
+  updateMemoToolbarState();
+});
+noteContent.addEventListener('focus', saveMemoSelection);
+noteContent.addEventListener('compositionstart', () => {
+  memoIsComposing = true;
+});
+noteContent.addEventListener('compositionend', () => {
+  memoIsComposing = false;
+  requestAnimationFrame(() => {
+    decorateMemoBlocks();
+    saveMemoSelection();
+    scheduleMemoToolbarUpdate();
+  });
+  scheduleMemoSave();
+});
+noteContent.addEventListener('input', event => {
+  if (!event.isComposing && !memoIsComposing) {
+    decorateMemoBlocks();
+    saveMemoSelection();
+    scheduleMemoToolbarUpdate();
+  }
   scheduleMemoSave();
 });
 noteContent.addEventListener('paste', event => {
@@ -1443,24 +1767,46 @@ noteContent.addEventListener('paste', event => {
 noteContent.addEventListener(
   'pointerdown',
   event => {
-    const handle = event.target.closest(
-      '.memo-block-handle'
+    const block = memoBlockFromTarget(
+      event.target
     );
-    if (!handle || event.button !== 0) return;
+    if (!block || event.button !== 0) return;
+    scheduleMemoToolbarUpdate(
+      event.target instanceof Element
+        ? event.target
+        : block
+    );
+    const bounds = block.getBoundingClientRect();
+    const onHandle =
+      event.clientX >= bounds.left - 24
+      && event.clientX <= bounds.left + 2
+      && event.clientY >= bounds.top - 2
+      && event.clientY <= bounds.top + 24;
+    if (!onHandle) return;
 
-    memoDraggedBlock =
-      memoBlockFromTarget(handle);
+    memoDraggedBlock = block;
     if (!memoDraggedBlock) return;
+
+    const selectionRange = memoSelectionRange()
+      || memoSavedRange;
+    const selectedBlocks = selectionRange
+      && !selectionRange.collapsed
+      ? memoBlocksForRange(selectionRange)
+      : [];
+    memoDraggedBlocks =
+      selectedBlocks.includes(memoDraggedBlock)
+        ? sortMemoBlocks(selectedBlocks)
+        : [memoDraggedBlock];
 
     event.preventDefault();
     event.stopPropagation();
     memoPointerId = event.pointerId;
-    handle.setPointerCapture?.(
+    block.setPointerCapture?.(
       event.pointerId
     );
-    memoDraggedBlock.classList.add(
-      'dragging'
-    );
+    memoDraggedBlocks.forEach(block => {
+      block.classList.add('dragging');
+    });
   }
 );
 
@@ -1484,7 +1830,7 @@ noteContent.addEventListener(
 
     if (
       !target
-      || target === memoDraggedBlock
+      || memoDraggedBlocks.includes(target)
     ) {
       clearMemoDropTarget();
       return;
@@ -1513,16 +1859,19 @@ function finishMemoPointerDrag(event) {
     return;
   }
 
-  const dragged = memoDraggedBlock;
+  const dragged = [...memoDraggedBlocks];
   const target = memoDropTarget;
   const zone = memoDropZone;
   memoPointerId = null;
   clearMemoDropTarget();
-  dragged?.classList.remove('dragging');
+  dragged.forEach(block => {
+    block.classList.remove('dragging');
+  });
   memoDraggedBlock = null;
+  memoDraggedBlocks = [];
 
   if (event.type === 'pointerup') {
-    moveMemoBlock(
+    moveMemoBlocks(
       dragged,
       target,
       zone
@@ -1549,14 +1898,17 @@ window.addEventListener(
   true
 );
 
-memoBlockObserver = new MutationObserver(
-  decorateMemoBlocks
-);
-memoBlockObserver.observe(
-  noteContent,
-  {
-    childList: true,
-    subtree: true
+document.addEventListener(
+  'selectionchange',
+  () => {
+    const selection = window.getSelection();
+    if (
+      selection.rangeCount
+      && noteContent.contains(selection.anchorNode)
+      && noteContent.contains(selection.focusNode)
+    ) {
+      saveMemoSelection();
+    }
   }
 );
 

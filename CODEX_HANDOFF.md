@@ -212,6 +212,8 @@ Design/behavior:
 - todo/wish/shopping use checkable rows
 - habit tracker uses per-item day dots; month-day counts should respect 30/31-day context where applicable
 - time tracker colors time blocks. Clicking a filled block again should clear it. Switching selected color must not recolor or erase blocks already painted with other colors.
+- default color chips use lighter Archive-compatible tints; legacy darker block colors remain valid and retain their color names in summaries
+- the time tracker alone shows a live color-by-color duration summary and a final total; every painted block counts as exactly 10 minutes, and the summary is derived from saved block colors rather than stored separately
 - all tracker state must auto-save and restore
 - right-side controls are intentionally more readable/larger than the first tiny version
 

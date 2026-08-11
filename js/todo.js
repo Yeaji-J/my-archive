@@ -45,6 +45,22 @@ const POSTIT_SKINS = [
   'pink',
   'green'
 ];
+const POSTIT_DEFAULT_ACCENT =
+  '#BFD3E6';
+const POSTIT_COLOR_NAMES = {
+  '#BFD3E6': '블루',
+  '#F6D4E2': '핑크',
+  '#F7E7A9': '옐로',
+  '#CFE0B9': '그린',
+  '#D8CFE7': '퍼플',
+  '#F4C7AE': '오렌지',
+  '#7F9FC0': '블루',
+  '#F0A9C0': '핑크',
+  '#E8C76D': '옐로',
+  '#9CB87A': '그린',
+  '#B29AC5': '퍼플',
+  '#E79A75': '오렌지'
+};
 const POSTIT_FONTS = [
   'pretendard',
   'lee-seoyun',
@@ -126,7 +142,7 @@ function blankTimeSlots() {
 
 function normalizePostitColor(
   value,
-  fallback = '#7F9FC0'
+  fallback = POSTIT_DEFAULT_ACCENT
 ) {
   const color =
     String(value || '').trim();
@@ -280,7 +296,7 @@ function ensurePostitData(note) {
       heading: 'TO DO LIST',
       font: 'pretendard',
       fontSize: 16,
-      accentColor: '#7F9FC0',
+      accentColor: POSTIT_DEFAULT_ACCENT,
       tags: [],
       items: blankPostitItems(10),
       weekly: blankWeeklyRows(),
@@ -857,7 +873,97 @@ function applyPostitTimeBlock(
     'aria-pressed',
     normalizedColor ? 'true' : 'false'
   );
+
+  const tracker = cell.closest(
+    '.postit-time'
+  );
+  const currentNote = getCurrentNote();
+  if (tracker && currentNote) {
+    renderPostitTimeSummary(
+      tracker,
+      ensurePostitData(currentNote)
+    );
+  }
   schedulePostitSave();
+}
+
+function postitTimeTotals(data) {
+  const colorCounts = new Map();
+
+  data.timeSlots.forEach(slot => {
+    slot.blocks.forEach(blockColor => {
+      const color = normalizePostitColor(
+        blockColor,
+        ''
+      );
+      if (!color) return;
+      colorCounts.set(
+        color,
+        (colorCounts.get(color) || 0) + 1
+      );
+    });
+  });
+
+  const colors = [...colorCounts]
+    .map(([color, blocks]) => ({
+      color,
+      blocks,
+      minutes: blocks * 10,
+      label:
+        POSTIT_COLOR_NAMES[color]
+        || '사용자 색상'
+    }));
+
+  return {
+    colors,
+    totalMinutes: colors.reduce(
+      (sum, item) => sum + item.minutes,
+      0
+    )
+  };
+}
+
+function renderPostitTimeSummary(
+  tracker,
+  data
+) {
+  let summary = tracker.querySelector(
+    '.postit-time-summary'
+  );
+  if (!summary) {
+    summary = document.createElement('div');
+    summary.className =
+      'postit-time-summary';
+    summary.setAttribute(
+      'aria-live',
+      'polite'
+    );
+    tracker.appendChild(summary);
+  }
+
+  const totals = postitTimeTotals(data);
+  summary.innerHTML = `
+    <span class="postit-time-summary-label">
+      COLOR TOTAL
+    </span>
+    <span class="postit-time-summary-colors">
+      ${
+        totals.colors.length
+          ? totals.colors.map(item => `
+              <span class="postit-time-summary-item">
+                <i style="--time-summary-color:${item.color}"></i>
+                <span>${escapeHtml(item.label)}</span>
+                <strong>${item.minutes}분</strong>
+              </span>
+            `).join('')
+          : '<span class="postit-time-summary-empty">아직 기록된 시간이 없어요.</span>'
+      }
+    </span>
+    <strong class="postit-time-summary-total">
+      <span>총 기록</span>
+      ${totals.totalMinutes}분
+    </strong>
+  `;
 }
 
 function renderPostitTime(
@@ -1033,6 +1139,11 @@ function renderPostitTime(
     row.append(hour, blocks, label);
     tracker.appendChild(row);
   });
+
+  renderPostitTimeSummary(
+    tracker,
+    data
+  );
 
   container.appendChild(tracker);
 }

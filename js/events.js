@@ -814,8 +814,32 @@
       note.folderId =
         folderSelect.value;
 
+      populateSubfolderSelect(
+        folderSelect.value,
+        folderSelect.value
+      );
+
       note.updatedAt = Date.now();
 
+      saveData();
+    }
+  );
+
+  subfolderSelect.addEventListener(
+    'change',
+    () => {
+      const note =
+        state.notes.find(
+          item =>
+            item.id === currentNoteId
+        );
+
+      if (!note) return;
+
+      note.folderId =
+        subfolderSelect.value
+        || folderSelect.value;
+      note.updatedAt = Date.now();
       saveData();
     }
   );

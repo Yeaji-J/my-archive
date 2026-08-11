@@ -125,7 +125,7 @@ Folder contents support multiple view styles:
 - preview/card view (image/preview + text)
 - text/notice-board view
 
-Folders now support nested hierarchy through an optional `parentId` on each folder. Existing folders without `parentId` remain top-level without migration or data reset. The sidebar renders the hierarchy with expand/collapse controls and a per-folder child-add action. Opening a parent folder includes notes from all descendants; opening a child folder narrows to that branch. Folder selectors show indentation, and deleting a folder moves its direct notes and child folders one level upward instead of discarding them.
+Folders now support nested hierarchy through an optional `parentId` on each folder. Existing folders without `parentId` remain top-level without migration or data reset. The sidebar renders the hierarchy with expand/collapse controls and a per-folder child-add action. Opening a parent folder includes notes from all descendants; opening a child folder narrows to that branch. The writing-page toolbar exposes separate `상위 폴더` and conditional `하위 폴더` selectors, restoring both values from an existing note and saving the selected child folder through the normal note save path. Detail-view folder movement retains a compact hierarchical selector. Deleting a folder moves its direct notes and child folders one level upward instead of discarding them.
 
 The folder `미리보기` list mode no longer rebuilds each template with unrelated miniature font rules. All five templates render inside the same `720 × 680` canonical snapshot canvas and are scaled uniformly to the card width, preserving each template's own content proportions while preventing page-level horizontal overflow.
 

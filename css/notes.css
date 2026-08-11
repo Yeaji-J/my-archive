@@ -1323,6 +1323,8 @@
 }
 
 .folder-select {
+  min-width: 0;
+  max-width: 132px;
   padding: 6px 10px;
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -1332,6 +1334,39 @@
   font-size: 12.5px;
   font-weight: 500;
   cursor: pointer;
+}
+
+.editor-folder-controls {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 6px;
+  pointer-events: auto;
+}
+
+.editor-folder-controls .subfolder-select {
+  max-width: 148px;
+  border-color:
+    color-mix(
+      in srgb,
+      var(--archive-green) 44%,
+      var(--border) 56%
+    );
+  background:
+    color-mix(
+      in srgb,
+      var(--archive-surface-green) 42%,
+      #fff 58%
+    );
+}
+
+@media (max-width: 700px) {
+  .editor-folder-controls .folder-select {
+    max-width: 92px;
+    padding-right: 4px;
+    padding-left: 6px;
+    font-size: 10.5px;
+  }
 }
 
 #starBtn.active {

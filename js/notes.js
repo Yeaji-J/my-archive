@@ -2498,22 +2498,94 @@
   function populateFolderSelect(
     selectedId
   ) {
+    let selectedFolder =
+      state.folders.find(
+        folder => folder.id === selectedId
+      );
+    const visited = new Set();
+
+    while (selectedFolder) {
+      const parentId =
+        folderParentId(selectedFolder);
+      if (!parentId || visited.has(parentId)) {
+        break;
+      }
+      visited.add(parentId);
+      selectedFolder = state.folders.find(
+        folder => folder.id === parentId
+      ) || selectedFolder;
+    }
+
+    const rootId = selectedFolder?.id || '';
     folderSelect.innerHTML =
       '<option value="">폴더 없음</option>'
-      + orderedFolderEntries()
-        .map(({ folder, depth }) => `
+      + state.folders
+        .filter(folder => !folderParentId(folder))
+        .map(folder => `
           <option
             value="${folder.id}"
             ${
-              folder.id === selectedId
+              folder.id === rootId
                 ? 'selected'
                 : ''
             }
           >
-            ${'　'.repeat(depth)}${escapeHtml(folder.name)}
+            ${escapeHtml(folder.name)}
           </option>
         `)
         .join('');
+
+    populateSubfolderSelect(
+      rootId,
+      selectedId
+    );
+  }
+
+  function populateSubfolderSelect(
+    rootId,
+    selectedId = rootId
+  ) {
+    const descendantIds = rootId
+      ? folderDescendantIds(rootId)
+      : new Set();
+    const descendants =
+      orderedFolderEntries().filter(
+        ({ folder }) =>
+          folder.id !== rootId
+          && descendantIds.has(folder.id)
+      );
+
+    subfolderSelect.hidden =
+      !rootId || !descendants.length;
+    subfolderSelect.disabled =
+      subfolderSelect.hidden;
+
+    if (subfolderSelect.hidden) {
+      subfolderSelect.innerHTML = '';
+      return;
+    }
+
+    const rootFolder = state.folders.find(
+      folder => folder.id === rootId
+    );
+    subfolderSelect.innerHTML = `
+      <option value="${rootId}">
+        ${escapeHtml(rootFolder?.name || '상위 폴더')}에 바로 저장
+      </option>
+      ${
+        descendants
+          .map(({ folder, depth }) => `
+            <option value="${folder.id}">
+              ${'　'.repeat(Math.max(0, depth - 1))}${escapeHtml(folder.name)}
+            </option>
+          `)
+          .join('')
+      }
+    `;
+    subfolderSelect.value =
+      descendantIds.has(selectedId)
+        ? selectedId
+        : rootId;
   }
 
   function closeEditor(

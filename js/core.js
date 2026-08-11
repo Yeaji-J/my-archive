@@ -1174,6 +1174,9 @@ const STORAGE_KEY = 'archive.data.v1';
   const folderSelect =
     $('#folderSelect');
 
+  const subfolderSelect =
+    $('#subfolderSelect');
+
   const starBtn = $('#starBtn');
   const scrim = $('#scrim');
 

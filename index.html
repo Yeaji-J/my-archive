@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260811-folder-tree1">
-  <link rel="stylesheet" href="css/notes.css?v=20260811-folder-preview1">
+  <link rel="stylesheet" href="css/notes.css?v=20260811-editor-subfolder1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260807-light-paper1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -856,7 +856,10 @@
                     <option value="song-myung">송명체</option>
                   </select>
                 </label>
-                <select id="folderSelect" class="folder-select"></select>
+                <span class="editor-folder-controls" aria-label="자료 폴더 지정">
+                  <select id="folderSelect" class="folder-select" aria-label="상위 폴더"></select>
+                  <select id="subfolderSelect" class="folder-select subfolder-select" aria-label="하위 폴더" hidden></select>
+                </span>
                 <button class="icon-btn" id="starBtn" title="즐겨찾기" aria-label="즐겨찾기">
                   <svg viewBox="0 0 24 24"><path d="M12 2.5l2.9 6.2 6.6.7-5 4.6 1.4 6.6L12 17.6 6.1 20.6l1.4-6.6-5-4.6 6.6-.7z" /></svg>
                 </button>
@@ -1640,8 +1643,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260811-folder-tree1"></script>
-  <script src="js/notes.js?v=20260811-folder-preview1"></script>
+  <script src="js/core.js?v=20260811-editor-subfolder1"></script>
+  <script src="js/notes.js?v=20260811-editor-subfolder1"></script>
   <script src="js/todo.js?v=20260807-time-tracker2"></script>
   <script src="js/folders.js?v=20260811-folder-tree1"></script>
   <script src="js/auth.js?v=20260811-folder-tree1"></script>
@@ -1654,7 +1657,7 @@
   <script src="js/note-view.js?v=20260811-folder-tree1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260724-media4"></script>
-  <script src="js/events.js?v=20260807-template-new1"></script>
+  <script src="js/events.js?v=20260811-editor-subfolder1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

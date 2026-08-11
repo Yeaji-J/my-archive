@@ -259,10 +259,18 @@
     const folder = {
       id: uid(),
       name,
-      color: pendingFolderColor
+      color: pendingFolderColor,
+      parentId:
+        folderParentSelect.value || ''
     };
 
     state.folders.push(folder);
+
+    if (folder.parentId) {
+      expandedSidebarFolderIds.add(
+        folder.parentId
+      );
+    }
 
     saveData();
     closeFolderModal();

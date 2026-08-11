@@ -170,7 +170,14 @@ function templateSearchText(note) {
 function templateFilterValue(note, template) {
   if (template === 'links') return ensureLinkData(note).category || '미분류';
   if (template === 'collection') return ensureCollectionData(note).type || '기타';
-  if (template === 'memo') return state.folders.find(folder => folder.id === note.folderId)?.name || '폴더 없음';
+  if (template === 'memo') {
+    const folder = state.folders.find(
+      item => item.id === note.folderId
+    );
+    return folder
+      ? folderPathLabel(folder.id)
+      : '폴더 없음';
+  }
   if (template === 'todo') return ensurePostitData(note).tags[0] || '태그 없음';
   return '전체';
 }

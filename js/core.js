@@ -955,6 +955,116 @@ const STORAGE_KEY = 'archive.data.v1';
   let state = loadData();
   let todos = loadTodos();
 
+  function folderParentId(folder) {
+    const parentId =
+      typeof folder?.parentId === 'string'
+        ? folder.parentId
+        : '';
+
+    return parentId
+      && parentId !== folder?.id
+      && state.folders.some(
+        item => item.id === parentId
+      )
+        ? parentId
+        : '';
+  }
+
+  function orderedFolderEntries() {
+    const entries = [];
+    const visited = new Set();
+
+    function appendBranch(parentId, depth) {
+      state.folders
+        .filter(
+          folder =>
+            folderParentId(folder)
+              === parentId
+        )
+        .forEach(folder => {
+          if (visited.has(folder.id)) return;
+          visited.add(folder.id);
+          entries.push({ folder, depth });
+          appendBranch(folder.id, depth + 1);
+        });
+    }
+
+    appendBranch('', 0);
+
+    state.folders.forEach(folder => {
+      if (visited.has(folder.id)) return;
+      visited.add(folder.id);
+      entries.push({ folder, depth: 0 });
+    });
+
+    return entries;
+  }
+
+  function folderDescendantIds(folderId) {
+    const ids = new Set();
+    const pending = [folderId];
+
+    while (pending.length) {
+      const currentId = pending.shift();
+      if (!currentId || ids.has(currentId)) {
+        continue;
+      }
+      ids.add(currentId);
+      state.folders.forEach(folder => {
+        if (
+          folderParentId(folder)
+            === currentId
+        ) {
+          pending.push(folder.id);
+        }
+      });
+    }
+
+    return ids;
+  }
+
+  function noteIsInFolderTree(
+    note,
+    folderId
+  ) {
+    return folderDescendantIds(folderId)
+      .has(note.folderId);
+  }
+
+  function folderNoteCount(folderId) {
+    return state.notes.filter(
+      note => noteIsInFolderTree(
+        note,
+        folderId
+      )
+    ).length;
+  }
+
+  function folderPathLabel(folderId) {
+    const names = [];
+    const visited = new Set();
+    let folder = state.folders.find(
+      item => item.id === folderId
+    );
+
+    while (
+      folder
+      && !visited.has(folder.id)
+    ) {
+      visited.add(folder.id);
+      names.unshift(folder.name);
+      const parentId =
+        folderParentId(folder);
+      folder = parentId
+        ? state.folders.find(
+            item => item.id === parentId
+          )
+        : null;
+    }
+
+    return names.join(' / ');
+  }
+
   /* ---------------- App state ---------------- */
 
   let currentView = 'home';
@@ -992,6 +1102,8 @@ const STORAGE_KEY = 'archive.data.v1';
   let noteDeleteInProgress = false;
   let pendingFolderColor =
     FOLDER_COLORS[0];
+  const expandedSidebarFolderIds =
+    new Set();
 
   let chatRooms = [];
   let activeRoomId = null;
@@ -1070,6 +1182,9 @@ const STORAGE_KEY = 'archive.data.v1';
 
   const folderNameInput =
     $('#folderNameInput');
+
+  const folderParentSelect =
+    $('#folderParentSelect');
 
   const colorSwatches =
     $('#colorSwatches');

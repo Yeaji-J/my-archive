@@ -23,8 +23,8 @@
   </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
-  <link rel="stylesheet" href="css/base.css?v=20260807-surface-colors1">
-  <link rel="stylesheet" href="css/notes.css?v=20260810-memo-editor2">
+  <link rel="stylesheet" href="css/base.css?v=20260811-folder-tree1">
+  <link rel="stylesheet" href="css/notes.css?v=20260811-folder-preview1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260807-light-paper1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -1458,6 +1458,13 @@
         maxlength="30"
       >
 
+      <label class="folder-parent-field">
+        <span>상위 폴더</span>
+        <select id="folderParentSelect" aria-label="상위 폴더 선택">
+          <option value="">상위 폴더 없음</option>
+        </select>
+      </label>
+
       <div
         class="color-swatches"
         id="colorSwatches"
@@ -1633,18 +1640,18 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260807-route-init1"></script>
-  <script src="js/notes.js?v=20260730-free-board5"></script>
+  <script src="js/core.js?v=20260811-folder-tree1"></script>
+  <script src="js/notes.js?v=20260811-folder-preview1"></script>
   <script src="js/todo.js?v=20260807-time-tracker2"></script>
-  <script src="js/folders.js?v=20260724-media4"></script>
-  <script src="js/auth.js?v=20260724-media4"></script>
+  <script src="js/folders.js?v=20260811-folder-tree1"></script>
+  <script src="js/auth.js?v=20260811-folder-tree1"></script>
   <script src="js/chat.js?v=20260724-save-sync1"></script>
   <script src="js/calendar.js?v=20260724-media4"></script>
-  <script src="js/home.js?v=20260724-folder-browser1"></script>
+  <script src="js/home.js?v=20260811-folder-tree1"></script>
   <script src="js/memo.js?v=20260810-memo-editor2"></script>
   <script src="js/moodboard.js?v=20260730-moodboard-tools1"></script>
-  <script src="js/templates.js?v=20260730-moodboard-tools1"></script>
-  <script src="js/note-view.js?v=20260730-moodboard-tools1"></script>
+  <script src="js/templates.js?v=20260811-folder-tree1"></script>
+  <script src="js/note-view.js?v=20260811-folder-tree1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260724-media4"></script>
   <script src="js/events.js?v=20260807-template-new1"></script>

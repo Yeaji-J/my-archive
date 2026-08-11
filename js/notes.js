@@ -100,12 +100,69 @@
   function renderSidebarFolders() {
     folderList.innerHTML = '';
 
-    state.folders.forEach(folder => {
+    const entries =
+      orderedFolderEntries();
+
+    function sidebarFolderIsVisible(folder) {
+      const visited = new Set();
+      let parentId = folderParentId(folder);
+
+      while (parentId) {
+        if (
+          visited.has(parentId)
+          || !expandedSidebarFolderIds
+            .has(parentId)
+        ) {
+          return false;
+        }
+        visited.add(parentId);
+        const parent = state.folders.find(
+          item => item.id === parentId
+        );
+        parentId = parent
+          ? folderParentId(parent)
+          : '';
+      }
+
+      return true;
+    }
+
+    const activeFolder =
+      state.folders.find(
+        folder => folder.id === currentView
+      );
+
+    let activeParent = activeFolder;
+    const activeAncestors = new Set();
+    while (activeParent) {
+      const parentId =
+        folderParentId(activeParent);
+      if (!parentId || activeAncestors.has(parentId)) {
+        break;
+      }
+      activeAncestors.add(parentId);
+      expandedSidebarFolderIds.add(parentId);
+      activeParent = state.folders.find(
+        folder => folder.id === parentId
+      );
+    }
+
+    entries.forEach(({ folder, depth }) => {
+      if (!sidebarFolderIsVisible(folder)) {
+        return;
+      }
+
+      const hasChildren =
+        state.folders.some(
+          item =>
+            folderParentId(item)
+              === folder.id
+        );
+      const expanded =
+        expandedSidebarFolderIds
+          .has(folder.id);
       const count =
-        state.notes.filter(
-          note =>
-            note.folderId === folder.id
-        ).length;
+        folderNoteCount(folder.id);
 
       const item =
         document.createElement('li');
@@ -118,7 +175,21 @@
             : ''
         );
 
+      item.style.setProperty(
+        '--folder-depth',
+        depth
+      );
+
       item.innerHTML = `
+        <button
+          class="folder-toggle ${expanded ? 'expanded' : ''}"
+          type="button"
+          aria-label="${hasChildren ? (expanded ? '하위 폴더 접기' : '하위 폴더 펼치기') : ''}"
+          ${hasChildren ? '' : 'disabled'}
+        >
+          ${hasChildren ? '›' : ''}
+        </button>
+
         <span
           class="folder-dot"
           style="background:${folder.color}"
@@ -131,6 +202,13 @@
         <span class="folder-item-count">
           ${count}
         </span>
+
+        <button
+          class="folder-add-child"
+          aria-label="${escapeHtml(folder.name)}에 하위 폴더 추가"
+          title="하위 폴더 추가"
+          type="button"
+        >+</button>
 
         <button
           class="folder-del"
@@ -152,15 +230,50 @@
         event => {
           if (
             event.target.closest(
-              '.folder-del'
+              '.folder-del, .folder-add-child, .folder-toggle'
             )
           ) {
             return;
           }
 
+          if (hasChildren) {
+            expandedSidebarFolderIds.add(
+              folder.id
+            );
+          }
           setView(folder.id);
         }
       );
+
+      item
+        .querySelector('.folder-toggle')
+        .addEventListener(
+          'click',
+          event => {
+            event.stopPropagation();
+            if (!hasChildren) return;
+            if (expanded) {
+              expandedSidebarFolderIds.delete(
+                folder.id
+              );
+            } else {
+              expandedSidebarFolderIds.add(
+                folder.id
+              );
+            }
+            renderSidebarFolders();
+          }
+        );
+
+      item
+        .querySelector('.folder-add-child')
+        .addEventListener(
+          'click',
+          event => {
+            event.stopPropagation();
+            openFolderModal(folder.id);
+          }
+        );
 
       item
         .querySelector('.folder-del')
@@ -335,7 +448,7 @@
       );
 
     return folder
-      ? folder.name
+      ? folderPathLabel(folder.id)
       : '전체 자료';
   }
 
@@ -384,7 +497,10 @@
       notes =
         notes.filter(
           note =>
-            note.folderId === currentView
+            noteIsInFolderTree(
+              note,
+              currentView
+            )
         );
     }
 
@@ -1364,6 +1480,160 @@
     `;
   }
 
+  const FOLDER_SNAPSHOT_WIDTH = 720;
+
+  function fitFolderTemplateSnapshot(
+    viewport
+  ) {
+    if (!viewport?.isConnected) return;
+    const width = viewport.clientWidth;
+    if (!width) return;
+    viewport.style.setProperty(
+      '--folder-snapshot-scale',
+      width / FOLDER_SNAPSHOT_WIDTH
+    );
+  }
+
+  function renderFolderTemplateSnapshot(
+    viewport,
+    note
+  ) {
+    if (!viewport || !note) return;
+    const template = note.template || 'memo';
+    const page = document.createElement('span');
+    page.className =
+      `folder-snapshot-page folder-snapshot-${template}`;
+    page.style.setProperty(
+      '--archive-note-font',
+      typeof archiveFontStack === 'function'
+        ? archiveFontStack(noteFontKey(note))
+        : '"Pretendard", sans-serif'
+    );
+
+    if (template === 'memo') {
+      const memo = ensureMemoData(note);
+      page.classList.add(
+        `memo-skin-${memo.skin}`
+      );
+      page.innerHTML = `
+        <strong class="folder-snapshot-title">
+          ${escapeHtml(note.title || '제목 없음')}
+        </strong>
+        <span class="folder-snapshot-memo-body">
+          ${sanitizeMemoHtml(memo.html) || '<p>아직 작성된 내용이 없어요.</p>'}
+        </span>
+      `;
+    } else if (template === 'todo') {
+      const data = ensurePostitData(note);
+      page.className +=
+        ` ${postitPaperClass(data)}`;
+      page.style.setProperty(
+        '--postit-font-size',
+        `${data.fontSize}px`
+      );
+      page.style.setProperty(
+        '--postit-accent',
+        data.accentColor
+      );
+      const heading =
+        document.createElement('strong');
+      heading.className =
+        'folder-snapshot-postit-heading';
+      heading.textContent =
+        data.heading || 'POST-IT';
+      const content =
+        document.createElement('span');
+      content.className =
+        'postit-paper-content folder-snapshot-postit-body';
+      renderPostitBody(content, note, true);
+      page.append(heading, content);
+    } else if (template === 'moodboard') {
+      const data = ensureMoodboard(note);
+      page.classList.add(
+        `moodboard-skin-${data.skin}`
+      );
+      if (data.drawing) {
+        const drawing = document.createElement('img');
+        drawing.className =
+          'folder-snapshot-moodboard-drawing';
+        drawing.src = data.drawing;
+        drawing.alt = '';
+        page.appendChild(drawing);
+      }
+      data.items.forEach(item => {
+        const element = document.createElement('span');
+        element.className =
+          `folder-snapshot-moodboard-item ${item.type}`;
+        element.style.left =
+          `${(Number(item.x) || 0) * .72}px`;
+        element.style.top =
+          `${(Number(item.y) || 0) * .68}px`;
+        element.style.width =
+          `${(Number(item.width) || (item.type === 'image' ? 240 : 220)) * .72}px`;
+        element.style.height = item.height
+          ? `${Number(item.height) * .68}px`
+          : 'auto';
+        element.style.transform =
+          `rotate(${Number(item.rotation) || 0}deg)`;
+        if (item.type === 'image') {
+          const image = document.createElement('img');
+          image.src = item.src || '';
+          image.alt = '';
+          element.appendChild(image);
+        } else {
+          element.textContent = item.text || '';
+          element.style.fontSize =
+            `${Number(item.fontSize) || 21}px`;
+          element.style.fontWeight =
+            String(item.fontWeight || 400);
+          if (
+            typeof archiveFontStack
+              === 'function'
+          ) {
+            element.style.fontFamily =
+              archiveFontStack(
+                item.fontKey || note.fontKey
+              );
+          }
+        }
+        page.appendChild(element);
+      });
+    } else if (template === 'links') {
+      const data = ensureLinkData(note);
+      page.innerHTML = `
+        <span class="folder-snapshot-link-kicker">SAVED LINK</span>
+        <strong class="folder-snapshot-link-title">${escapeHtml(data.siteName || note.title || '제목 없음')}</strong>
+        <span class="folder-snapshot-link-url">${escapeHtml(data.url || '주소 없음')}</span>
+        <p>${escapeHtml(data.description || '아직 메모가 없어요.')}</p>
+        <small>${escapeHtml(data.category || '미분류')}</small>
+      `;
+    } else {
+      const data = ensureCollectionData(note);
+      page.innerHTML = `
+        <span class="folder-snapshot-collection-cover">
+          ${
+            data.cover
+              ? `<img src="${escapeHtml(data.cover)}" alt="">`
+              : `<span>${escapeHtml(data.type || 'COLLECTION')}</span>`
+          }
+        </span>
+        <span class="folder-snapshot-collection-copy">
+          <small>${escapeHtml(data.type || '기타')}</small>
+          <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+          <p>${escapeHtml(data.oneLine || data.content || '아직 기록이 없어요.')}</p>
+          <span>${(data.tags || []).map(tag => `#${escapeHtml(tag)}`).join(' ')}</span>
+        </span>
+      `;
+    }
+
+    viewport.replaceChildren(page);
+    requestAnimationFrame(() => {
+      fitFolderTemplateSnapshot(
+        viewport
+      );
+    });
+  }
+
   function isTemplateArchiveView() {
     return (
       currentView === 'all'
@@ -1557,10 +1827,9 @@
 
     if (selectedFolder) {
       const selectedCount =
-        state.notes.filter(
-          note =>
-            note.folderId === selectedFolder.id
-        ).length;
+        folderNoteCount(
+          selectedFolder.id
+        );
 
       $('#folderContextIcon')
         .style.setProperty(
@@ -1598,12 +1867,13 @@
     folderGrid.innerHTML = '';
 
     if (showFolders) {
-      state.folders.forEach(folder => {
+      state.folders
+        .filter(
+          folder => !folderParentId(folder)
+        )
+        .forEach(folder => {
         const count =
-          state.notes.filter(
-            note =>
-              note.folderId === folder.id
-          ).length;
+          folderNoteCount(folder.id);
 
         const card =
           document.createElement('div');
@@ -1941,7 +2211,10 @@
 
         card.innerHTML = `
           <div class="folder-preview-media">
-            ${folderPreviewMarkup(note)}
+            <span
+              class="folder-preview-snapshot"
+              data-folder-snapshot
+            ></span>
             ${
               note.starred
                 ? `
@@ -2051,6 +2324,17 @@
           }
         </div>
         `;
+      }
+
+      const snapshotViewport =
+        card.querySelector(
+          '[data-folder-snapshot]'
+        );
+      if (snapshotViewport) {
+        renderFolderTemplateSnapshot(
+          snapshotViewport,
+          note
+        );
       }
 
       card.addEventListener(
@@ -2216,8 +2500,8 @@
   ) {
     folderSelect.innerHTML =
       '<option value="">폴더 없음</option>'
-      + state.folders
-        .map(folder => `
+      + orderedFolderEntries()
+        .map(({ folder, depth }) => `
           <option
             value="${folder.id}"
             ${
@@ -2226,7 +2510,7 @@
                 : ''
             }
           >
-            ${escapeHtml(folder.name)}
+            ${'　'.repeat(depth)}${escapeHtml(folder.name)}
           </option>
         `)
         .join('');
@@ -2386,3 +2670,20 @@
 
     render();
   }
+
+  let folderSnapshotResizeFrame = null;
+  window.addEventListener('resize', () => {
+    cancelAnimationFrame(
+      folderSnapshotResizeFrame
+    );
+    folderSnapshotResizeFrame =
+      requestAnimationFrame(() => {
+        document
+          .querySelectorAll(
+            '[data-folder-snapshot]'
+          )
+          .forEach(
+            fitFolderTemplateSnapshot
+          );
+      });
+  });

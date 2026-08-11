@@ -36,7 +36,7 @@ function renderNoteView(note = getViewedNote()) {
 
   $('#noteViewType').textContent = NOTE_TYPE_LABELS[note.template || 'memo'];
   $('#noteViewTitle').textContent = note.title || '제목 없음';
-  $('#noteViewMeta').textContent = `${folder?.name || '폴더 없음'} · 마지막 수정 ${formatDate(note.updatedAt)}`;
+  $('#noteViewMeta').textContent = `${folder ? folderPathLabel(folder.id) : '폴더 없음'} · 마지막 수정 ${formatDate(note.updatedAt)}`;
   $('#noteViewStarBtn').classList.toggle('active', Boolean(note.starred));
   populateNoteViewFolderSelect(note.folderId);
 
@@ -72,8 +72,8 @@ function renderNoteView(note = getViewedNote()) {
 
 function populateNoteViewFolderSelect(selectedId) {
   const select = $('#noteViewFolderSelect');
-  select.innerHTML = '<option value="">폴더 없음</option>' + state.folders.map(folder => `
-    <option value="${folder.id}" ${folder.id === selectedId ? 'selected' : ''}>${escapeHtml(folder.name)}</option>
+  select.innerHTML = '<option value="">폴더 없음</option>' + orderedFolderEntries().map(({ folder, depth }) => `
+    <option value="${folder.id}" ${folder.id === selectedId ? 'selected' : ''}>${'　'.repeat(depth)}${escapeHtml(folder.name)}</option>
   `).join('');
 }
 

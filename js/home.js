@@ -59,7 +59,10 @@ function renderHomeLibraryStrip() {
   const folderWrap = $('#homeFolderShortcuts');
   const noteWrap = $('#homeNoteShortcuts');
 
-  folderWrap.innerHTML = state.folders.slice(0, 3).map(folder => {
+  folderWrap.innerHTML = state.folders
+    .filter(folder => !folderParentId(folder))
+    .slice(0, 3)
+    .map(folder => {
     return `
       <button class="home-folder-link" type="button" data-folder-id="${folder.id}">
         <span class="home-mini-folder" style="--folder-color:${folder.color}"></span>
@@ -85,7 +88,7 @@ function renderHomeLibraryStrip() {
           <em>${escapeHtml(templateCardLabel(note))}</em>
           <strong>${escapeHtml(note.title || '제목 없음')}</strong>
           <span>${escapeHtml(summary)}</span>
-          <small><i></i>${escapeHtml(folder?.name || '폴더 없음')} · ${formatDate(note.updatedAt)}</small>
+          <small><i></i>${escapeHtml(folder ? folderPathLabel(folder.id) : '폴더 없음')} · ${formatDate(note.updatedAt)}</small>
         </button>
       `;
     }).join('');

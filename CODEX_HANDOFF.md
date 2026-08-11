@@ -1,6 +1,6 @@
 # Archive — Codex handoff
 
-Last handoff refresh: 2026-08-07
+Last handoff refresh: 2026-08-11
 
 This document condenses the long ChatGPT design/development thread for the personal web app **Archive / my-archive**. It is intentionally product-oriented: use it to understand what the user means without replaying the entire old conversation.
 
@@ -125,6 +125,10 @@ Folder contents support multiple view styles:
 - preview/card view (image/preview + text)
 - text/notice-board view
 
+Folders now support nested hierarchy through an optional `parentId` on each folder. Existing folders without `parentId` remain top-level without migration or data reset. The sidebar renders the hierarchy with expand/collapse controls and a per-folder child-add action. Opening a parent folder includes notes from all descendants; opening a child folder narrows to that branch. Folder selectors show indentation, and deleting a folder moves its direct notes and child folders one level upward instead of discarding them.
+
+The folder `미리보기` list mode no longer rebuilds each template with unrelated miniature font rules. All five templates render inside the same `720 × 680` canonical snapshot canvas and are scaled uniformly to the card width, preserving each template's own content proportions while preventing page-level horizontal overflow.
+
 When inside one folder, show a back control to “전체 자료” and only the selected folder context at the top.
 
 ### All archive — folder vs template browsing
@@ -175,6 +179,7 @@ Writing/editor requirements already represented in the UI:
 - toolbar should remain reachable when the memo gets long (sticky/fixed behavior)
 - editor may scroll; long content must not trap the user
 - auto-save, no completion button required
+- the editor title input uses the full available heading width; long titles must not be constrained by the browser's default text-input width
 
 Memo list page:
 

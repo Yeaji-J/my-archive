@@ -205,7 +205,7 @@
 .folder-context-icon {
   width: 132px;
   height: 112px;
-  filter: drop-shadow(0 9px 10px rgba(77, 70, 61, .075));
+  filter: none;
 }
 
 .archive-view-switch,
@@ -307,7 +307,7 @@
   width: 148px;
   height: 126px;
   margin: 0 auto 12px;
-  filter: drop-shadow(0 9px 9px rgba(73, 83, 94, .07));
+  filter: none;
 }
 
 .folder-card-name {

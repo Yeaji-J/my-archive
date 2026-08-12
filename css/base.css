@@ -540,9 +540,9 @@ svg {
 
 .folder-visual {
   --folder-back-color:
-    color-mix(in srgb, var(--folder-color, #b9cdb5) 46%, #f4f1e9 54%);
+    color-mix(in srgb, var(--folder-color, #b9cdb5) 42%, #fff 58%);
   --folder-front-color:
-    color-mix(in srgb, var(--folder-color, #b9cdb5) 27%, #fbfaf6 73%);
+    color-mix(in srgb, var(--folder-color, #b9cdb5) 24%, #fff 76%);
   position: relative;
   isolation: isolate;
   overflow: visible;
@@ -560,17 +560,17 @@ svg {
 
 .folder-visual .folder-back {
   z-index: 0;
-  inset: 19% 1% 4%;
+  inset: 23% 1% 4%;
   border-radius: 9px 12px 8px 9px / 9px 11px 9px 10px;
   background: var(--folder-back-color);
 }
 
 .folder-visual .folder-back::before {
   position: absolute;
-  top: -20%;
+  top: -14%;
   left: 0;
   width: 55%;
-  height: 40%;
+  height: 34%;
   border-radius: 10px 0 0 0 / 10px 0 0 0;
   background: var(--folder-back-color);
   clip-path: polygon(0 0, 72% 0, 100% 100%, 0 100%);
@@ -599,13 +599,11 @@ svg {
 .folder-visual .folder-front {
   z-index: 2;
   inset: 33% 0 0;
-  border: 1px solid rgba(92, 82, 70, .055);
+  border: 0;
   border-radius: 8px 10px 11px 9px / 8px 10px 11px 10px;
   background: var(--folder-front-color);
-  box-shadow:
-    inset 0 6px 11px rgba(255, 255, 255, .2),
-    inset 0 -7px 12px rgba(92, 82, 70, .025);
-  transform: rotate(.15deg);
+  box-shadow: none;
+  transform: none;
   transform-origin: bottom;
   transition: inset .2s ease, transform .2s ease;
 }
@@ -617,7 +615,7 @@ svg {
 
 .folder-visual.is-open .folder-front {
   inset: 42% 0 0;
-  transform: perspective(220px) rotateX(-3deg) rotate(.15deg);
+  transform: none;
 }
 
 .folder-dot {

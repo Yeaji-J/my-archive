@@ -178,7 +178,7 @@
 
 .folder-context-current {
   display: flex;
-  min-width: 230px;
+  min-width: 180px;
   flex-direction: column;
   align-items: center;
   gap: 9px;
@@ -203,8 +203,8 @@
 }
 
 .folder-context-icon {
-  width: 154px;
-  height: 93px;
+  width: 132px;
+  height: 112px;
   filter: drop-shadow(0 9px 10px rgba(77, 70, 61, .075));
 }
 
@@ -273,7 +273,7 @@
   margin-bottom: 12px;
   display: grid;
   grid-auto-flow: column;
-  grid-auto-columns: 196px;
+  grid-auto-columns: 168px;
   grid-template-columns: none;
   gap: 24px;
   padding: 8px 4px 18px;
@@ -285,7 +285,7 @@
 
 .folder-card {
   position: relative;
-  width: 196px;
+  width: 168px;
   padding: 4px 6px 2px;
   border: 0;
   border-radius: 14px;
@@ -304,8 +304,8 @@
 }
 
 .folder-icon {
-  width: 182px;
-  height: 112px;
+  width: 148px;
+  height: 126px;
   margin: 0 auto 12px;
   filter: drop-shadow(0 9px 9px rgba(73, 83, 94, .07));
 }
@@ -3653,15 +3653,15 @@
 
 @media (max-width: 900px) {
   .folder-grid {
-    grid-auto-columns: 168px;
+    grid-auto-columns: 150px;
     gap: 17px;
   }
   .folder-card {
-    width: 168px;
+    width: 150px;
   }
   .folder-icon {
-    width: 156px;
-    height: 98px;
+    width: 132px;
+    height: 112px;
   }
   .folder-context-current {
     min-width: 190px;
@@ -3693,8 +3693,8 @@
     min-width: 150px;
   }
   .folder-context-icon {
-    width: 124px;
-    height: 78px;
+    width: 112px;
+    height: 95px;
   }
   .folder-list-toolbar {
     align-items: flex-start;

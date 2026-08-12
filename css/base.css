@@ -561,7 +561,7 @@ svg {
 .folder-visual .folder-back {
   z-index: 0;
   inset: 19% 1% 4%;
-  border-radius: 18px 23px 17px 19px / 17px 22px 19px 21px;
+  border-radius: 9px 12px 8px 9px / 9px 11px 9px 10px;
   background: var(--folder-back-color);
 }
 
@@ -571,7 +571,7 @@ svg {
   left: 0;
   width: 55%;
   height: 40%;
-  border-radius: 24px 0 0 0 / 22px 0 0 0;
+  border-radius: 10px 0 0 0 / 10px 0 0 0;
   background: var(--folder-back-color);
   clip-path: polygon(0 0, 72% 0, 100% 100%, 0 100%);
   content: "";
@@ -588,7 +588,7 @@ svg {
   bottom: 14%;
   left: 5%;
   border: 1px solid rgba(92, 82, 70, .08);
-  border-radius: 13px 16px 5px 6px;
+  border-radius: 6px 7px 3px 3px;
   background: #fffefb;
   box-shadow: 0 -2px 6px rgba(92, 82, 70, .05);
   opacity: 0;
@@ -600,7 +600,7 @@ svg {
   z-index: 2;
   inset: 33% 0 0;
   border: 1px solid rgba(92, 82, 70, .055);
-  border-radius: 19px 22px 22px 20px / 18px 21px 24px 23px;
+  border-radius: 8px 10px 11px 9px / 8px 10px 11px 10px;
   background: var(--folder-front-color);
   box-shadow:
     inset 0 6px 11px rgba(255, 255, 255, .2),

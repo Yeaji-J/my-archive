@@ -65,7 +65,11 @@ function renderHomeLibraryStrip() {
     .map(folder => {
     return `
       <button class="home-folder-link${folderNoteCount(folder.id) > 0 ? ' has-content' : ''}" type="button" data-folder-id="${folder.id}">
-        <span class="home-mini-folder" style="--folder-color:${folder.color}"></span>
+        <span class="home-mini-folder folder-visual" style="--folder-color:${folder.color}">
+          <i class="folder-back"></i>
+          <i class="folder-paper"></i>
+          <i class="folder-front"></i>
+        </span>
         <strong>${escapeHtml(folder.name)}</strong>
       </button>
     `;

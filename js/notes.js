@@ -1910,7 +1910,11 @@
             </svg>
           </button>
 
-          <div class="folder-icon"></div>
+          <div class="folder-icon folder-visual">
+            <i class="folder-back"></i>
+            <i class="folder-paper"></i>
+            <i class="folder-front"></i>
+          </div>
 
           <div class="folder-card-name">
             ${escapeHtml(folder.name)}

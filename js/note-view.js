@@ -84,6 +84,32 @@ function renderMemoNoteView(content, note) {
   body.innerHTML = sanitizeMemoHtml(memo.html)
     || '<p>아직 작성된 내용이 없어요.</p>';
   content.appendChild(body);
+
+  if (memo.attachments.length) {
+    const attachments = document.createElement('div');
+    attachments.className = 'memo-attachments memo-view-attachments';
+
+    memo.attachments.forEach(attachment => {
+      const row = document.createElement('div');
+      row.className = 'memo-attachment-row';
+      row.innerHTML = `
+        <span class="memo-attachment-icon" aria-hidden="true">FILE</span>
+        <span class="memo-attachment-copy">
+          <strong>${escapeHtml(attachment.name)}</strong>
+          <small>${formatMemoFileSize(attachment.size)}</small>
+        </span>
+        <button class="memo-attachment-download" type="button">다운로드</button>
+      `;
+      row.querySelector('.memo-attachment-download')
+        .addEventListener('click', event => {
+          event.preventDefault();
+          downloadMemoAttachment(attachment);
+        });
+      attachments.appendChild(row);
+    });
+
+    content.appendChild(attachments);
+  }
 }
 
 function renderTodoNoteView(content, note) {

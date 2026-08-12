@@ -29,6 +29,9 @@ const MEMO_FONT_FACES = {
 const MEMO_FONT_SIZES = [
   12, 14, 15, 16, 18, 20, 24
 ];
+const MEMO_FILE_MAX_BYTES = 3 * 1024 * 1024;
+const MEMO_FILES_TOTAL_MAX_BYTES = 8 * 1024 * 1024;
+const MEMO_FILE_MAX_COUNT = 12;
 const MEMO_FONT_MARKER_PREFIX =
   'archive-memo-font-';
 let memoSavedRange = null;
@@ -70,7 +73,128 @@ function ensureMemoData(note) {
       ? 2
       : 1;
 
+  note.memoData.attachments = Array.isArray(
+    note.memoData.attachments
+  )
+    ? note.memoData.attachments
+      .filter(attachment =>
+        attachment
+        && typeof attachment === 'object'
+        && typeof attachment.dataUrl === 'string'
+        && /^data:[^,]*;base64,/i.test(
+          attachment.dataUrl
+        )
+      )
+      .slice(0, MEMO_FILE_MAX_COUNT)
+      .map(attachment => ({
+        id: String(attachment.id || uid()),
+        name: String(attachment.name || '첨부 파일')
+          .slice(0, 180),
+        type: String(
+          attachment.type
+          || 'application/octet-stream'
+        ).slice(0, 120),
+        size: Math.max(
+          0,
+          Number(attachment.size) || 0
+        ),
+        dataUrl: attachment.dataUrl,
+        uploadedAt:
+          Number(attachment.uploadedAt)
+          || Date.now()
+      }))
+    : [];
+
   return note.memoData;
+}
+
+function formatMemoFileSize(bytes) {
+  const size = Math.max(0, Number(bytes) || 0);
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) {
+    return `${Math.round(size / 102.4) / 10} KB`;
+  }
+  return `${Math.round(size / 104857.6) / 10} MB`;
+}
+
+function downloadMemoAttachment(attachment) {
+  try {
+    const [header, payload = ''] =
+      attachment.dataUrl.split(',', 2);
+    const mime = header.match(/^data:([^;,]*)/i)?.[1]
+      || attachment.type
+      || 'application/octet-stream';
+    const binary = atob(payload);
+    const bytes = new Uint8Array(binary.length);
+    for (let index = 0; index < binary.length; index += 1) {
+      bytes[index] = binary.charCodeAt(index);
+    }
+
+    const objectUrl = URL.createObjectURL(
+      new Blob([bytes], { type: mime })
+    );
+    const link = document.createElement('a');
+    link.href = objectUrl;
+    link.download = attachment.name || '첨부 파일';
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    setTimeout(() => URL.revokeObjectURL(objectUrl), 10000);
+  } catch (error) {
+    console.error('Memo file download failed', error);
+    alert('파일을 다운로드하지 못했습니다.');
+  }
+}
+
+function renderMemoAttachments(
+  note = getCurrentNote()
+) {
+  const wrap = $('#memoAttachments');
+  if (!wrap) return;
+
+  const attachments = note
+    && (note.template || 'memo') === 'memo'
+      ? ensureMemoData(note).attachments
+      : [];
+
+  wrap.hidden = !attachments.length;
+  wrap.innerHTML = '';
+
+  attachments.forEach(attachment => {
+    const row = document.createElement('div');
+    row.className = 'memo-attachment-row';
+    row.innerHTML = `
+      <span class="memo-attachment-icon" aria-hidden="true">FILE</span>
+      <span class="memo-attachment-copy">
+        <strong>${escapeHtml(attachment.name)}</strong>
+        <small>${formatMemoFileSize(attachment.size)}</small>
+      </span>
+      <button class="memo-attachment-download" type="button">다운로드</button>
+      <button class="memo-attachment-remove" type="button" aria-label="${escapeHtml(attachment.name)} 삭제">삭제</button>
+    `;
+
+    row.querySelector('.memo-attachment-download')
+      .addEventListener('click', event => {
+        event.preventDefault();
+        downloadMemoAttachment(attachment);
+      });
+
+    row.querySelector('.memo-attachment-remove')
+      .addEventListener('click', () => {
+        const currentNote = getCurrentNote();
+        if (!currentNote) return;
+        const memo = ensureMemoData(currentNote);
+        memo.attachments = memo.attachments.filter(
+          item => item.id !== attachment.id
+        );
+        currentNote.updatedAt = Date.now();
+        renderMemoAttachments(currentNote);
+        updateEditorMeta(currentNote);
+        saveData();
+      });
+
+    wrap.appendChild(row);
+  });
 }
 
 function normalizeMemoUrl(value) {
@@ -412,6 +536,7 @@ function renderMemoEditor(note = getCurrentNote()) {
     });
 
   decorateMemoBlocks();
+  renderMemoAttachments(note);
 }
 
 function persistMemoEditor(note = getCurrentNote()) {
@@ -1455,6 +1580,72 @@ async function insertMemoImages(files) {
   scheduleMemoSave();
 }
 
+function readMemoFile(file) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(
+      reader.error || new Error('파일을 읽지 못했습니다.')
+    );
+    reader.readAsDataURL(file);
+  });
+}
+
+async function attachMemoFiles(files) {
+  const note = getCurrentNote();
+  if (!note || (note.template || 'memo') !== 'memo') return;
+
+  const memo = ensureMemoData(note);
+  let totalBytes = memo.attachments.reduce(
+    (sum, attachment) => sum + attachment.size,
+    0
+  );
+  const rejected = [];
+
+  for (const file of files) {
+    if (memo.attachments.length >= MEMO_FILE_MAX_COUNT) {
+      rejected.push('첨부 파일은 메모당 최대 12개까지 가능합니다.');
+      break;
+    }
+    if (file.size > MEMO_FILE_MAX_BYTES) {
+      rejected.push(`${file.name}: 파일당 3MB를 초과했습니다.`);
+      continue;
+    }
+    if (totalBytes + file.size > MEMO_FILES_TOTAL_MAX_BYTES) {
+      rejected.push(`${file.name}: 첨부 파일 총 8MB를 초과합니다.`);
+      continue;
+    }
+
+    try {
+      const dataUrl = await readMemoFile(file);
+      if (!/^data:[^,]*;base64,/i.test(dataUrl)) {
+        throw new Error('지원하지 않는 파일 형식입니다.');
+      }
+      memo.attachments.push({
+        id: uid(),
+        name: file.name || '첨부 파일',
+        type: file.type || 'application/octet-stream',
+        size: file.size,
+        dataUrl,
+        uploadedAt: Date.now()
+      });
+      totalBytes += file.size;
+    } catch (error) {
+      console.error('Memo file failed', error);
+      rejected.push(`${file.name}: 파일을 읽지 못했습니다.`);
+    }
+  }
+
+  note.updatedAt = Date.now();
+  renderMemoAttachments(note);
+  updateEditorMeta(note);
+  saveData();
+
+  if (rejected.length) {
+    alert(rejected.join('\n'));
+  }
+}
+
 function memoPreviewHtml(note) {
   const memo = ensureMemoData(note);
   const template = document.createElement('template');
@@ -1914,6 +2105,11 @@ document.addEventListener(
 
 $('#memoImageInput').addEventListener('change', event => {
   insertMemoImages([...event.target.files]);
+  event.target.value = '';
+});
+
+$('#memoFileInput').addEventListener('change', event => {
+  attachMemoFiles([...event.target.files]);
   event.target.value = '';
 });
 

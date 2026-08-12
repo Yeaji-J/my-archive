@@ -2565,6 +2565,94 @@
   align-items: center;
 }
 
+.memo-attachments {
+  margin-top: 12px;
+  display: grid;
+  gap: 7px;
+}
+
+.memo-attachments[hidden] {
+  display: none;
+}
+
+.memo-attachment-row {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 11px;
+  border: 1px solid rgba(92, 54, 33, .1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .72);
+}
+
+.memo-attachment-icon {
+  width: 34px;
+  height: 26px;
+  display: grid;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 5px;
+  background: color-mix(in srgb, var(--archive-blue) 25%, #fff 75%);
+  color: var(--archive-brown);
+  font-size: 7px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.memo-attachment-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.memo-attachment-copy strong,
+.memo-attachment-copy small {
+  display: block;
+}
+
+.memo-attachment-copy strong {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 11.5px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.memo-attachment-copy small {
+  margin-top: 2px;
+  color: var(--text-tertiary);
+  font-size: 9px;
+}
+
+.memo-attachment-download,
+.memo-attachment-remove {
+  flex: 0 0 auto;
+  padding: 5px 7px;
+  border: 0;
+  border-radius: 6px;
+  background: transparent;
+  color: #6986a5;
+  font-size: 9.5px;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.memo-attachment-download:hover {
+  background: color-mix(in srgb, var(--archive-blue) 19%, #fff 81%);
+}
+
+.memo-attachment-remove {
+  color: #b27d7d;
+}
+
+.memo-attachment-remove:hover {
+  background: rgba(240, 199, 217, .25);
+}
+
+.memo-view-attachments {
+  margin-top: 24px;
+}
+
 .memo-skin-picker {
   display: flex;
   align-items: center;

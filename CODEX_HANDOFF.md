@@ -178,6 +178,7 @@ Writing/editor requirements already represented in the UI:
 - memo body line-height is intentionally tightened to about two-thirds of the earlier value
 - four paper skins: pink micro-grid, yellow line, blue dot, purple grid
 - image insertion
+- general file attachments are available only in template 01; each memo stores up to 12 files, with a 3MB per-file and 8MB total limit. Attachments use the normal memo/archive persistence paths and remain downloadable after reopening or from the detail view.
 - toolbar should remain reachable when the memo gets long (sticky/fixed behavior)
 - editor may scroll; long content must not trap the user
 - auto-save, no completion button required

@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260812-folder-visual4">
-  <link rel="stylesheet" href="css/notes.css?v=20260812-folder-visual4">
+  <link rel="stylesheet" href="css/notes.css?v=20260812-memo-files1">
   <link rel="stylesheet" href="css/chat.css?v=20260724-media4">
   <link rel="stylesheet" href="css/todo.css?v=20260811-time-summary1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
@@ -896,6 +896,10 @@
                     사진
                     <input type="file" id="memoImageInput" accept="image/*" multiple hidden>
                   </label>
+                  <label class="memo-image-tool memo-file-tool">
+                    파일
+                    <input type="file" id="memoFileInput" multiple hidden>
+                  </label>
                 </div>
                 <label class="memo-inline-control">
                   <span>FONT</span>
@@ -950,6 +954,7 @@
                   data-placeholder="내용을 입력하세요…"
                 ></div>
               </div>
+              <div class="memo-attachments" id="memoAttachments" aria-label="첨부 파일" hidden></div>
             </div>
 
             <div class="editor-template-panel postit-editor-panel" id="todoEditorPanel" hidden>
@@ -1655,10 +1660,10 @@
   <script src="js/chat.js?v=20260724-save-sync1"></script>
   <script src="js/calendar.js?v=20260724-media4"></script>
   <script src="js/home.js?v=20260812-folder-visual2"></script>
-  <script src="js/memo.js?v=20260810-memo-editor2"></script>
+  <script src="js/memo.js?v=20260812-memo-files1"></script>
   <script src="js/moodboard.js?v=20260730-moodboard-tools1"></script>
   <script src="js/templates.js?v=20260811-folder-tree1"></script>
-  <script src="js/note-view.js?v=20260811-folder-tree1"></script>
+  <script src="js/note-view.js?v=20260812-memo-files1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260724-media4"></script>
   <script src="js/events.js?v=20260811-editor-subfolder1"></script>

@@ -269,27 +269,7 @@ body {
    폴더 색상을 더 연한 파스텔로 표시
 ======================================== */
 
-.folder-icon::before,
-.folder-icon::after {
-  /*
-   * 저장된 기존 폴더 색상을 흰색과 섞어서
-   * 자동으로 연한 파스텔 색상으로 표시
-   */
-  background:
-    color-mix(
-      in srgb,
-      var(--folder-color, #b9d8ef) 52%,
-      #ffffff 48%
-    );
-}
-
-.folder-icon::after {
-  box-shadow:
-    inset 0 -6px 12px rgba(80, 95, 120, 0.035);
-}
-
 /* 사이드바와 게시글 하단의 작은 폴더 표시 */
-.folder-dot,
 .note-card-folder-dot {
   opacity: 0.76;
   filter:

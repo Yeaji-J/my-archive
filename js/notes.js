@@ -169,6 +169,7 @@
 
       item.className =
         'folder-item'
+        + (count > 0 ? ' has-content' : '')
         + (
           currentView === folder.id
             ? ' active'
@@ -192,7 +193,7 @@
 
         <span
           class="folder-dot"
-          style="background:${folder.color}"
+          style="--folder-color:${folder.color}"
         ></span>
 
         <span class="folder-item-name">
@@ -1831,11 +1832,18 @@
           selectedFolder.id
         );
 
-      $('#folderContextIcon')
-        .style.setProperty(
+      const contextIcon =
+        $('#folderContextIcon');
+
+      contextIcon.style.setProperty(
           '--folder-color',
           selectedFolder.color
         );
+
+      contextIcon.classList.toggle(
+        'is-open',
+        selectedCount > 0
+      );
 
       $('#folderContextName').textContent =
         selectedFolder.name;
@@ -1878,7 +1886,9 @@
         const card =
           document.createElement('div');
 
-        card.className = 'folder-card';
+        card.className =
+          'folder-card'
+          + (count > 0 ? ' has-content' : '');
 
         card.style.setProperty(
           '--folder-color',

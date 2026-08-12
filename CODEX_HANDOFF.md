@@ -119,6 +119,8 @@ The dashboard was redesigned from the original folder grid to feel like a desk/a
 
 Folders should resemble real file folders: larger, wider than earlier icons, pastel, horizontally arranged, with the folder name below. When a folder is selected, the context should visually read as an opened folder.
 
+Folder visuals share the same broad rounded silhouette across the dashboard, archive folder grid, selected-folder context, and compact sidebar. An unselected folder appears closed; selecting a folder that actually contains notes reveals a subtle white paper sheet between the darker rear panel and lighter front panel. Empty selected folders remain closed so the visual state reflects real content.
+
 Folder contents support multiple view styles:
 
 - mixed/object view

@@ -207,51 +207,53 @@
   width: 154px;
   height: 93px;
   isolation: isolate;
-  filter: drop-shadow(0 10px 12px rgba(77, 70, 61, .1));
+  overflow: hidden;
+  background: color-mix(in srgb, var(--folder-color) 68%, #7b8677 32%);
+  clip-path: polygon(0 28%, 0 18%, 3% 10%, 9% 5%, 15% 3%, 41% 3%, 53% 23%, 93% 23%, 97% 25%, 100% 31%, 100% 92%, 97% 98%, 3% 98%, 0 92%);
+  filter: drop-shadow(0 10px 12px rgba(77, 70, 61, .12));
 }
 
 .folder-context-icon::before {
-  position: absolute;
-  z-index: -2;
-  top: 7px;
-  left: 11px;
-  width: 132px;
-  height: 76px;
-  border: 1px solid rgba(92, 82, 70, .2);
-  border-radius: 9px 12px 9px 9px;
-  background:
-    linear-gradient(
-      160deg,
-      color-mix(in srgb, var(--folder-color) 32%, #fff 68%),
-      color-mix(in srgb, var(--folder-color) 48%, #fff 52%)
-    );
-  box-shadow:
-    -7px -5px 0 -2px
-      color-mix(in srgb, var(--folder-color) 20%, #f5f0e7 80%);
   content: "";
-  transform: rotate(4deg);
+  position: absolute;
+  z-index: 1;
+  top: 28%;
+  right: 6%;
+  left: 6%;
+  height: 48%;
+  border: 1px solid rgba(92, 82, 70, .12);
+  border-radius: 9px 9px 4px 4px;
+  background: repeating-linear-gradient(to bottom, transparent 0 9px, rgba(92, 54, 33, .07) 9px 10px), #fffdf9;
+  box-shadow: 0 -2px 7px rgba(92, 82, 70, .08);
+  opacity: 0;
+  transform: translateY(8px) rotate(-.7deg);
+  transition: opacity .18s ease, transform .2s ease;
 }
 
 .folder-context-icon::after {
-  position: absolute;
-  z-index: -1;
-  right: 2px;
-  bottom: 0;
-  left: 2px;
-  height: 67px;
-  border: 1px solid rgba(92, 82, 70, .22);
-  border-radius: 8px 10px 14px 10px;
-  background:
-    linear-gradient(
-      155deg,
-      color-mix(in srgb, var(--folder-color) 60%, #fff 40%),
-      color-mix(in srgb, var(--folder-color) 76%, #fff 24%)
-    );
-  box-shadow:
-    inset 0 9px 14px rgba(255, 255, 255, .18);
   content: "";
-  transform: perspective(180px) rotateX(-9deg) skewX(-5deg);
+  position: absolute;
+  z-index: 2;
+  top: 31%;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  border: 1px solid rgba(92, 82, 70, .1);
+  border-radius: 11px 13px 16px 16px;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--folder-color) 48%, #fff 52%), color-mix(in srgb, var(--folder-color) 62%, #fff 38%));
+  box-shadow: inset 0 8px 13px rgba(255, 255, 255, .2), inset 0 -8px 13px rgba(77, 70, 61, .035);
   transform-origin: bottom;
+  transition: top .2s ease, transform .2s ease;
+}
+
+.folder-context-icon.is-open::before {
+  opacity: 1;
+  transform: translateY(0) rotate(-.7deg);
+}
+
+.folder-context-icon.is-open::after {
+  top: 40%;
+  transform: perspective(180px) rotateX(-4deg);
 }
 
 .archive-view-switch,
@@ -354,55 +356,40 @@
   width: 182px;
   height: 112px;
   margin: 0 auto 12px;
-  filter: drop-shadow(0 10px 10px rgba(73, 83, 94, .1));
+  isolation: isolate;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--folder-color, #b9cdb5) 68%, #7b8677 32%);
+  clip-path: polygon(0 28%, 0 18%, 3% 10%, 9% 5%, 15% 3%, 41% 3%, 53% 23%, 93% 23%, 97% 25%, 100% 31%, 100% 92%, 97% 98%, 3% 98%, 0 92%);
+  filter: drop-shadow(0 10px 10px rgba(73, 83, 94, .11));
 }
 
 .folder-icon::before {
   content: "";
   position: absolute;
-  z-index: 0;
-  top: 8px;
-  left: 4px;
-  width: 82px;
-  height: 23px;
-  border: 1px solid rgba(62, 69, 78, .11);
-  border-bottom: 0;
-  border-radius: 12px 13px 0 0;
-  background:
-    color-mix(
-      in srgb,
-      var(--folder-color, #f6c9d0) 65%,
-      #fff 35%
-    );
+  z-index: 1;
+  top: 29%;
+  right: 6%;
+  left: 6%;
+  height: 44%;
+  border: 1px solid rgba(92, 82, 70, .11);
+  border-radius: 10px 10px 4px 4px;
+  background: repeating-linear-gradient(to bottom, transparent 0 10px, rgba(92, 54, 33, .06) 10px 11px), #fffdf9;
+  opacity: 0;
+  transform: translateY(8px) rotate(-.6deg);
 }
 
 .folder-icon::after {
   content: "";
   position: absolute;
-  z-index: 1;
+  z-index: 2;
+  top: 31%;
   right: 0;
   bottom: 0;
   left: 0;
-  height: 91px;
-  border: 1px solid rgba(62, 69, 78, .12);
-  border-radius: 8px 13px 15px 15px;
-  background:
-    linear-gradient(
-      155deg,
-      color-mix(
-        in srgb,
-        var(--folder-color, #f6c9d0) 72%,
-        #fff 28%
-      ),
-      color-mix(
-        in srgb,
-        var(--folder-color, #f6c9d0) 88%,
-        #fff 12%
-      )
-    );
-  box-shadow:
-    inset 0 7px 13px rgba(255, 255, 255, .18),
-    inset 0 -10px 15px rgba(66, 72, 81, .045);
+  border: 1px solid rgba(62, 69, 78, .1);
+  border-radius: 12px 14px 17px 17px;
+  background: linear-gradient(165deg, color-mix(in srgb, var(--folder-color, #b9cdb5) 48%, #fff 52%), color-mix(in srgb, var(--folder-color, #b9cdb5) 62%, #fff 38%));
+  box-shadow: inset 0 7px 13px rgba(255, 255, 255, .2), inset 0 -10px 15px rgba(66, 72, 81, .035);
 }
 
 .folder-card-name {
@@ -3758,9 +3745,6 @@
     width: 156px;
     height: 98px;
   }
-  .folder-icon::after {
-    height: 79px;
-  }
   .folder-context-current {
     min-width: 190px;
   }
@@ -3793,13 +3777,6 @@
   .folder-context-icon {
     width: 124px;
     height: 78px;
-  }
-  .folder-context-icon::before {
-    width: 106px;
-    height: 62px;
-  }
-  .folder-context-icon::after {
-    height: 56px;
   }
   .folder-list-toolbar {
     align-items: flex-start;

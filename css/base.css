@@ -539,10 +539,47 @@ svg {
 }
 
 .folder-dot {
-  width: 9px;
-  height: 9px;
+  position: relative;
+  width: 14px;
+  height: 11px;
   flex-shrink: 0;
-  border-radius: 3px;
+  overflow: hidden;
+  background: color-mix(in srgb, var(--folder-color, #b9cdb5) 68%, #7b8677 32%);
+  clip-path: polygon(0 30%, 0 15%, 8% 4%, 42% 4%, 55% 25%, 92% 25%, 100% 35%, 100% 94%, 0 94%);
+}
+
+.folder-dot::before,
+.folder-dot::after {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  content: "";
+}
+
+.folder-dot::before {
+  z-index: 1;
+  top: 35%;
+  right: 12%;
+  left: 12%;
+  border-radius: 2px 2px 0 0;
+  background: #fffdf9;
+  opacity: 0;
+}
+
+.folder-dot::after {
+  z-index: 2;
+  top: 34%;
+  border-radius: 2px 2px 3px 3px;
+  background: color-mix(in srgb, var(--folder-color, #b9cdb5) 54%, #fff 46%);
+}
+
+.folder-item.active.has-content .folder-dot::before {
+  opacity: 1;
+}
+
+.folder-item.active.has-content .folder-dot::after {
+  top: 48%;
 }
 
 .folder-item-name {

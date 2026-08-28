@@ -43,12 +43,14 @@
 
     const parentId =
       folderParentId(folder);
+    const deletedAt = Date.now();
 
     state.folders.forEach(item => {
       if (
         folderParentId(item) === folderId
       ) {
         item.parentId = parentId;
+        item.updatedAt = deletedAt;
       }
     });
 
@@ -60,8 +62,16 @@
     state.notes.forEach(note => {
       if (note.folderId === folderId) {
         note.folderId = parentId;
+        note.updatedAt = deletedAt;
       }
     });
+
+    state.deletedFolders =
+      normalizeDeletionMap(
+        state.deletedFolders
+      );
+    state.deletedFolders[folderId] =
+      deletedAt;
 
     expandedSidebarFolderIds.delete(
       folderId

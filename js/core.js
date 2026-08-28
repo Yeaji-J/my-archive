@@ -2,6 +2,7 @@
 
 const STORAGE_KEY = 'archive.data.v1';
   const TODO_KEY = 'archive.todos.v1';
+  const CHAT_FEATURE_VISIBLE = false;
 
   const SUPABASE_URL =
     'https://qkujxjidngqwvibkqbre.supabase.co';
@@ -270,6 +271,9 @@ const STORAGE_KEY = 'archive.data.v1';
     'snapshots';
   const ARCHIVE_STATE_RECORD =
     'main';
+  const ARCHIVE_BACKUP_PREFIX =
+    'backup:';
+  const ARCHIVE_BACKUP_LIMIT = 5;
 
   let localDataWasLoaded = false;
   let lastLocalSavedAt = 0;
@@ -430,17 +434,62 @@ const STORAGE_KEY = 'archive.data.v1';
               'readwrite'
             );
 
-          transaction
+          const store = transaction
             .objectStore(
               ARCHIVE_STORE_NAME
-            )
-            .put(
-              {
-                state: snapshot,
-                savedAt
-              },
-              ARCHIVE_STATE_RECORD
             );
+          const record = {
+            state: snapshot,
+            savedAt
+          };
+
+          store.put(
+            record,
+            ARCHIVE_STATE_RECORD
+          );
+          store.put(
+            record,
+            `${ARCHIVE_BACKUP_PREFIX}${String(savedAt).padStart(16, '0')}`
+          );
+
+          const backupKeys = [];
+          const cursorRequest =
+            store.openKeyCursor();
+
+          cursorRequest.onsuccess = () => {
+            const cursor = cursorRequest.result;
+            if (!cursor) {
+              backupKeys
+                .filter(key =>
+                  key.startsWith(
+                    ARCHIVE_BACKUP_PREFIX
+                  )
+                )
+                .sort()
+                .slice(
+                  0,
+                  Math.max(
+                    0,
+                    backupKeys.length
+                      - ARCHIVE_BACKUP_LIMIT
+                  )
+                )
+                .forEach(key =>
+                  store.delete(key)
+                );
+              return;
+            }
+
+            if (
+              typeof cursor.key === 'string'
+              && cursor.key.startsWith(
+                ARCHIVE_BACKUP_PREFIX
+              )
+            ) {
+              backupKeys.push(cursor.key);
+            }
+            cursor.continue();
+          };
 
           transaction.oncomplete =
             () => resolve();
@@ -538,7 +587,9 @@ const STORAGE_KEY = 'archive.data.v1';
         || durableTimestamp
           > localTimestamp
       ) {
-        state = record.state;
+        state = normalizeArchiveState(
+          record.state
+        );
         localDataWasLoaded = true;
         lastLocalSavedAt =
           durableTimestamp;
@@ -626,6 +677,8 @@ const STORAGE_KEY = 'archive.data.v1';
     cloudMutationRevision += 1;
     const savedAt = Date.now();
     lastLocalSavedAt = savedAt;
+    state = normalizeArchiveState(state);
+    state.savedAt = savedAt;
     let localStorageSaved = false;
 
     try {
@@ -880,28 +933,48 @@ const STORAGE_KEY = 'archive.data.v1';
     }
 
     if (data?.data) {
-      const cloudSavedAt =
-        Date.parse(data.updated_at || '')
-        || stateLatestTimestamp(
+      const embeddedCloudSavedAt =
+        archiveStateSavedAt(
           data.data
         );
+      const cloudSavedAt =
+        embeddedCloudSavedAt
+        || Date.parse(
+          data.updated_at || ''
+        )
+        || 0;
       const localSavedAt =
-        lastLocalSavedAt
-        || stateLatestTimestamp(state);
-
-      if (
-        localDataWasLoaded
-        && localSavedAt
-          > cloudSavedAt
-      ) {
-        await pushCloudData();
-        return;
-      }
+        archiveStateSavedAt(
+          state,
+          lastLocalSavedAt
+        );
+      const cloudStateJson =
+        JSON.stringify(data.data);
+      const nextState = localDataWasLoaded
+        ? mergeArchiveStates(
+          state,
+          data.data,
+          localSavedAt,
+          cloudSavedAt
+        )
+        : normalizeArchiveState(
+          data.data
+        );
+      const shouldRepairCloud =
+        JSON.stringify(nextState)
+          !== cloudStateJson;
 
       pullingCloudData = true;
-      state = data.data;
+      state = nextState;
       lastLocalSavedAt =
-        cloudSavedAt || Date.now();
+        archiveStateSavedAt(
+          state,
+          Math.max(
+            localSavedAt,
+            cloudSavedAt
+          )
+        ) || Date.now();
+      state.savedAt = lastLocalSavedAt;
       localDataWasLoaded = true;
 
       try {
@@ -926,6 +999,11 @@ const STORAGE_KEY = 'archive.data.v1';
       );
 
       pullingCloudData = false;
+
+      if (shouldRepairCloud) {
+        cloudMutationRevision += 1;
+        await pushCloudData();
+      }
 
       closeEditor(false);
       render();
@@ -952,7 +1030,9 @@ const STORAGE_KEY = 'archive.data.v1';
     );
   }
 
-  let state = loadData();
+  let state = normalizeArchiveState(
+    loadData()
+  );
   let todos = loadTodos();
 
   function folderParentId(folder) {
@@ -968,6 +1048,210 @@ const STORAGE_KEY = 'archive.data.v1';
       )
         ? parentId
         : '';
+  }
+
+  function archiveStateSavedAt(
+    targetState,
+    fallback = 0
+  ) {
+    return Math.max(
+      Number(targetState?.savedAt) || 0,
+      stateLatestTimestamp(targetState),
+      Number(fallback) || 0
+    );
+  }
+
+  function normalizeDeletionMap(value) {
+    if (!value || typeof value !== 'object') {
+      return {};
+    }
+
+    return Object.fromEntries(
+      Object.entries(value)
+        .filter(([, deletedAt]) =>
+          Number(deletedAt) > 0
+        )
+        .map(([id, deletedAt]) => [
+          String(id),
+          Number(deletedAt)
+        ])
+    );
+  }
+
+  function normalizeArchiveState(
+    targetState
+  ) {
+    const normalized =
+      targetState
+      && typeof targetState === 'object'
+        ? targetState
+        : seedData();
+
+    normalized.folders = Array.isArray(
+      normalized.folders
+    )
+      ? normalized.folders
+      : [];
+    normalized.notes = Array.isArray(
+      normalized.notes
+    )
+      ? normalized.notes
+      : [];
+    normalized.deletedNotes =
+      normalizeDeletionMap(
+        normalized.deletedNotes
+      );
+    normalized.deletedFolders =
+      normalizeDeletionMap(
+        normalized.deletedFolders
+      );
+    normalized.savedAt =
+      archiveStateSavedAt(normalized);
+
+    return normalized;
+  }
+
+  function mergeDeletionMaps(
+    first,
+    second
+  ) {
+    const merged = {
+      ...normalizeDeletionMap(first)
+    };
+
+    Object.entries(
+      normalizeDeletionMap(second)
+    ).forEach(([id, deletedAt]) => {
+      merged[id] = Math.max(
+        Number(merged[id]) || 0,
+        deletedAt
+      );
+    });
+
+    return merged;
+  }
+
+  function mergeArchiveItems(
+    localItems,
+    cloudItems,
+    deletedItems,
+    localSavedAt,
+    cloudSavedAt
+  ) {
+    const merged = new Map();
+
+    const addCandidate = (
+      item,
+      sourceSavedAt
+    ) => {
+      if (!item?.id) return;
+      const id = String(item.id);
+      const itemTime =
+        Number(item.updatedAt)
+        || Number(item.createdAt)
+        || 0;
+      const candidateTime =
+        itemTime || sourceSavedAt;
+      const deletionTime =
+        Number(deletedItems[id]) || 0;
+
+      if (
+        deletionTime
+        && (
+          !itemTime
+          || deletionTime >= itemTime
+        )
+      ) {
+        merged.delete(id);
+        return;
+      }
+
+      const current = merged.get(id);
+      if (
+        !current
+        || candidateTime
+          > current.candidateTime
+      ) {
+        merged.set(id, {
+          item,
+          candidateTime
+        });
+      }
+    };
+
+    (localItems || []).forEach(
+      item => addCandidate(
+        item,
+        localSavedAt
+      )
+    );
+    (cloudItems || []).forEach(
+      item => addCandidate(
+        item,
+        cloudSavedAt
+      )
+    );
+
+    return [...merged.values()]
+      .map(entry => entry.item);
+  }
+
+  function mergeArchiveStates(
+    localState,
+    cloudState,
+    localSavedAt,
+    cloudSavedAt
+  ) {
+    const local = normalizeArchiveState(
+      cloneArchiveState(localState)
+    );
+    const remote = normalizeArchiveState(
+      cloneArchiveState(cloudState)
+    );
+    const deletedNotes = mergeDeletionMaps(
+      local.deletedNotes,
+      remote.deletedNotes
+    );
+    const deletedFolders = mergeDeletionMaps(
+      local.deletedFolders,
+      remote.deletedFolders
+    );
+    const localTime = archiveStateSavedAt(
+      local,
+      localSavedAt
+    );
+    const cloudTime = archiveStateSavedAt(
+      remote,
+      cloudSavedAt
+    );
+    const base = cloneArchiveState(
+      localTime >= cloudTime
+        ? local
+        : remote
+    );
+
+    base.notes = mergeArchiveItems(
+      local.notes,
+      remote.notes,
+      deletedNotes,
+      localTime,
+      cloudTime
+    );
+    base.folders = mergeArchiveItems(
+      local.folders,
+      remote.folders,
+      deletedFolders,
+      localTime,
+      cloudTime
+    );
+    base.deletedNotes = deletedNotes;
+    base.deletedFolders = deletedFolders;
+    base.savedAt = Math.max(
+      localTime,
+      cloudTime
+    );
+
+    return base;
   }
 
   function orderedFolderEntries() {

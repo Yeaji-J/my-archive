@@ -23,7 +23,11 @@ function routeForView(view) {
   if (view === 'all') return '/notes';
   if (view === 'starred') return '/starred';
   if (view === 'calendar') return '/calendar';
-  if (view === 'chat') return '/chat';
+  if (view === 'chat') {
+    return CHAT_FEATURE_VISIBLE
+      ? '/chat'
+      : '/home';
+  }
   return `/folder/${encodeURIComponent(view)}`;
 }
 
@@ -83,8 +87,31 @@ function applyArchiveRoute(route = currentArchiveRoute()) {
       notes: 'all',
       starred: 'starred',
       calendar: 'calendar',
-      chat: 'chat'
+      chat: CHAT_FEATURE_VISIBLE
+        ? 'chat'
+        : 'home'
     };
+
+    if (
+      parts[0] === 'chat'
+      && !CHAT_FEATURE_VISIBLE
+    ) {
+      history.replaceState(
+        {
+          archive: true,
+          archiveDepth:
+            Number(
+              history.state
+                ?.archiveDepth
+            ) || 0,
+          route: '/home'
+        },
+        '',
+        archiveHash('/home')
+      );
+      setView('home', false);
+      return true;
+    }
 
     setView(viewRoutes[parts[0]] || 'home', false);
     return true;

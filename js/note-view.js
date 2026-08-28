@@ -261,6 +261,7 @@ $('#noteViewStarBtn').addEventListener('click', () => {
   const note = getViewedNote();
   if (!note) return;
   note.starred = !note.starred;
+  note.updatedAt = Date.now();
   saveData();
   renderNoteView(note);
 });

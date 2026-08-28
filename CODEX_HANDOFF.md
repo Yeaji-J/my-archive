@@ -321,7 +321,7 @@ All five list pages should retain search/filter controls and support select / se
 
 ## 8. Chat contract
 
-Active scope: **1:1 chat**. Group chat was discussed once but the user later explicitly said to ignore group chat; do not build it implicitly.
+The 1:1 chat implementation and Supabase records are preserved, but all chat entry points, the full chat route, and global quick chat are currently hidden behind `CHAT_FEATURE_VISIBLE = false`. Re-enabling that flag later must reveal the existing conversation history without resetting or deleting chat tables. Group chat was discussed once but the user later explicitly said to ignore group chat; do not build it implicitly.
 
 Full chat page:
 
@@ -389,6 +389,9 @@ Current strategy in `js/core.js`:
 4. when signed in, delayed Supabase `archive_data` upsert
 5. mutation revision + timestamps prevent stale cloud pulls from overwriting newer local edits
 6. `beforeunload`, `visibilitychange`, and `pagehide` flush paths in `js/events.js`
+7. local and cloud archive states merge by item id instead of replacing the whole local archive; local-only and cloud-only records are retained
+8. note/folder deletion tombstones prevent intentionally deleted records from returning during a merge
+9. IndexedDB keeps the current snapshot plus the five most recent rolling backups, so a cloud reconciliation does not immediately erase the last known-good local state
 
 Do not simplify this back to one storage mechanism without the user's explicit agreement.
 

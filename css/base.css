@@ -478,6 +478,10 @@ svg {
   transition: background .15s;
 }
 
+.chat-feature-hidden {
+  display: none !important;
+}
+
 .folder-toggle,
 .folder-add-child {
   display: grid;

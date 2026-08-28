@@ -3,6 +3,12 @@
 /* ---------------- Rendering ---------------- */
 
   function render() {
+    if (
+      currentView === 'chat'
+      && !CHAT_FEATURE_VISIBLE
+    ) {
+      currentView = 'home';
+    }
     renderSidebarFolders();
     renderSidebarTemplateLinks();
     renderCounts();
@@ -324,6 +330,12 @@
   }
 
   function setView(view, updateHistory = true) {
+    if (
+      view === 'chat'
+      && !CHAT_FEATURE_VISIBLE
+    ) {
+      view = 'home';
+    }
     if (updateHistory && typeof pushArchiveRoute === 'function') {
       pushArchiveRoute(routeForView(view));
     }
@@ -1751,6 +1763,18 @@
     clearTimeout(cloudSaveTimer);
 
     try {
+      const deletedAt = Date.now();
+      state.deletedNotes =
+        normalizeDeletionMap(
+          state.deletedNotes
+        );
+      ids.forEach(id => {
+        state.deletedNotes[id] = Math.max(
+          Number(state.deletedNotes[id]) || 0,
+          deletedAt
+        );
+      });
+
       state.notes =
         state.notes.filter(
           note => !ids.has(note.id)
@@ -1764,9 +1788,11 @@
         currentNoteViewId = null;
       }
 
-      localStorage.setItem(
-        STORAGE_KEY,
-        JSON.stringify(state)
+      saveData();
+      clearTimeout(cloudSaveTimer);
+      await persistDurableState(
+        true,
+        lastLocalSavedAt
       );
 
       if (currentUser) {

@@ -261,7 +261,8 @@
       name,
       color: pendingFolderColor,
       parentId:
-        folderParentSelect.value || ''
+        folderParentSelect.value || '',
+      updatedAt: Date.now()
     };
 
     state.folders.push(folder);

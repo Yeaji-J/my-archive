@@ -790,6 +790,7 @@
       if (!note) return;
 
       note.starred = !note.starred;
+      note.updatedAt = Date.now();
 
       starBtn.classList.toggle(
         'active',

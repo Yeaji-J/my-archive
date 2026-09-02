@@ -268,7 +268,8 @@
   padding: 13px 22px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  justify-content: flex-start;
+  gap: 3px;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -276,9 +277,15 @@
 .message-row {
   max-width: 76%;
   min-height: 24px;
+  flex: 0 0 auto;
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+.message-row.mine + .message-row:not(.mine),
+.message-row:not(.mine) + .message-row.mine {
+  margin-top: 5px;
 }
 
 .message-row.mine {

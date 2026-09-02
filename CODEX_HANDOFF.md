@@ -329,6 +329,7 @@ Full chat page:
 - chat handwriting uses 이서윤체
 - current requested message text size settled around 17px
 - messages should be dense enough to show more history but not overlap
+- text-message rows are fixed to their content height so a short conversation never stretches messages across the full viewport; consecutive messages use a compact gap, with only a small extra break when the sender changes
 - time and message alignment must remain visually coherent on narrow screens
 - other-user profile/avatar is less prominent: colored outline treatment rather than a filled blob where applicable
 - when the window narrows, the room/new-chat wing should fold/collapse and the conversation should remain usable

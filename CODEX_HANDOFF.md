@@ -321,7 +321,7 @@ All five list pages should retain search/filter controls and support select / se
 
 ## 8. Chat contract
 
-The 1:1 chat implementation and Supabase records are preserved, but all chat entry points, the full chat route, and global quick chat are currently hidden behind `CHAT_FEATURE_VISIBLE = false`. Re-enabling that flag later must reveal the existing conversation history without resetting or deleting chat tables. Group chat was discussed once but the user later explicitly said to ignore group chat; do not build it implicitly.
+The 1:1 chat implementation is active again with `CHAT_FEATURE_VISIBLE = true`: the sidebar chat entry, full chat route, and global quick chat are visible, and the preserved Supabase conversation history is loaded through the existing chat paths. Hiding chat again must remain a presentation/routing change only and must never reset or delete chat tables. Group chat was discussed once but the user later explicitly said to ignore group chat; do not build it implicitly.
 
 Full chat page:
 

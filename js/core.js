@@ -2,7 +2,7 @@
 
 const STORAGE_KEY = 'archive.data.v1';
   const TODO_KEY = 'archive.todos.v1';
-  const CHAT_FEATURE_VISIBLE = false;
+  const CHAT_FEATURE_VISIBLE = true;
 
   const SUPABASE_URL =
     'https://qkujxjidngqwvibkqbre.supabase.co';

@@ -2565,6 +2565,59 @@
   align-items: center;
 }
 
+.memo-tags-editor {
+  min-height: 38px;
+  margin: -2px 0 10px;
+  padding: 6px 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  border-bottom: 1px solid rgba(92, 54, 33, .12);
+}
+
+.memo-tags-editor > span:first-child {
+  flex: 0 0 auto;
+  color: var(--archive-gray);
+  font-size: 8px;
+  font-weight: 760;
+  letter-spacing: .11em;
+}
+
+.memo-tags-editor input {
+  width: min(310px, 42vw);
+  min-width: 130px;
+  padding: 4px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--archive-brown);
+  font-size: 11px;
+}
+
+.memo-tags-editor input::placeholder {
+  color: rgba(92, 54, 33, .34);
+}
+
+.memo-tag-preview,
+.memo-album-tags {
+  min-width: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  overflow: hidden;
+}
+
+.memo-tag-preview span,
+.memo-album-tags span {
+  padding: 3px 6px;
+  flex: 0 0 auto;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--archive-blue) 24%, #fff 76%);
+  color: #6c8299;
+  font-size: 8px;
+  white-space: nowrap;
+}
+
 .memo-attachments {
   margin-top: 12px;
   display: grid;
@@ -3493,6 +3546,30 @@
   margin-top: 7px;
   color: var(--archive-gray);
   font-size: 11px;
+}
+
+.memo-album-tags {
+  margin-top: 7px;
+}
+
+.memo-album-tags span {
+  padding: 2px 5px;
+  font-size: 7px;
+}
+
+.note-view-memo-tags {
+  margin-bottom: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.note-view-memo-tags span {
+  padding: 4px 7px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--archive-blue) 24%, #fff 76%);
+  color: #6c8299;
+  font-size: 9px;
 }
 
 .memo-album-open {

@@ -53,6 +53,33 @@ function escapeMemoText(value) {
     .replace(/\n/g, '<br>');
 }
 
+function normalizeMemoTags(value) {
+  const tags = Array.isArray(value)
+    ? value
+    : String(value || '').split(/[,\n]/);
+  const seen = new Set();
+
+  return tags
+    .map(tag => String(tag || '')
+      .trim()
+      .replace(/^#+/, '')
+      .slice(0, 24))
+    .filter(tag => {
+      if (!tag) return false;
+      const key = tag.toLocaleLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .slice(0, 12);
+}
+
+function memoTagsHtml(tags) {
+  return normalizeMemoTags(tags)
+    .map(tag => `<span>#${escapeHtml(tag)}</span>`)
+    .join('');
+}
+
 function ensureMemoData(note) {
   if (!note.memoData || typeof note.memoData !== 'object') {
     note.memoData = {
@@ -72,6 +99,10 @@ function ensureMemoData(note) {
     Number(note.memoData.columns) === 2
       ? 2
       : 1;
+
+  note.memoData.tags = normalizeMemoTags(
+    note.memoData.tags
+  );
 
   note.memoData.attachments = Array.isArray(
     note.memoData.attachments
@@ -536,6 +567,10 @@ function renderMemoEditor(note = getCurrentNote()) {
     });
 
   decorateMemoBlocks();
+  $('#memoTagsInput').value =
+    memo.tags.join(', ');
+  $('#memoTagPreview').innerHTML =
+    memoTagsHtml(memo.tags);
   renderMemoAttachments(note);
 }
 
@@ -1714,6 +1749,11 @@ function renderMemoAlbum(notes) {
           </span>
           <span class="memo-album-copy">
             <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+            ${
+              memo.tags.length
+                ? `<span class="memo-album-tags">${memoTagsHtml(memo.tags)}</span>`
+                : ''
+            }
             <small>${formatDate(note.updatedAt)}</small>
           </span>
         </button>
@@ -1852,6 +1892,22 @@ $('#memoTextColorInput')
   ?.addEventListener(
     'pointerdown',
     saveMemoSelection
+  );
+
+$('#memoTagsInput')
+  ?.addEventListener(
+    'input',
+    event => {
+      const note = getCurrentNote();
+      if (!note) return;
+      const memo = ensureMemoData(note);
+      memo.tags = normalizeMemoTags(
+        event.target.value
+      );
+      $('#memoTagPreview').innerHTML =
+        memoTagsHtml(memo.tags);
+      scheduleMemoSave();
+    }
   );
 $('#memoTextColorInput')
   ?.addEventListener(

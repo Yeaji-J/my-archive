@@ -100,6 +100,7 @@ function blankPostitItems(count = 10) {
     () => ({
       id: uid(),
       text: '',
+      memo: '',
       done: false
     })
   );
@@ -366,6 +367,7 @@ function ensurePostitData(note) {
   data.items.forEach(item => {
     item.id = item.id || uid();
     item.text = item.text || '';
+    item.memo = String(item.memo || '');
     item.done = Boolean(item.done);
   });
   data.weekly = POSTIT_WEEKDAYS.map(
@@ -494,6 +496,83 @@ function postitTagsHtml(tags) {
     .join('');
 }
 
+function postitMemoLink(value) {
+  const match = String(value || '').match(
+    /(?:https?:\/\/|www\.)[^\s<>]+/i
+  );
+  if (!match) return null;
+
+  const label = match[0].replace(
+    /[),.!?;:]+$/,
+    ''
+  );
+  if (!label) return null;
+
+  try {
+    const url = new URL(
+      /^www\./i.test(label)
+        ? `https://${label}`
+        : label
+    );
+    if (!['http:', 'https:'].includes(url.protocol)) {
+      return null;
+    }
+    return {
+      href: url.href,
+      label,
+      index: match.index || 0,
+      raw: match[0]
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function renderPostitMemoText(element, value) {
+  const text = String(value || '');
+  element.textContent = '';
+  let cursor = 0;
+  const pattern = /(?:https?:\/\/|www\.)[^\s<>]+/gi;
+  let match;
+
+  while ((match = pattern.exec(text))) {
+    const link = postitMemoLink(match[0]);
+    if (!link) continue;
+    element.appendChild(
+      document.createTextNode(
+        text.slice(cursor, match.index)
+      )
+    );
+    const anchor = document.createElement('a');
+    anchor.href = link.href;
+    anchor.target = '_blank';
+    anchor.rel = 'noopener noreferrer';
+    anchor.textContent = link.label;
+    element.appendChild(anchor);
+    element.appendChild(
+      document.createTextNode(
+        match[0].slice(link.label.length)
+      )
+    );
+    cursor = match.index + match[0].length;
+  }
+
+  element.appendChild(
+    document.createTextNode(text.slice(cursor))
+  );
+}
+
+function syncPostitMemoLink(anchor, value) {
+  const link = postitMemoLink(value);
+  anchor.hidden = !link;
+  if (!link) {
+    anchor.removeAttribute('href');
+    return;
+  }
+  anchor.href = link.href;
+  anchor.title = `${link.label} 열기`;
+}
+
 function renderPostitList(
   container,
   note,
@@ -550,6 +629,8 @@ function renderPostitList(
         readOnly ? 'span' : 'input'
       );
 
+    input.className = 'postit-item-title';
+
     if (readOnly) {
       input.textContent =
         item.text || '';
@@ -582,7 +663,73 @@ function renderPostitList(
       );
     }
 
-    row.append(check, input);
+    const fields =
+      document.createElement('div');
+    fields.className = 'postit-list-fields';
+    fields.appendChild(input);
+
+    if (data.type === 'todo') {
+      if (readOnly) {
+        if (item.memo) {
+          const memo =
+            document.createElement('div');
+          memo.className = 'postit-item-memo';
+          renderPostitMemoText(
+            memo,
+            item.memo
+          );
+          fields.appendChild(memo);
+        }
+      } else {
+        const memoLine =
+          document.createElement('div');
+        memoLine.className =
+          'postit-item-memo-line';
+
+        const memoInput =
+          document.createElement('input');
+        memoInput.type = 'text';
+        memoInput.className =
+          'postit-item-memo-input';
+        memoInput.maxLength = 320;
+        memoInput.value = item.memo;
+        memoInput.placeholder =
+          '메모 · 웹주소 · 파일 위치';
+
+        const memoLink =
+          document.createElement('a');
+        memoLink.className =
+          'postit-item-memo-link';
+        memoLink.target = '_blank';
+        memoLink.rel =
+          'noopener noreferrer';
+        memoLink.textContent = '링크 열기 ↗';
+        syncPostitMemoLink(
+          memoLink,
+          item.memo
+        );
+
+        memoInput.addEventListener(
+          'input',
+          event => {
+            item.memo = event.target.value;
+            syncPostitMemoLink(
+              memoLink,
+              item.memo
+            );
+            schedulePostitSave();
+          }
+        );
+
+        memoLine.append(
+          memoInput,
+          memoLink
+        );
+        fields.appendChild(memoLine);
+      }
+    }
+
+    row.append(check, fields);
 
     if (!readOnly) {
       const remove =
@@ -1332,6 +1479,7 @@ function addPostitRow() {
     data.items.push({
       id: uid(),
       text: '',
+      memo: '',
       done: false
     });
   }
@@ -1353,6 +1501,7 @@ function postitSearchText(note) {
     POSTIT_TYPES[data.type].label,
     ...data.tags,
     ...data.items.map(item => item.text),
+    ...data.items.map(item => item.memo),
     ...data.weekly.map(item => item.text),
     ...data.habits.map(item => item.text),
     ...data.timeSlots.map(item => item.label)

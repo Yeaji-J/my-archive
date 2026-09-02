@@ -144,10 +144,12 @@ function addCollectionField() {
 function templateSearchText(note) {
   const parts = [note.title, note.content];
   if ((note.template || 'memo') === 'memo') {
+    const memo = ensureMemoData(note);
     parts.push(
-      note.memoData?.html
+      memo.html
         ?.replace(/<[^>]*>/g, ' ')
     );
+    parts.push(...memo.tags);
   }
   if (note.template === 'links') {
     const data = ensureLinkData(note);
@@ -171,21 +173,18 @@ function templateFilterValue(note, template) {
   if (template === 'links') return ensureLinkData(note).category || '미분류';
   if (template === 'collection') return ensureCollectionData(note).type || '기타';
   if (template === 'memo') {
-    const folder = state.folders.find(
-      item => item.id === note.folderId
-    );
-    return folder
-      ? folderPathLabel(folder.id)
-      : '폴더 없음';
+    return ensureMemoData(note).tags[0]
+      || '태그 없음';
   }
   if (template === 'todo') return ensurePostitData(note).tags[0] || '태그 없음';
   return '전체';
 }
 
 function templateFilterValues(note, template) {
-  if (template === 'todo') {
-    const tags =
-      ensurePostitData(note).tags;
+  if (template === 'todo' || template === 'memo') {
+    const tags = template === 'memo'
+      ? ensureMemoData(note).tags
+      : ensurePostitData(note).tags;
     return tags.length
       ? tags
       : ['태그 없음'];

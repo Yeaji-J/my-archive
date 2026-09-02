@@ -417,6 +417,16 @@
     rgba(92, 54, 33, .56);
 }
 
+.postit-list-todo .postit-list-row {
+  min-height: 66px;
+  align-items: start;
+}
+
+.postit-list-todo .postit-check,
+.postit-list-todo .postit-row-remove {
+  margin-top: 13px;
+}
+
 .postit-check {
   display: grid;
   width: 20px;
@@ -453,8 +463,14 @@
   color: #fff;
 }
 
-.postit-list-row input,
-.postit-list-row > span:not(.postit-check) {
+.postit-list-fields {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.postit-list-row .postit-item-title {
+  width: 100%;
   min-width: 0;
   padding: 10px 0 7px;
   border: 0;
@@ -466,11 +482,58 @@
   line-height: 1.45;
 }
 
-.postit-list-row.done input,
-.postit-list-row.done
-> span:not(.postit-check) {
+.postit-list-row.done .postit-item-title {
   opacity: .48;
   text-decoration: line-through;
+}
+
+.postit-item-memo-line {
+  min-width: 0;
+  margin-top: -5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.postit-list-row .postit-item-memo-input,
+.postit-item-memo {
+  min-width: 0;
+  padding: 0 0 8px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: rgba(92, 54, 33, .64);
+  font: inherit;
+  font-size: .72em;
+  line-height: 1.35;
+}
+
+.postit-list-row .postit-item-memo-input {
+  flex: 1;
+}
+
+.postit-item-memo {
+  overflow-wrap: anywhere;
+}
+
+.postit-item-memo a,
+.postit-item-memo-link {
+  color: #527fad;
+  font-weight: 650;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.postit-item-memo-link {
+  padding: 0 0 8px;
+  flex: 0 0 auto;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.postit-list-row.done .postit-item-memo-line,
+.postit-list-row.done .postit-item-memo {
+  opacity: .48;
 }
 
 .postit-list-row input::placeholder,
@@ -1184,6 +1247,12 @@ button.postit-time-cell:hover {
 }
 
 .postit-paper-preview
+.postit-list-todo
+.postit-list-row {
+  min-height: 34px;
+}
+
+.postit-paper-preview
 .postit-check {
   width: 11px;
   height: 11px;
@@ -1191,10 +1260,26 @@ button.postit-time-cell:hover {
 
 .postit-paper-preview
 .postit-list-row
-> span:not(.postit-check) {
+.postit-item-title {
   overflow: hidden;
   padding: 4px 0 3px;
   font-size: 8px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.postit-paper-preview
+.postit-list-todo
+.postit-check {
+  margin-top: 5px;
+}
+
+.postit-paper-preview
+.postit-item-memo {
+  overflow: hidden;
+  padding: 0 0 3px;
+  font-size: 6.5px;
+  line-height: 1.25;
   text-overflow: ellipsis;
   white-space: nowrap;
 }

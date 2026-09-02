@@ -79,6 +79,12 @@ function populateNoteViewFolderSelect(selectedId) {
 
 function renderMemoNoteView(content, note) {
   const memo = ensureMemoData(note);
+  if (memo.tags.length) {
+    const tags = document.createElement('div');
+    tags.className = 'note-view-memo-tags';
+    tags.innerHTML = memoTagsHtml(memo.tags);
+    content.appendChild(tags);
+  }
   const body = document.createElement('div');
   body.className = 'note-view-memo';
   body.innerHTML = sanitizeMemoHtml(memo.html)

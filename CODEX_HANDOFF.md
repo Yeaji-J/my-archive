@@ -179,6 +179,7 @@ Writing/editor requirements already represented in the UI:
 - four paper skins: pink micro-grid, yellow line, blue dot, purple grid
 - image insertion
 - general file attachments are available only in template 01; each memo stores up to 12 files, with a 3MB per-file and 8MB total limit. Attachments use the normal memo/archive persistence paths and remain downloadable after reopening or from the detail view.
+- each memo supports up to 12 comma-separated tags; tags auto-save with the memo, appear on album/detail views, participate in search, and become multi-value filters on the template 01 list page
 - toolbar should remain reachable when the memo gets long (sticky/fixed behavior)
 - editor may scroll; long content must not trap the user
 - auto-save, no completion button required
@@ -213,6 +214,7 @@ Design/behavior:
 - tags
 - configurable marking/block color
 - todo/wish/shopping use checkable rows
+- todo-list rows include an optional second-line memo for URLs, file locations, or context; detected `http(s)`/`www` addresses are safe clickable links in read-only views and expose a direct link action while editing
 - habit tracker uses per-item day dots; month-day counts should respect 30/31-day context where applicable
 - time tracker colors time blocks. Clicking a filled block again should clear it. Switching selected color must not recolor or erase blocks already painted with other colors.
 - default color chips use lighter Archive-compatible tints; legacy darker block colors remain valid and retain their color names in summaries

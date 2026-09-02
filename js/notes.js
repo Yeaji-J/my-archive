@@ -482,9 +482,11 @@
         notes = notes.filter(note => {
           if (
             browseTemplate === 'todo'
+            || browseTemplate === 'memo'
           ) {
-            const tags =
-              ensurePostitData(note).tags;
+            const tags = browseTemplate === 'memo'
+              ? ensureMemoData(note).tags
+              : ensurePostitData(note).tags;
 
             return browseSecondaryFilter
               === '태그 없음'
@@ -548,6 +550,9 @@
     if ((note.template || 'memo') === 'todo') {
       return ensurePostitData(note).tags[0] || '태그 없음';
     }
+    if ((note.template || 'memo') === 'memo') {
+      return ensureMemoData(note).tags[0] || '태그 없음';
+    }
     return 'all';
   }
 
@@ -567,7 +572,7 @@
 
     const supportsSecondary =
       browseMode === 'template'
-      && ['todo', 'links', 'collection'].includes(browseTemplate);
+      && ['memo', 'todo', 'links', 'collection'].includes(browseTemplate);
 
     archiveSecondaryFilters.hidden = !supportsSecondary;
     archiveSecondaryFilters.innerHTML = '';
@@ -583,12 +588,12 @@
             )
             .flatMap(note => {
               if (
-                browseTemplate
-                === 'todo'
+                browseTemplate === 'todo'
+                || browseTemplate === 'memo'
               ) {
-                const tags =
-                  ensurePostitData(note)
-                    .tags;
+                const tags = browseTemplate === 'memo'
+                  ? ensureMemoData(note).tags
+                  : ensurePostitData(note).tags;
 
                 return tags.length
                   ? tags

@@ -328,10 +328,12 @@ The 1:1 chat implementation is active again with `CHAT_FEATURE_VISIBLE = true`: 
 Full chat page:
 
 - grid-paper background
-- chat handwriting uses 이서윤체
+- default chat handwriting uses 이서윤체, with the header selector able to switch among the bundled Archive fonts
 - current requested message text size settled around 17px
 - messages should be dense enough to show more history but not overlap
-- text-message rows are fixed to their content height so a short conversation never stretches messages across the full viewport; consecutive messages use a compact gap, with only a small extra break when the sender changes
+- text-message rows are fixed to a 20px content line with zero list gap and only a 1px sender-change break, so a short conversation never stretches messages across the full viewport
+- the full-chat header provides a locally persisted font selector; the selected bundled font applies to full chat and quick chat without changing message data
+- `나가기` removes only the current user's `chat_members` row after confirmation; it does not delete the room or message history for the other participant
 - time and message alignment must remain visually coherent on narrow screens
 - other-user profile/avatar is less prominent: colored outline treatment rather than a filled blob where applicable
 - when the window narrows, the room/new-chat wing should fold/collapse and the conversation should remain usable

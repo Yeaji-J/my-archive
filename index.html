@@ -25,10 +25,10 @@
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260828-storage-guard1">
   <link rel="stylesheet" href="css/notes.css?v=20260902-memo-tags1">
-  <link rel="stylesheet" href="css/chat.css?v=20260902-message-spacing1">
+  <link rel="stylesheet" href="css/chat.css?v=20260902-chat-controls1">
   <link rel="stylesheet" href="css/todo.css?v=20260902-todo-item-memo1">
   <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
-  <link rel="stylesheet" href="css/home.css?v=20260812-folder-visual4">
+  <link rel="stylesheet" href="css/home.css?v=20260902-chat-font1">
   <link rel="stylesheet" href="css/responsive-theme.css?v=20260812-folder-visual1">
   <link rel="stylesheet" href="css/theme.css?v=20260724-skin-switch1">
   <link rel="stylesheet" href="css/template-paper-board.css?v=20260730-free-board3">
@@ -615,9 +615,29 @@
                   id="chatHeaderAvatar"
                 ></div>
 
-                <div>
+                <div class="chat-peer-copy">
                   <strong id="chatHeaderName"></strong>
                   <span id="chatHeaderUsername"></span>
+                </div>
+
+                <div class="chat-header-actions">
+                  <label class="chat-font-control">
+                    <span>FONT</span>
+                    <select id="chatFontSelect" aria-label="채팅 글씨체">
+                      <option value="lee-seoyun">이서윤체</option>
+                      <option value="pretendard">Pretendard</option>
+                      <option value="gowun-dodum">고운돋움</option>
+                      <option value="gowun-batang">고운바탕</option>
+                      <option value="nanum-pen">나눔펜</option>
+                      <option value="gaegu">개구체</option>
+                      <option value="dongle">동글체</option>
+                      <option value="black-han">검은고딕</option>
+                      <option value="song-myung">송명체</option>
+                    </select>
+                  </label>
+                  <button class="chat-leave-btn" id="chatLeaveBtn" type="button" title="채팅 나가기">
+                    나가기
+                  </button>
                 </div>
               </header>
 
@@ -1669,7 +1689,7 @@
   <script src="js/todo.js?v=20260902-todo-item-memo1"></script>
   <script src="js/folders.js?v=20260828-storage-guard1"></script>
   <script src="js/auth.js?v=20260828-storage-guard1"></script>
-  <script src="js/chat.js?v=20260724-save-sync1"></script>
+  <script src="js/chat.js?v=20260902-chat-controls1"></script>
   <script src="js/calendar.js?v=20260724-media4"></script>
   <script src="js/home.js?v=20260812-folder-visual2"></script>
   <script src="js/memo.js?v=20260902-memo-tags1"></script>
@@ -1678,7 +1698,7 @@
   <script src="js/note-view.js?v=20260902-memo-tags1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260828-storage-guard1"></script>
-  <script src="js/events.js?v=20260828-storage-guard1"></script>
+  <script src="js/events.js?v=20260902-chat-controls1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

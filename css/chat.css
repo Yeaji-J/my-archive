@@ -2,7 +2,10 @@
 
 .message-bubble,
 .chat-composer textarea {
-  font-family: 'IsYun', "Pretendard", sans-serif;
+  font-family: var(
+    --chat-font-family,
+    'IsYun', "Pretendard", sans-serif
+  );
 }
 
 .message-bubble {
@@ -258,6 +261,76 @@
   font-size: 11px;
 }
 
+.chat-peer-copy {
+  min-width: 0;
+  flex: 1;
+}
+
+.chat-peer-copy strong,
+.chat-peer-copy span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-header-actions {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.chat-font-control {
+  height: 32px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgba(92, 54, 33, .1);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .78);
+}
+
+.chat-font-control > span {
+  margin: 0;
+  color: var(--text-tertiary);
+  font-family: "Pretendard", sans-serif;
+  font-size: 7px;
+  font-weight: 760;
+  letter-spacing: .1em;
+}
+
+.chat-font-control select {
+  width: 92px;
+  padding: 2px 15px 2px 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-secondary);
+  font-size: 11px;
+  cursor: pointer;
+}
+
+.chat-leave-btn {
+  height: 32px;
+  padding: 0 10px;
+  border: 1px solid rgba(198, 104, 104, .18);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, .72);
+  color: #b46f6f;
+  font-size: 10px;
+  cursor: pointer;
+}
+
+.chat-leave-btn:hover {
+  background: rgba(247, 226, 226, .66);
+}
+
+.chat-leave-btn:disabled {
+  opacity: .45;
+  cursor: wait;
+}
+
 .chat-mobile-back {
   display: none;
 }
@@ -269,23 +342,25 @@
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
-  gap: 3px;
+  gap: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .message-row {
   max-width: 76%;
-  min-height: 24px;
-  flex: 0 0 auto;
+  min-height: 20px;
+  height: auto;
+  flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
+  line-height: 20px;
 }
 
 .message-row.mine + .message-row:not(.mine),
 .message-row:not(.mine) + .message-row.mine {
-  margin-top: 5px;
+  margin-top: 1px;
 }
 
 .message-row.mine {
@@ -306,7 +381,7 @@
   box-shadow: none;
   color: var(--text);
   font-size: 17px;
-  line-height: 24px;
+  line-height: 20px;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -322,8 +397,37 @@
   flex-shrink: 0;
   color: var(--text-tertiary);
   font-size: 9.5px;
-  line-height: 1;
+  line-height: 20px;
   white-space: nowrap;
+}
+
+@media (max-width: 560px) {
+  .chat-conversation-header {
+    padding-inline: 10px;
+    gap: 7px;
+  }
+
+  .chat-conversation-header .chat-avatar {
+    width: 32px;
+    height: 32px;
+  }
+
+  .chat-font-control {
+    padding-inline: 6px;
+  }
+
+  .chat-font-control > span {
+    display: none;
+  }
+
+  .chat-font-control select {
+    width: 76px;
+    font-size: 10px;
+  }
+
+  .chat-leave-btn {
+    padding-inline: 7px;
+  }
 }
 
 .chat-composer {

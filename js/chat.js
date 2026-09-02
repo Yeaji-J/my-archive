@@ -4,6 +4,28 @@
 
 const CHAT_IMAGE_PREFIX = '__ARCHIVE_IMAGE__:';
 const CHAT_MEDIA_PREFIX = '__ARCHIVE_MEDIA__:';
+const CHAT_FONT_STORAGE_KEY =
+  'archive.chat-font.v1';
+const CHAT_FONT_STACKS = {
+  'lee-seoyun':
+    '"IsYun", "Pretendard", sans-serif',
+  pretendard:
+    '"Pretendard", sans-serif',
+  'gowun-dodum':
+    '"Gowun Dodum", "Pretendard", sans-serif',
+  'gowun-batang':
+    '"Gowun Batang", serif',
+  'nanum-pen':
+    '"Nanum Pen Script", cursive',
+  gaegu:
+    '"Gaegu", cursive',
+  dongle:
+    '"Dongle", sans-serif',
+  'black-han':
+    '"Black Han Sans", sans-serif',
+  'song-myung':
+    '"Song Myung", serif'
+};
 let pendingChatImage = '';
 let chatDrawingActive = false;
 let chatDrawingLastPoint = null;
@@ -11,6 +33,57 @@ let chatDrawingColor = '#5C3621';
 let chatDrawingWidth = 6;
 let chatDrawingEraser = false;
 let chatDrawingHasContent = false;
+
+function loadChatFontKey() {
+  try {
+    const saved = localStorage.getItem(
+      CHAT_FONT_STORAGE_KEY
+    );
+    return Object.prototype.hasOwnProperty.call(
+      CHAT_FONT_STACKS,
+      saved
+    )
+      ? saved
+      : 'lee-seoyun';
+  } catch (_error) {
+    return 'lee-seoyun';
+  }
+}
+
+let chatFontKey = loadChatFontKey();
+
+function applyChatFont(value) {
+  const key = Object.prototype.hasOwnProperty.call(
+    CHAT_FONT_STACKS,
+    value
+  )
+    ? value
+    : 'lee-seoyun';
+
+  chatFontKey = key;
+  document.documentElement.style.setProperty(
+    '--chat-font-family',
+    CHAT_FONT_STACKS[key]
+  );
+
+  const select = $('#chatFontSelect');
+  if (select) {
+    select.value = key;
+    select.style.fontFamily =
+      CHAT_FONT_STACKS[key];
+  }
+
+  try {
+    localStorage.setItem(
+      CHAT_FONT_STORAGE_KEY,
+      key
+    );
+  } catch (_error) {
+    /* 저장소가 막혀도 현재 화면에는 적용합니다. */
+  }
+}
+
+applyChatFont(chatFontKey);
 
 function parseChatMedia(body) {
   const value =
@@ -717,6 +790,72 @@ function showChatImageFailure(
 
     scrollChatToBottom();
     subscribeToMessages(roomId);
+  }
+
+  async function leaveActiveChatRoom() {
+    if (!activeRoomId || !currentUser) {
+      return;
+    }
+
+    const room = chatRooms.find(
+      item => item.id === activeRoomId
+    );
+    if (!room) return;
+
+    const shouldLeave = confirm(
+      `${room.profile.display_name}님과의 채팅에서 나갈까요?\n내 채팅 목록에서만 빠지며 기존 메시지는 삭제되지 않아요.`
+    );
+    if (!shouldLeave) return;
+
+    const leaveButton = $('#chatLeaveBtn');
+    leaveButton.disabled = true;
+
+    const leavingRoomId = activeRoomId;
+    const { error } = await cloud
+      .from('chat_members')
+      .delete()
+      .eq('room_id', leavingRoomId)
+      .eq('user_id', currentUser.id);
+
+    leaveButton.disabled = false;
+
+    if (error) {
+      console.error('Chat leave failed', error);
+      alert(
+        '채팅에서 나가지 못했어요. 잠시 후 다시 시도해주세요.'
+      );
+      return;
+    }
+
+    closeMessageSubscription();
+    activeRoomId = null;
+    renderedMessageIds.clear();
+    clearPendingChatImage();
+    chatMessages.innerHTML = '';
+    chatActive.hidden = true;
+    chatEmptyConversation.hidden = false;
+    chatConversation.parentElement
+      .classList.remove(
+        'mobile-conversation',
+        'list-wing-open'
+      );
+
+    if (quickChatRoomId === leavingRoomId) {
+      quickChatRoomId = null;
+      $('#quickChatNote').hidden = true;
+      if (
+        typeof closeQuickChatSubscription
+          === 'function'
+      ) {
+        closeQuickChatSubscription();
+      }
+    }
+
+    chatRooms = chatRooms.filter(
+      item => item.id !== leavingRoomId
+    );
+    renderChatRooms();
+    await loadChatRooms();
   }
 
   async function appendMessage(message) {

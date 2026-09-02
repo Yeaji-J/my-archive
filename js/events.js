@@ -387,6 +387,20 @@
       sendChatMessage
     );
 
+  $('#chatFontSelect')
+    .addEventListener(
+      'change',
+      event => applyChatFont(
+        event.target.value
+      )
+    );
+
+  $('#chatLeaveBtn')
+    .addEventListener(
+      'click',
+      leaveActiveChatRoom
+    );
+
   $('#chatMobileBack')
     .addEventListener(
       'click',

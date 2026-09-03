@@ -26,8 +26,8 @@
   <link rel="stylesheet" href="css/base.css?v=20260828-storage-guard1">
   <link rel="stylesheet" href="css/notes.css?v=20260903-moodboard-title-gap1">
   <link rel="stylesheet" href="css/chat.css?v=20260902-chat-controls1">
-  <link rel="stylesheet" href="css/todo.css?v=20260903-calendar-links1">
-  <link rel="stylesheet" href="css/calendar.css?v=20260903-note-feed1">
+  <link rel="stylesheet" href="css/todo.css?v=20260903-focus-details2">
+  <link rel="stylesheet" href="css/calendar.css?v=20260903-schedule-list2">
   <link rel="stylesheet" href="css/home.css?v=20260902-chat-font1">
   <link rel="stylesheet" href="css/responsive-theme.css?v=20260812-folder-visual1">
   <link rel="stylesheet" href="css/theme.css?v=20260724-skin-switch1">
@@ -1435,22 +1435,25 @@
       <h3 id="calendarEntryHeading">일정 추가</h3>
 
       <form id="calendarEntryForm">
-        <textarea
-          id="calendarEntryNote"
-          maxlength="300"
-          rows="4"
-          placeholder="시간과 할 일을 포함해 일정을 입력하세요."
-        ></textarea>
-
-        <div class="calendar-entry-actions">
-          <button
-            type="button"
-            class="text-btn calendar-delete-btn"
-            id="calendarEntryDeleteBtn"
-          >
-            일정 삭제
-          </button>
-
+        <div class="calendar-entry-compose">
+          <label>
+            <span>시간</span>
+            <input
+              type="time"
+              id="calendarEntryTime"
+              required
+            >
+          </label>
+          <label class="calendar-entry-title-field">
+            <span>일정</span>
+            <input
+              type="text"
+              id="calendarEntryNote"
+              maxlength="180"
+              placeholder="일정을 입력하세요"
+              required
+            >
+          </label>
           <button
             type="submit"
             class="primary-btn"
@@ -1465,6 +1468,14 @@
           id="calendarEntryMessage"
         ></p>
       </form>
+
+      <section
+        class="calendar-schedule-section"
+        id="calendarScheduleSection"
+        hidden
+      >
+        <div class="calendar-schedule-list" id="calendarScheduleList"></div>
+      </section>
 
       <section class="calendar-date-notes-section">
         <div class="calendar-date-notes-head">
@@ -1670,13 +1681,13 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260903-calendar-links1"></script>
+  <script src="js/core.js?v=20260903-schedule-list2"></script>
   <script src="js/notes.js?v=20260902-memo-tags1"></script>
-  <script src="js/todo.js?v=20260903-calendar-links1"></script>
+  <script src="js/todo.js?v=20260903-focus-details2"></script>
   <script src="js/folders.js?v=20260828-storage-guard1"></script>
   <script src="js/auth.js?v=20260828-storage-guard1"></script>
   <script src="js/chat.js?v=20260902-chat-controls1"></script>
-  <script src="js/calendar.js?v=20260903-note-feed1"></script>
+  <script src="js/calendar.js?v=20260903-schedule-list2"></script>
   <script src="js/home.js?v=20260812-folder-visual2"></script>
   <script src="js/memo.js?v=20260902-memo-tags1"></script>
   <script src="js/moodboard.js?v=20260903-template-preserve1"></script>
@@ -1684,7 +1695,7 @@
   <script src="js/note-view.js?v=20260902-memo-tags1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260828-storage-guard1"></script>
-  <script src="js/events.js?v=20260903-calendar-links1"></script>
+  <script src="js/events.js?v=20260903-schedule-list2"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

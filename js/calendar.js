@@ -2,6 +2,9 @@
 
 /* ---------------- Calendar ---------------- */
 
+  const CALENDAR_SCHEDULES_PREFIX =
+    'archive:schedules:v1:';
+
   function dateKey(date) {
     const year = date.getFullYear();
 
@@ -110,6 +113,75 @@
       return type === 'todo'
         || type === 'time';
     });
+  }
+
+  function calendarSchedules(entry) {
+    const rawNote = String(entry?.note || '');
+    if (!rawNote) return [];
+
+    if (
+      rawNote.startsWith(
+        CALENDAR_SCHEDULES_PREFIX
+      )
+    ) {
+      try {
+        const parsed = JSON.parse(
+          rawNote.slice(
+            CALENDAR_SCHEDULES_PREFIX.length
+          )
+        );
+        if (Array.isArray(parsed)) {
+          return parsed
+            .map((schedule, index) => ({
+              id: String(
+                schedule?.id
+                || `schedule-${index}`
+              ),
+              time: String(
+                schedule?.time || ''
+              ).slice(0, 5),
+              text: String(
+                schedule?.text || ''
+              ).trim()
+            }))
+            .filter(schedule => schedule.text)
+            .sort((first, second) =>
+              first.time.localeCompare(second.time)
+            );
+        }
+      } catch (error) {
+        console.warn(
+          'Calendar schedule parse failed',
+          error
+        );
+      }
+    }
+
+    const legacyMatch = rawNote.match(
+      /^(\d{1,2}:\d{2})\s+(.+)$/s
+    );
+    return [{
+      id: `legacy-${entry?.id || entry?.entry_date || 'entry'}`,
+      time: legacyMatch
+        ? legacyMatch[1].padStart(5, '0')
+        : '',
+      text: legacyMatch
+        ? legacyMatch[2].trim()
+        : rawNote.trim()
+    }];
+  }
+
+  function serializeCalendarSchedules(
+    schedules
+  ) {
+    return CALENDAR_SCHEDULES_PREFIX
+      + JSON.stringify(schedules);
+  }
+
+  function calendarScheduleText(schedule) {
+    return [schedule.time, schedule.text]
+      .filter(Boolean)
+      .join(' ');
   }
 
   async function loadCalendarEntries() {
@@ -304,14 +376,23 @@
             : ''
         );
 
-      const noteHtml =
-        entry?.note
-          ? `
-            <span class="calendar-day-note">
-              ${escapeHtml(entry.note)}
-            </span>
-          `
-          : '';
+      const schedules =
+        calendarSchedules(entry);
+      const noteHtml = schedules.length
+        ? `
+          <span class="calendar-day-note">
+            ${schedules
+              .slice(0, 2)
+              .map(schedule => `
+                <span>${escapeHtml(calendarScheduleText(schedule))}</span>
+              `)
+              .join('')}
+            ${schedules.length > 2
+              ? `<small>+${schedules.length - 2}</small>`
+              : ''}
+          </span>
+        `
+        : '';
 
       const featuredHtml =
         featuredNotes
@@ -413,6 +494,40 @@
     });
   }
 
+  function renderCalendarSchedules() {
+    const section =
+      $('#calendarScheduleSection');
+    const list =
+      $('#calendarScheduleList');
+    if (!section || !list) return;
+
+    const schedules = calendarSchedules(
+      selectedCalendarEntry
+    );
+    section.hidden = !schedules.length;
+    list.innerHTML = '';
+
+    schedules.forEach(schedule => {
+      const row =
+        document.createElement('div');
+      row.className =
+        'calendar-schedule-row';
+      row.innerHTML = `
+        <time>${escapeHtml(schedule.time || '시간 미정')}</time>
+        <span>${escapeHtml(schedule.text)}</span>
+        <button type="button" aria-label="${escapeHtml(schedule.text)} 일정 삭제">×</button>
+      `;
+      row.querySelector('button')
+        .addEventListener(
+          'click',
+          () => deleteCalendarSchedule(
+            schedule.id
+          )
+        );
+      list.appendChild(row);
+    });
+  }
+
   function openCalendarEntry(date) {
     if (!currentUser) {
       openAuthModal();
@@ -438,27 +553,17 @@
         }
       );
 
-    calendarEntryNote.value =
-      selectedCalendarEntry?.note
-      || '';
+    calendarEntryTime.value = '';
+    calendarEntryNote.value = '';
 
     calendarEntryMessage.textContent =
       '';
     $('#calendarEntryHeading').textContent =
-      selectedCalendarEntry
-        ? '일정 수정'
-        : '일정 추가';
+      '일정 추가';
+    renderCalendarSchedules();
     renderCalendarDateNotes(
       selectedCalendarDate
     );
-
-    $('#calendarEntryDeleteBtn')
-      .classList.toggle(
-        'visible',
-        Boolean(
-          selectedCalendarEntry
-        )
-      );
 
     calendarEntryModal.hidden =
       false;
@@ -467,7 +572,7 @@
 
     setTimeout(
       () =>
-        calendarEntryNote.focus(),
+        calendarEntryTime.focus(),
       50
     );
   }
@@ -502,18 +607,39 @@
         ?.image_path
       || null;
 
-    const note =
+    const time =
+      calendarEntryTime
+        .value
+        .trim();
+    const scheduleText =
       calendarEntryNote
         .value
         .trim();
 
-    if (!note) {
+    if (!time || !scheduleText) {
       calendarEntryMessage.textContent =
-        '일정 내용을 입력해주세요.';
+        '시간과 일정을 모두 입력해주세요.';
 
       saveButton.disabled = false;
       return;
     }
+
+    const schedules = [
+      ...calendarSchedules(
+        selectedCalendarEntry
+      ),
+      {
+        id: uid(),
+        time,
+        text: scheduleText
+      }
+    ].sort((first, second) =>
+      first.time.localeCompare(second.time)
+    );
+    const note =
+      serializeCalendarSchedules(
+        schedules
+      );
 
     const { error } =
       await cloud
@@ -549,39 +675,73 @@
       return;
     }
 
-    closeCalendarEntry();
-
     await loadCalendarEntries();
+    selectedCalendarEntry =
+      calendarEntries.get(
+        selectedCalendarDate
+      ) || null;
+    calendarEntryTime.value = '';
+    calendarEntryNote.value = '';
+    calendarEntryMessage.textContent = '';
+    renderCalendarSchedules();
+    calendarEntryTime.focus();
   }
 
-  async function deleteCalendarEntry() {
-    if (!selectedCalendarEntry) {
+  async function deleteCalendarSchedule(
+    scheduleId
+  ) {
+    if (
+      !selectedCalendarEntry
+      || !currentUser
+    ) {
       return;
     }
 
-    const shouldDelete =
-      confirm(
-        '이 날짜의 일정을 삭제할까요?'
+    const schedules =
+      calendarSchedules(
+        selectedCalendarEntry
+      ).filter(
+        schedule =>
+          schedule.id !== scheduleId
       );
-
-    if (!shouldDelete) return;
-
-    const { error } =
-      await cloud
-        .from('calendar_entries')
-        .delete()
-        .eq(
-          'user_id',
-          currentUser.id
+    const query = cloud
+      .from('calendar_entries');
+    const result = schedules.length
+      ? await query.upsert(
+          {
+            user_id: currentUser.id,
+            entry_date:
+              selectedCalendarDate,
+            note:
+              serializeCalendarSchedules(
+                schedules
+              ),
+            image_path:
+              selectedCalendarEntry
+                .image_path || null,
+            updated_at:
+              new Date().toISOString()
+          },
+          {
+            onConflict:
+              'user_id,entry_date'
+          }
         )
-        .eq(
-          'entry_date',
-          selectedCalendarDate
-        );
+      : await query
+          .delete()
+          .eq(
+            'user_id',
+            currentUser.id
+          )
+          .eq(
+            'entry_date',
+            selectedCalendarDate
+          );
+    const { error } = result;
 
     if (error) {
       console.error(
-        'Calendar delete failed',
+        'Calendar schedule delete failed',
         error
       );
 
@@ -592,7 +752,8 @@
     }
 
     if (
-      selectedCalendarEntry.image_path
+      !schedules.length
+      && selectedCalendarEntry.image_path
     ) {
       await cloud.storage
         .from('calendar-images')
@@ -602,9 +763,12 @@
         ]);
     }
 
-    closeCalendarEntry();
-
     await loadCalendarEntries();
+    selectedCalendarEntry =
+      calendarEntries.get(
+        selectedCalendarDate
+      ) || null;
+    renderCalendarSchedules();
   }
 
   function moveCalendarMonth(offset) {

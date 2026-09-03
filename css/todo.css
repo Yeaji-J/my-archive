@@ -480,43 +480,46 @@
   gap: 8px;
 }
 
-.postit-item-memo-line[hidden] {
+.postit-list-row:not(.is-editing):not(.has-memo)
+.postit-item-memo-line {
   display: none;
 }
 
-.postit-item-tools {
-  display: flex;
-  min-height: 18px;
-  margin: -5px 0 4px;
-  align-items: center;
-  gap: 6px;
-}
-
-.postit-item-extra-btn {
-  min-width: 20px;
+.postit-item-note-link-btn {
+  width: 0;
   height: 18px;
-  padding: 0 4px;
+  padding: 0;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  gap: 2px;
+  flex: 0 0 auto;
   border: 0;
   border-radius: 5px;
+  opacity: 0;
+  overflow: hidden;
+  pointer-events: none;
   background: transparent;
   color: rgba(92, 54, 33, .42);
   font: inherit;
   font-size: 12px;
   cursor: pointer;
+  transition:
+    width .15s,
+    opacity .15s;
 }
 
-.postit-item-extra-btn:hover,
-.postit-item-extra-btn.active {
+.postit-list-row.is-editing
+.postit-item-note-link-btn {
+  width: 20px;
+  padding: 0 3px;
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.postit-item-note-link-btn:hover,
+.postit-item-note-link-btn.active {
   background: rgba(255, 255, 255, .28);
   color: rgba(92, 54, 33, .78);
-}
-
-.postit-item-note-link-btn span {
-  font-size: 10px;
 }
 
 .postit-folder-glyph {

@@ -214,8 +214,8 @@ Design/behavior:
 - tags
 - configurable marking/block color
 - todo/wish/shopping use checkable rows
-- todo-list rows keep the optional second-line memo collapsed behind a compact `+` control unless that row already has memo content; URLs and file locations remain supported, detected `http(s)`/`www` addresses remain safe clickable links in read-only views, and the editor still exposes a direct link action
-- todo-list rows also expose a compact `+` folder control. It opens a searchable archive picker and stores a `linkedNoteId`, allowing a task to connect to another saved Archive item without crowding the row
+- todo-list rows reveal the optional second-line memo automatically while the title/memo row is focused; empty helper text disappears again when focus leaves, while saved memo content remains visible. URLs and file locations remain supported, detected `http(s)`/`www` addresses remain safe clickable links in read-only views, and the editor still exposes a direct link action
+- the focused todo memo line starts with a compact folder-only control (no `+`). It opens a searchable archive picker and stores a `linkedNoteId`, allowing a task to connect to another saved Archive item without crowding inactive rows
 - habit tracker uses per-item day dots; month-day counts should respect 30/31-day context where applicable
 - time tracker colors time blocks from `06` through `00`. Clicking a filled block again should clear it. Switching selected color must not recolor or erase blocks already painted with other colors. Existing matching hours are migrated by hour rather than array position so changing the visible range does not shift saved records.
 - default color chips use lighter Archive-compatible tints; legacy darker block colors remain valid and retain their color names in summaries
@@ -370,8 +370,9 @@ Quick chat:
 - day number at the **top-left** of each day cell, not center
 - calendar page should fit within viewport height without creating unnecessary page-level vertical scrolling
 - dashboard uses a compact version focused on date + whether a record exists
-- the main month grid shows schedule text plus only same-day template 02 `todo` and `time` records; time records show total minutes and todo records show remaining-item counts
-- clicking a date opens a schedule add/edit form and lists every memo, post-it, and moodboard created on that date (falling back to `updatedAt` only for legacy notes without `createdAt`); selecting a listed item opens its normal Archive editor
+- the main month grid shows compact `time + schedule` lines plus only same-day template 02 `todo` and `time` records; time records show total minutes and todo records show remaining-item counts
+- schedule entry uses separate one-line time and title fields with an inline save button. A date can hold multiple time-sorted schedules; they render vertically above the day-note list and expose an `×` delete action on hover/focus. Legacy single-string entries are parsed and migrated without being discarded
+- clicking a date lists every memo, post-it, and moodboard created on that date (falling back to `updatedAt` only for legacy notes without `createdAt`); selecting a listed item opens its normal Archive editor
 - calendar photo attachment UI is removed. Existing legacy `image_path` values are preserved while editing an old schedule, but new calendar entries are text schedules only
 
 ## 10. Image input contract

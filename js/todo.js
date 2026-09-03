@@ -925,31 +925,13 @@ function renderPostitList(
           fields.appendChild(linked);
         }
       } else {
-        const tools =
-          document.createElement('div');
-        tools.className =
-          'postit-item-tools';
-
-        const memoToggle =
-          document.createElement('button');
-        memoToggle.type = 'button';
-        memoToggle.className =
-          'postit-item-extra-btn';
-        memoToggle.textContent = '+';
-        memoToggle.title = '추가 메모';
-        memoToggle.setAttribute(
-          'aria-label',
-          '추가 메모 열기'
-        );
-
         const noteLinkButton =
           document.createElement('button');
         noteLinkButton.type = 'button';
         noteLinkButton.className =
-          'postit-item-extra-btn postit-item-note-link-btn'
+          'postit-item-note-link-btn'
           + (linkedNote ? ' active' : '');
         noteLinkButton.innerHTML = `
-          <span>+</span>
           <i class="postit-folder-glyph" aria-hidden="true"></i>
         `;
         noteLinkButton.title =
@@ -972,7 +954,6 @@ function renderPostitList(
           document.createElement('div');
         memoLine.className =
           'postit-item-memo-line';
-        memoLine.hidden = !item.memo;
 
         const memoInput =
           document.createElement('input');
@@ -982,7 +963,7 @@ function renderPostitList(
         memoInput.maxLength = 320;
         memoInput.value = item.memo;
         memoInput.placeholder =
-          '메모 · 웹주소 · 파일 위치';
+          '웹주소 · 파일 위치 · 추가 메모';
 
         const memoLink =
           document.createElement('a');
@@ -1001,6 +982,10 @@ function renderPostitList(
           'input',
           event => {
             item.memo = event.target.value;
+            row.classList.toggle(
+              'has-memo',
+              Boolean(item.memo)
+            );
             syncPostitMemoLink(
               memoLink,
               item.memo
@@ -1009,34 +994,44 @@ function renderPostitList(
           }
         );
 
-        memoToggle.classList.toggle(
-          'active',
-          Boolean(item.memo)
-        );
-        memoToggle.addEventListener(
-          'click',
-          () => {
-            memoLine.hidden =
-              !memoLine.hidden;
-            memoToggle.classList.toggle(
-              'active',
-              !memoLine.hidden
-            );
-            if (!memoLine.hidden) {
-              memoInput.focus();
-            }
-          }
-        );
-
         memoLine.append(
+          noteLinkButton,
           memoInput,
           memoLink
         );
-        tools.append(
-          memoToggle,
-          noteLinkButton
+        fields.append(memoLine);
+
+        row.classList.toggle(
+          'has-memo',
+          Boolean(item.memo)
         );
-        fields.append(tools, memoLine);
+
+        const setEditing = value => {
+          row.classList.toggle(
+            'is-editing',
+            value
+          );
+        };
+        input.addEventListener(
+          'focus',
+          () => setEditing(true)
+        );
+        memoInput.addEventListener(
+          'focus',
+          () => setEditing(true)
+        );
+        row.addEventListener(
+          'focusout',
+          () => requestAnimationFrame(() => {
+            if (
+              !row.contains(
+                document.activeElement
+              )
+            ) {
+              setEditing(false);
+            }
+          })
+        );
 
         if (linkedNote) {
           const linked =

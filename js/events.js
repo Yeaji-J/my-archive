@@ -757,12 +757,6 @@
       saveCalendarEntry
     );
 
-  $('#calendarEntryDeleteBtn')
-    .addEventListener(
-      'click',
-      deleteCalendarEntry
-    );
-
   starBtn.addEventListener(
     'click',
     () => {

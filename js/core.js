@@ -1556,6 +1556,9 @@ const STORAGE_KEY = 'archive.data.v1';
   const calendarEntryDate =
     $('#calendarEntryDate');
 
+  const calendarEntryTime =
+    $('#calendarEntryTime');
+
   const calendarEntryNote =
     $('#calendarEntryNote');
 

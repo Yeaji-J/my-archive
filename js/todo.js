@@ -47,6 +47,14 @@ const POSTIT_SKINS = [
 ];
 const POSTIT_DEFAULT_ACCENT =
   '#BFD3E6';
+const POSTIT_TRACKER_COLORS = [
+  '#BFD3E6',
+  '#F6D4E2',
+  '#F7E7A9',
+  '#CFE0B9',
+  '#D8CFE7',
+  '#F4C7AE'
+];
 const POSTIT_COLOR_NAMES = {
   '#BFD3E6': '블루',
   '#F6D4E2': '핑크',
@@ -129,11 +137,11 @@ function blankHabitRows(count = 3) {
 
 function blankTimeSlots() {
   return Array.from(
-    { length: 21 },
+    { length: 17 },
     (_, index) => ({
       id: uid(),
       hour: String(
-        (index + 5) % 24
+        (index + 8) % 24
       ).padStart(2, '0'),
       label: '',
       blocks: Array(6).fill('')
@@ -204,6 +212,34 @@ function serializePostitTimeSlots(
   }));
 }
 
+function normalizePostitTimeProjects(
+  value
+) {
+  const projects = {};
+
+  if (
+    !value
+    || typeof value !== 'object'
+    || Array.isArray(value)
+  ) {
+    return projects;
+  }
+
+  Object.entries(value)
+    .forEach(([color, label]) => {
+      const normalizedColor =
+        normalizePostitColor(color, '');
+      if (!normalizedColor) return;
+
+      projects[normalizedColor] =
+        String(label || '')
+          .trimStart()
+          .slice(0, 24);
+    });
+
+  return projects;
+}
+
 function persistPostitTimeSnapshot(
   note,
   data
@@ -221,6 +257,10 @@ function persistPostitTimeSnapshot(
           serializePostitTimeSlots(
             data.timeSlots,
             data.accentColor
+          ),
+        timeProjects:
+          normalizePostitTimeProjects(
+            data.timeProjects
           )
       })
     );
@@ -263,6 +303,14 @@ function restorePostitTimeSnapshot(
     }
 
     data.timeSlots = snapshot.timeSlots;
+    if (
+      snapshot.timeProjects
+      && typeof snapshot.timeProjects
+        === 'object'
+    ) {
+      data.timeProjects =
+        snapshot.timeProjects;
+    }
     note.updatedAt = Math.max(
       Number(note.updatedAt) || 0,
       snapshotSavedAt
@@ -303,7 +351,8 @@ function ensurePostitData(note) {
       weekly: blankWeeklyRows(),
       habitMonth: postitMonthValue(),
       habits: blankHabitRows(),
-      timeSlots: blankTimeSlots()
+      timeSlots: blankTimeSlots(),
+      timeProjects: {}
     };
   }
 
@@ -358,6 +407,10 @@ function ensurePostitData(note) {
   if (!Array.isArray(data.timeSlots)) {
     data.timeSlots = blankTimeSlots();
   }
+  data.timeProjects =
+    normalizePostitTimeProjects(
+      data.timeProjects
+    );
 
   restorePostitTimeSnapshot(
     note,
@@ -390,8 +443,47 @@ function ensurePostitData(note) {
   });
   const fallbackTimeSlots =
     blankTimeSlots();
-  data.timeSlots.length =
-    fallbackTimeSlots.length;
+  const expectedHours =
+    fallbackTimeSlots.map(
+      slot => slot.hour
+    );
+  const hasExpectedHours =
+    data.timeSlots.length
+      === expectedHours.length
+    && data.timeSlots.every(
+      (slot, index) =>
+        String(slot?.hour || '')
+          .padStart(2, '0')
+        === expectedHours[index]
+    );
+
+  if (!hasExpectedHours) {
+    const slotsByHour = new Map(
+      data.timeSlots
+        .filter(
+          slot =>
+            slot
+            && typeof slot === 'object'
+        )
+        .map(slot => [
+          String(slot.hour || '')
+            .padStart(2, '0'),
+          slot
+        ])
+    );
+
+    fallbackTimeSlots.forEach(
+      (fallback, index) => {
+        data.timeSlots[index] =
+          slotsByHour.get(
+            fallback.hour
+          ) || {};
+      }
+    );
+    data.timeSlots.length =
+      fallbackTimeSlots.length;
+  }
+
   fallbackTimeSlots.forEach(
     (fallback, index) => {
       if (
@@ -481,6 +573,7 @@ function schedulePostitSave() {
 function postitPaperClass(data) {
   return [
     'postit-paper',
+    `postit-type-${data.type}`,
     `postit-skin-${data.skin}`,
     `postit-font-${data.font}`
   ].join(' ');
@@ -1026,12 +1119,117 @@ function applyPostitTimeBlock(
   );
   const currentNote = getCurrentNote();
   if (tracker && currentNote) {
+    const data =
+      ensurePostitData(currentNote);
     renderPostitTimeSummary(
       tracker,
-      ensurePostitData(currentNote)
+      data
     );
+    if (
+      normalizedColor
+      && !tracker.querySelector(
+        `[data-time-project-color="${CSS.escape(normalizedColor)}"]`
+      )
+    ) {
+      renderPostitTimeProjects(
+        tracker,
+        data
+      );
+    }
   }
   schedulePostitSave();
+}
+
+function postitTimeProjectColors(data) {
+  const colors = new Set(
+    POSTIT_TRACKER_COLORS
+  );
+
+  colors.add(
+    normalizePostitColor(
+      data.accentColor
+    )
+  );
+  Object.keys(
+    data.timeProjects || {}
+  ).forEach(color => colors.add(color));
+  data.timeSlots.forEach(slot => {
+    slot.blocks.forEach(color => {
+      const normalizedColor =
+        normalizePostitColor(color, '');
+      if (normalizedColor) {
+        colors.add(normalizedColor);
+      }
+    });
+  });
+
+  return [...colors].filter(Boolean);
+}
+
+function renderPostitTimeProjects(
+  tracker,
+  data
+) {
+  let projects = tracker.querySelector(
+    '.postit-time-projects'
+  );
+  if (!projects) {
+    projects = document.createElement('div');
+    projects.className =
+      'postit-time-projects';
+    tracker.prepend(projects);
+  }
+
+  projects.innerHTML = `
+    <span class="postit-time-projects-label">
+      PROJECT COLORS
+    </span>
+    <span class="postit-time-project-fields"></span>
+  `;
+
+  const fields = projects.querySelector(
+    '.postit-time-project-fields'
+  );
+
+  postitTimeProjectColors(data)
+    .forEach(color => {
+      const field =
+        document.createElement('label');
+      field.className =
+        'postit-time-project-field';
+      field.dataset.timeProjectColor =
+        color;
+      field.classList.toggle(
+        'active',
+        color === data.accentColor
+      );
+      field.innerHTML = `
+        <i style="--time-project-color:${color}"></i>
+        <input
+          type="text"
+          maxlength="24"
+          value="${escapeHtml(data.timeProjects[color] || '')}"
+          placeholder="${escapeHtml(POSTIT_COLOR_NAMES[color] || '사용자 색상')} 프로젝트"
+          aria-label="${escapeHtml(POSTIT_COLOR_NAMES[color] || color)} 프로젝트명"
+        >
+      `;
+
+      field.querySelector('input')
+        .addEventListener(
+          'input',
+          event => {
+            data.timeProjects[color] =
+              event.target.value
+                .slice(0, 24);
+            renderPostitTimeSummary(
+              tracker,
+              data
+            );
+            schedulePostitSave();
+          }
+        );
+      fields.appendChild(field);
+    });
 }
 
 function postitTimeTotals(data) {
@@ -1057,7 +1255,11 @@ function postitTimeTotals(data) {
       blocks,
       minutes: blocks * 10,
       label:
-        POSTIT_COLOR_NAMES[color]
+        String(
+          data.timeProjects?.[color]
+          || ''
+        ).trim()
+        || POSTIT_COLOR_NAMES[color]
         || '사용자 색상'
     }));
 
@@ -1125,6 +1327,13 @@ function renderPostitTime(
   tracker.className =
     'postit-time';
 
+  if (!readOnly) {
+    renderPostitTimeProjects(
+      tracker,
+      data
+    );
+  }
+
   const head =
     document.createElement('div');
   head.className =
@@ -1135,7 +1344,6 @@ function renderPostitTime(
       <i>10</i><i>20</i><i>30</i>
       <i>40</i><i>50</i><i>60</i>
     </span>
-    <span>NOTE</span>
   `;
   tracker.appendChild(head);
 
@@ -1257,33 +1465,7 @@ function renderPostitTime(
       }
     );
 
-    const label =
-      document.createElement(
-        readOnly ? 'span' : 'input'
-      );
-    label.className =
-      'postit-time-label';
-
-    if (readOnly) {
-      label.textContent =
-        slot.label || '';
-    } else {
-      label.type = 'text';
-      label.maxLength = 40;
-      label.value =
-        slot.label || '';
-      label.placeholder = '일정';
-      label.addEventListener(
-        'input',
-        event => {
-          slot.label =
-            event.target.value;
-          schedulePostitSave();
-        }
-      );
-    }
-
-    row.append(hour, blocks, label);
+    row.append(hour, blocks);
     tracker.appendChild(row);
   });
 
@@ -1330,7 +1512,10 @@ function renderPostitBody(
     );
   }
 
-  if (data.tags.length) {
+  if (
+    data.type !== 'time'
+    && data.tags.length
+  ) {
     const tags =
       document.createElement('div');
     tags.className =
@@ -1376,6 +1561,12 @@ function renderPostitEditor(
     data.tags.join(', ');
   $('#postitTagPreview').innerHTML =
     postitTagsHtml(data.tags);
+  $('#postitTagsSection').hidden =
+    data.type === 'time';
+  $('#postitColorHelp').textContent =
+    data.type === 'time'
+      ? '색상을 고른 뒤 시간 블럭을 칠하고, 표 안에서 프로젝트명을 지정하세요.'
+      : '체크 표시와 해빗 도트에 적용돼요.';
   $('#postitCustomColor').value =
     data.accentColor;
 
@@ -1420,12 +1611,11 @@ function renderPostitEditor(
       ? '+ 습관 추가'
       : data.type === 'weekly'
         ? '7일 구성'
-        : data.type === 'time'
-          ? '10분 단위 구성'
         : '+ 항목 추가';
+  $('#postitAddRowBtn').hidden =
+    data.type === 'time';
   $('#postitAddRowBtn').disabled =
-    data.type === 'weekly'
-    || data.type === 'time';
+    data.type === 'weekly';
 
   renderPostitBody(
     $('#postitEditorContent'),
@@ -1504,7 +1694,10 @@ function postitSearchText(note) {
     ...data.items.map(item => item.memo),
     ...data.weekly.map(item => item.text),
     ...data.habits.map(item => item.text),
-    ...data.timeSlots.map(item => item.label)
+    ...data.timeSlots.map(item => item.label),
+    ...Object.values(
+      data.timeProjects || {}
+    )
   ];
 
   return parts
@@ -1851,6 +2044,18 @@ function setPostitAccentColor(value) {
           === data.accentColor
       );
     });
+
+  if (data.type === 'time') {
+    const tracker = document.querySelector(
+      '#postitEditorContent .postit-time'
+    );
+    if (tracker) {
+      renderPostitTimeProjects(
+        tracker,
+        data
+      );
+    }
+  }
 
   schedulePostitSave();
 }

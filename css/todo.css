@@ -216,6 +216,13 @@
     rgba(92, 54, 33, .2);
 }
 
+.postit-paper-stage
+> .postit-paper.postit-type-time {
+  min-height: 812px;
+  aspect-ratio: auto;
+  overflow: hidden;
+}
+
 .postit-paper {
   --postit-paper: var(--archive-surface-blue);
   --postit-ink: #5C3621;
@@ -698,11 +705,87 @@ input::placeholder {
   user-select: none;
 }
 
+.postit-time-projects {
+  display: grid;
+  min-height: 82px;
+  padding: 10px 8px 12px;
+  grid-template-columns:
+    78px minmax(0, 1fr);
+  align-items: start;
+  gap: 10px;
+  border-bottom: 1px solid
+    rgba(92, 54, 33, .25);
+  background: rgba(255, 255, 255, .13);
+  user-select: text;
+}
+
+.postit-time-projects-label {
+  padding-top: 7px;
+  color: rgba(92, 54, 33, .48);
+  font-size: 7px;
+  font-weight: 750;
+  letter-spacing: .12em;
+}
+
+.postit-time-project-fields {
+  display: grid;
+  min-width: 0;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 6px 10px;
+}
+
+.postit-time-project-field {
+  display: grid;
+  min-width: 0;
+  grid-template-columns: 12px minmax(0, 1fr);
+  align-items: center;
+  gap: 5px;
+}
+
+.postit-time-project-field i {
+  width: 11px;
+  height: 11px;
+  border: 1px solid
+    rgba(92, 54, 33, .1);
+  border-radius: 3px;
+  background: var(--time-project-color);
+}
+
+.postit-time-project-field.active i {
+  outline: 2px solid
+    rgba(92, 54, 33, .22);
+  outline-offset: 2px;
+}
+
+.postit-time-project-field input {
+  min-width: 0;
+  height: 24px;
+  padding: 0 6px;
+  border: 0;
+  border-bottom: 1px solid
+    rgba(92, 54, 33, .18);
+  outline: 0;
+  background: transparent;
+  color: var(--postit-ink);
+  font: inherit;
+  font-size: 9px;
+}
+
+.postit-time-project-field input:focus {
+  border-color: var(--postit-accent);
+}
+
+.postit-time-project-field
+input::placeholder {
+  color: rgba(92, 54, 33, .34);
+}
+
 .postit-time-head,
 .postit-time-row {
   display: grid;
   grid-template-columns:
-    32px minmax(0, 1fr) 118px;
+    32px minmax(0, 1fr);
 }
 
 .postit-time-head {
@@ -718,10 +801,6 @@ input::placeholder {
 .postit-time-head > span:first-child,
 .postit-time-hour {
   text-align: center;
-}
-
-.postit-time-head > span:last-child {
-  padding-left: 9px;
 }
 
 .postit-time-minutes,
@@ -789,26 +868,6 @@ input::placeholder {
 
 button.postit-time-cell:hover {
   filter: brightness(.94);
-}
-
-.postit-time-label {
-  min-width: 0;
-  width: 100%;
-  padding: 3px 5px 2px 9px;
-  overflow: hidden;
-  border: 0;
-  outline: 0;
-  background: transparent;
-  color: var(--postit-ink);
-  font: inherit;
-  font-size: .68em;
-  line-height: 1.2;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.postit-time-label::placeholder {
-  color: rgba(92, 54, 33, .28);
 }
 
 .postit-time-summary {
@@ -1360,7 +1419,7 @@ button.postit-time-cell:hover {
 .postit-paper-preview
 .postit-time-row {
   grid-template-columns:
-    20px minmax(0, 1fr) 65px;
+    20px minmax(0, 1fr);
 }
 
 .postit-paper-preview
@@ -1376,12 +1435,6 @@ button.postit-time-cell:hover {
 
 .postit-paper-preview
 .postit-time-hour {
-  font-size: 5px;
-}
-
-.postit-paper-preview
-.postit-time-label {
-  padding: 1px 2px 1px 4px;
   font-size: 5px;
 }
 

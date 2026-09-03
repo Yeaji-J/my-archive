@@ -216,9 +216,11 @@ Design/behavior:
 - todo/wish/shopping use checkable rows
 - todo-list rows include an optional second-line memo for URLs, file locations, or context; detected `http(s)`/`www` addresses are safe clickable links in read-only views and expose a direct link action while editing
 - habit tracker uses per-item day dots; month-day counts should respect 30/31-day context where applicable
-- time tracker colors time blocks. Clicking a filled block again should clear it. Switching selected color must not recolor or erase blocks already painted with other colors.
+- time tracker colors time blocks from `08` through `00`. Clicking a filled block again should clear it. Switching selected color must not recolor or erase blocks already painted with other colors. Existing matching hours are migrated by hour rather than array position so shortening the visible range does not shift saved records.
 - default color chips use lighter Archive-compatible tints; legacy darker block colors remain valid and retain their color names in summaries
+- the time tracker has no row-level NOTE column. Its paper area instead provides a short saved project name per color (including custom colors), and those names appear in the duration summary
 - the time tracker alone shows a live color-by-color duration summary and a final total; every painted block counts as exactly 10 minutes, and the summary is derived from saved block colors rather than stored separately
+- the time tracker hides the post-it tag controls and the disabled “10분 단위 구성” button. Its editor paper expands with content and must not have an internal vertical scrollbar; normal page-level scrolling is allowed
 - all tracker state must auto-save and restore
 - right-side controls are intentionally more readable/larger than the first tiny version
 

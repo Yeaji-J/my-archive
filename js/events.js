@@ -281,6 +281,13 @@
       }
 
       if (
+        !$('#postitNoteLinkModal')
+          .hidden
+      ) {
+        closePostitNoteLinkModal();
+      }
+
+      if (
         !calendarEntryModal.hidden
       ) {
         closeCalendarEntry();
@@ -756,42 +763,6 @@
       deleteCalendarEntry
     );
 
-  calendarPhotoInput
-    .addEventListener(
-      'change',
-      previewCalendarPhoto
-    );
-
-  bindImageDropTarget(
-    $('#calendarPhotoPicker'),
-    files =>
-      previewCalendarPhoto(files[0]),
-    {
-      onError: message => {
-        calendarEntryMessage
-          .textContent = message;
-      }
-    }
-  );
-
-  calendarEntryModal
-    .addEventListener(
-      'paste',
-      event => {
-        const images =
-          clipboardImageFiles(
-            event.clipboardData
-          );
-
-        if (!images.length) return;
-
-        event.preventDefault();
-        previewCalendarPhoto(
-          images[0]
-        );
-      }
-    );
-
   starBtn.addEventListener(
     'click',
     () => {
@@ -909,6 +880,11 @@
           !newChatModal.hidden
         ) {
           closeNewChat();
+        } else if (
+          !$('#postitNoteLinkModal')
+            .hidden
+        ) {
+          closePostitNoteLinkModal();
         } else if (
           !calendarEntryModal.hidden
         ) {

@@ -92,6 +92,8 @@ const POSTIT_WEEKDAYS = [
 let postitSaveTimer = null;
 let postitTimePainting = false;
 let postitTimePaintColor = '';
+let postitLinkTargetNoteId = null;
+let postitLinkTargetItemId = null;
 
 function postitMonthValue() {
   const date = new Date();
@@ -109,6 +111,7 @@ function blankPostitItems(count = 10) {
       id: uid(),
       text: '',
       memo: '',
+      linkedNoteId: '',
       done: false
     })
   );
@@ -421,6 +424,9 @@ function ensurePostitData(note) {
     item.id = item.id || uid();
     item.text = item.text || '';
     item.memo = String(item.memo || '');
+    item.linkedNoteId = String(
+      item.linkedNoteId || ''
+    );
     item.done = Boolean(item.done);
   });
   data.weekly = POSTIT_WEEKDAYS.map(
@@ -666,6 +672,136 @@ function syncPostitMemoLink(anchor, value) {
   anchor.title = `${link.label} 열기`;
 }
 
+function postitLinkedNote(item) {
+  return state.notes.find(
+    note => note.id === item.linkedNoteId
+  ) || null;
+}
+
+function postitLinkedNoteLabel(note) {
+  const template = note.template || 'memo';
+  if (template === 'todo') {
+    return POSTIT_TYPES[
+      ensurePostitData(note).type
+    ]?.label || '포스트잇';
+  }
+  return ({
+    memo: '메모',
+    moodboard: '무드보드',
+    links: '링크',
+    collection: '컬렉션'
+  })[template] || '자료';
+}
+
+function renderPostitNoteLinkResults(
+  query = ''
+) {
+  const results =
+    $('#postitNoteLinkResults');
+  if (!results) return;
+
+  const term = String(query)
+    .trim()
+    .toLowerCase();
+  const notes = state.notes
+    .filter(
+      note =>
+        note.id !== postitLinkTargetNoteId
+    )
+    .filter(note => {
+      if (!term) return true;
+      const searchable =
+        typeof templateSearchText
+          === 'function'
+          ? templateSearchText(note)
+          : `${note.title || ''} ${note.content || ''}`
+            .toLowerCase();
+      return searchable.includes(term);
+    })
+    .sort(
+      (first, second) =>
+        Number(second.updatedAt)
+        - Number(first.updatedAt)
+    )
+    .slice(0, 40);
+
+  results.innerHTML = '';
+  if (!notes.length) {
+    results.innerHTML = `
+      <p class="postit-note-link-empty">
+        연결할 자료를 찾지 못했어요.
+      </p>
+    `;
+    return;
+  }
+
+  notes.forEach(note => {
+    const folder = state.folders.find(
+      item => item.id === note.folderId
+    );
+    const button =
+      document.createElement('button');
+    button.type = 'button';
+    button.className =
+      'postit-note-link-result';
+    button.innerHTML = `
+      <i class="postit-folder-glyph" aria-hidden="true"></i>
+      <span>
+        <small>${escapeHtml(postitLinkedNoteLabel(note))}${folder ? ` · ${escapeHtml(folder.name)}` : ''}</small>
+        <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+      </span>
+    `;
+    button.addEventListener(
+      'click',
+      () => {
+        const targetNote = state.notes.find(
+          item =>
+            item.id === postitLinkTargetNoteId
+        );
+        if (!targetNote) return;
+        const targetItem =
+          ensurePostitData(targetNote)
+            .items.find(
+              item =>
+                item.id === postitLinkTargetItemId
+            );
+        if (!targetItem) return;
+        targetItem.linkedNoteId = note.id;
+        schedulePostitSave();
+        closePostitNoteLinkModal();
+        renderPostitEditor(targetNote);
+      }
+    );
+    results.appendChild(button);
+  });
+}
+
+function openPostitNoteLinkModal(
+  note,
+  item
+) {
+  postitLinkTargetNoteId = note.id;
+  postitLinkTargetItemId = item.id;
+  const search =
+    $('#postitNoteLinkSearch');
+  search.value = '';
+  renderPostitNoteLinkResults();
+  $('#postitNoteLinkModal').hidden =
+    false;
+  scrim.classList.add('visible');
+  setTimeout(() => search.focus(), 30);
+}
+
+function closePostitNoteLinkModal() {
+  const modal =
+    $('#postitNoteLinkModal');
+  if (!modal || modal.hidden) return;
+  modal.hidden = true;
+  postitLinkTargetNoteId = null;
+  postitLinkTargetItemId = null;
+  scrim.classList.remove('visible');
+}
+
 function renderPostitList(
   container,
   note,
@@ -762,6 +898,9 @@ function renderPostitList(
     fields.appendChild(input);
 
     if (data.type === 'todo') {
+      const linkedNote =
+        postitLinkedNote(item);
+
       if (readOnly) {
         if (item.memo) {
           const memo =
@@ -773,11 +912,67 @@ function renderPostitList(
           );
           fields.appendChild(memo);
         }
+
+        if (linkedNote) {
+          const linked =
+            document.createElement('span');
+          linked.className =
+            'postit-linked-note';
+          linked.innerHTML = `
+            <i class="postit-folder-glyph" aria-hidden="true"></i>
+            <span>${escapeHtml(linkedNote.title || '제목 없음')}</span>
+          `;
+          fields.appendChild(linked);
+        }
       } else {
+        const tools =
+          document.createElement('div');
+        tools.className =
+          'postit-item-tools';
+
+        const memoToggle =
+          document.createElement('button');
+        memoToggle.type = 'button';
+        memoToggle.className =
+          'postit-item-extra-btn';
+        memoToggle.textContent = '+';
+        memoToggle.title = '추가 메모';
+        memoToggle.setAttribute(
+          'aria-label',
+          '추가 메모 열기'
+        );
+
+        const noteLinkButton =
+          document.createElement('button');
+        noteLinkButton.type = 'button';
+        noteLinkButton.className =
+          'postit-item-extra-btn postit-item-note-link-btn'
+          + (linkedNote ? ' active' : '');
+        noteLinkButton.innerHTML = `
+          <span>+</span>
+          <i class="postit-folder-glyph" aria-hidden="true"></i>
+        `;
+        noteLinkButton.title =
+          linkedNote
+            ? '연결 자료 변경'
+            : '자료 연결';
+        noteLinkButton.setAttribute(
+          'aria-label',
+          noteLinkButton.title
+        );
+        noteLinkButton.addEventListener(
+          'click',
+          () => openPostitNoteLinkModal(
+            note,
+            item
+          )
+        );
+
         const memoLine =
           document.createElement('div');
         memoLine.className =
           'postit-item-memo-line';
+        memoLine.hidden = !item.memo;
 
         const memoInput =
           document.createElement('input');
@@ -814,11 +1009,75 @@ function renderPostitList(
           }
         );
 
+        memoToggle.classList.toggle(
+          'active',
+          Boolean(item.memo)
+        );
+        memoToggle.addEventListener(
+          'click',
+          () => {
+            memoLine.hidden =
+              !memoLine.hidden;
+            memoToggle.classList.toggle(
+              'active',
+              !memoLine.hidden
+            );
+            if (!memoLine.hidden) {
+              memoInput.focus();
+            }
+          }
+        );
+
         memoLine.append(
           memoInput,
           memoLink
         );
-        fields.appendChild(memoLine);
+        tools.append(
+          memoToggle,
+          noteLinkButton
+        );
+        fields.append(tools, memoLine);
+
+        if (linkedNote) {
+          const linked =
+            document.createElement('div');
+          linked.className =
+            'postit-linked-note';
+          linked.innerHTML = `
+            <button type="button" class="postit-linked-note-open">
+              <i class="postit-folder-glyph" aria-hidden="true"></i>
+              <span>${escapeHtml(linkedNote.title || '제목 없음')}</span>
+            </button>
+            <button type="button" class="postit-linked-note-remove" aria-label="연결 해제">×</button>
+          `;
+          linked.querySelector(
+            '.postit-linked-note-open'
+          ).addEventListener(
+            'click',
+            () => {
+              if (
+                typeof persistCurrentNote
+                === 'function'
+              ) {
+                persistCurrentNote();
+              }
+              openNoteView(
+                linkedNote.id
+              );
+            }
+          );
+          linked.querySelector(
+            '.postit-linked-note-remove'
+          ).addEventListener(
+            'click',
+            () => {
+              item.linkedNoteId = '';
+              renderPostitEditor(note);
+              schedulePostitSave();
+            }
+          );
+          fields.appendChild(linked);
+        }
       }
     }
 
@@ -1662,6 +1921,7 @@ function addPostitRow() {
       id: uid(),
       text: '',
       memo: '',
+      linkedNoteId: '',
       done: false
     });
   }
@@ -1670,7 +1930,7 @@ function addPostitRow() {
   schedulePostitSave();
 
   requestAnimationFrame(() => {
-    $('#postitEditorContent input:last-of-type')
+    $('#postitEditorContent .postit-list-row:last-child .postit-item-title')
       ?.focus();
   });
 }
@@ -2203,4 +2463,19 @@ $('#postitAddRowBtn')
   ?.addEventListener(
     'click',
     addPostitRow
+  );
+
+$('#postitNoteLinkCloseBtn')
+  ?.addEventListener(
+    'click',
+    closePostitNoteLinkModal
+  );
+
+$('#postitNoteLinkSearch')
+  ?.addEventListener(
+    'input',
+    event =>
+      renderPostitNoteLinkResults(
+        event.target.value
+      )
   );

@@ -193,17 +193,6 @@
   color: #fff;
 }
 
-.calendar-day-photo {
-  width: clamp(30px, 5.2vh, 50px);
-  aspect-ratio: 1;
-  margin: 0 0 6px;
-  display: block;
-  object-fit: cover;
-  border-radius: 10px;
-  box-shadow:
-    0 3px 10px rgba(0, 0, 0, 0.12);
-}
-
 .calendar-day-note {
   display: -webkit-box;
   overflow: hidden;
@@ -213,6 +202,62 @@
   word-break: break-word;
   -webkit-box-orient: vertical;
   -webkit-line-clamp: 2;
+}
+
+.calendar-day-records {
+  display: flex;
+  min-width: 0;
+  margin-top: 6px;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendar-day-record {
+  display: grid;
+  min-width: 0;
+  padding: 3px 5px;
+  grid-template-columns:
+    6px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 4px;
+  border-radius: 5px;
+  background: #f2f6f9;
+  color: #5c6874;
+  font-size: 8.5px;
+}
+
+.calendar-day-record-time {
+  background: #fff8db;
+}
+
+.calendar-day-record i {
+  width: 6px;
+  height: 6px;
+  border-radius: 2px;
+  background: #9db8d2;
+}
+
+.calendar-day-record-time i {
+  background: #e7c967;
+}
+
+.calendar-day-record > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-day-record strong {
+  font-size: 8px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.calendar-day-more {
+  color: #86868b;
+  font-size: 8px;
+  text-align: right;
 }
 
 .calendar-day.has-entry::after {
@@ -230,7 +275,9 @@
 
 .calendar-entry-card {
   position: relative;
-  width: min(440px, calc(100vw - 32px));
+  width: min(720px, calc(100vw - 32px));
+  max-height: min(820px, calc(100vh - 32px));
+  overflow-y: auto;
 }
 
 .calendar-entry-card h3 {
@@ -269,56 +316,6 @@
     0 0 0 3px rgba(0, 113, 227, 0.1);
 }
 
-.calendar-photo-picker {
-  width: 132px;
-  aspect-ratio: 1;
-  display: block;
-  overflow: hidden;
-  border: 1px dashed rgba(0, 0, 0, 0.16);
-  border-radius: 16px;
-  background: var(--bg);
-  cursor: pointer;
-}
-
-.calendar-photo-picker.image-drag-over {
-  border-color: #86a9cf;
-  background: #eff5fb;
-  box-shadow:
-    0 0 0 4px rgba(134, 169, 207, .12);
-}
-
-.calendar-photo-empty {
-  height: 100%;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  color: var(--text-secondary);
-}
-
-.calendar-photo-empty svg {
-  width: 28px;
-  height: 28px;
-  margin-bottom: 8px;
-}
-
-.calendar-photo-empty span {
-  font-size: 12px;
-  font-weight: 650;
-}
-
-.calendar-photo-empty small {
-  margin-top: 3px;
-  color: var(--text-tertiary);
-  font-size: 9.5px;
-}
-
-.calendar-photo-picker img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
 .calendar-entry-actions {
   margin-top: 18px;
   display: flex;
@@ -333,4 +330,109 @@
 
 .calendar-delete-btn.visible {
   visibility: visible;
+}
+
+.calendar-date-notes-section {
+  margin-top: 22px;
+  padding-top: 18px;
+  border-top: 1px solid #e7e7e9;
+}
+
+.calendar-date-notes-head {
+  display: flex;
+  margin-bottom: 10px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.calendar-date-notes-head strong {
+  color: #3a3a3c;
+  font-size: 13px;
+}
+
+.calendar-date-notes-head span {
+  display: grid;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  place-items: center;
+  border-radius: 999px;
+  background: #f1f3f5;
+  color: #6e6e73;
+  font-size: 10px;
+}
+
+.calendar-date-notes {
+  display: grid;
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.calendar-date-note {
+  position: relative;
+  min-width: 0;
+  min-height: 82px;
+  padding: 13px 14px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  overflow: hidden;
+  border: 1px solid rgba(92, 54, 33, .08);
+  border-radius: 10px;
+  background: #fbf8f2;
+  color: #5C3621;
+  text-align: left;
+  cursor: pointer;
+}
+
+.calendar-date-note-todo {
+  background: #f8f5de;
+}
+
+.calendar-date-note-moodboard {
+  background: #edf3f6;
+}
+
+.calendar-date-note-type {
+  margin-bottom: 5px;
+  color: #7c8d9e;
+  font-size: 8px;
+  font-weight: 750;
+  letter-spacing: .08em;
+}
+
+.calendar-date-note strong,
+.calendar-date-note small {
+  width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendar-date-note strong {
+  font-size: 12.5px;
+}
+
+.calendar-date-note small {
+  margin-top: 5px;
+  color: rgba(92, 54, 33, .58);
+  font-size: 10px;
+}
+
+.calendar-date-notes-empty {
+  grid-column: 1 / -1;
+  margin: 0;
+  padding: 18px;
+  border: 1px dashed #dddde1;
+  border-radius: 10px;
+  color: #98989d;
+  font-size: 11px;
+  text-align: center;
+}
+
+@media (max-width: 640px) {
+  .calendar-date-notes {
+    grid-template-columns: 1fr;
+  }
 }

@@ -26,8 +26,8 @@
   <link rel="stylesheet" href="css/base.css?v=20260828-storage-guard1">
   <link rel="stylesheet" href="css/notes.css?v=20260903-moodboard-title-gap1">
   <link rel="stylesheet" href="css/chat.css?v=20260902-chat-controls1">
-  <link rel="stylesheet" href="css/todo.css?v=20260903-time-projects4">
-  <link rel="stylesheet" href="css/calendar.css?v=20260724-media4">
+  <link rel="stylesheet" href="css/todo.css?v=20260903-calendar-links1">
+  <link rel="stylesheet" href="css/calendar.css?v=20260903-note-feed1">
   <link rel="stylesheet" href="css/home.css?v=20260902-chat-font1">
   <link rel="stylesheet" href="css/responsive-theme.css?v=20260812-folder-visual1">
   <link rel="stylesheet" href="css/theme.css?v=20260724-skin-switch1">
@@ -721,7 +721,7 @@
               </h1>
 
               <p>
-                하루의 짧은 기록과 사진을 남겨보세요.
+                일정과 오늘 만든 자료를 한눈에 확인해보세요.
               </p>
             </div>
 
@@ -1390,6 +1390,27 @@
 
   <div class="scrim" id="scrim"></div>
 
+  <!-- Post-it linked note picker -->
+  <div class="modal" id="postitNoteLinkModal" hidden>
+    <div class="modal-card postit-note-link-card">
+      <button
+        class="auth-close"
+        id="postitNoteLinkCloseBtn"
+        type="button"
+        aria-label="닫기"
+      >×</button>
+      <span class="postit-note-link-eyebrow">LINK ARCHIVE</span>
+      <h3>자료 연결</h3>
+      <input
+        type="search"
+        id="postitNoteLinkSearch"
+        placeholder="제목이나 내용으로 검색"
+        autocomplete="off"
+      >
+      <div class="postit-note-link-results" id="postitNoteLinkResults"></div>
+    </div>
+  </div>
+
   <!-- Calendar modal -->
   <div
     class="modal"
@@ -1411,65 +1432,15 @@
         id="calendarEntryDate"
       ></span>
 
-      <h3>오늘의 기록</h3>
+      <h3 id="calendarEntryHeading">일정 추가</h3>
 
       <form id="calendarEntryForm">
         <textarea
           id="calendarEntryNote"
           maxlength="300"
           rows="4"
-          placeholder="오늘 기억하고 싶은 순간을 적어보세요."
+          placeholder="시간과 할 일을 포함해 일정을 입력하세요."
         ></textarea>
-
-        <label
-          class="calendar-photo-picker"
-          id="calendarPhotoPicker"
-          for="calendarPhotoInput"
-        >
-          <input
-            type="file"
-            id="calendarPhotoInput"
-            accept="image/*"
-            hidden
-          >
-
-          <div
-            class="calendar-photo-empty"
-            id="calendarPhotoEmpty"
-          >
-            <svg viewBox="0 0 24 24">
-              <rect
-                x="3"
-                y="4"
-                width="18"
-                height="16"
-                rx="3"
-                stroke-width="1.5"
-              />
-              <circle
-                cx="9"
-                cy="10"
-                r="2"
-                stroke-width="1.5"
-              />
-              <path
-                d="M4 17l4.5-4 3.5 3 3-2.5 5 4.5"
-                stroke-linecap="round"
-                stroke-linejoin="round"
-                stroke-width="1.5"
-              />
-            </svg>
-
-            <span>사진 첨부</span>
-            <small>붙여넣기·드롭도 가능해요</small>
-          </div>
-
-          <img
-            id="calendarPhotoPreview"
-            alt="첨부 사진 미리보기"
-            hidden
-          >
-        </label>
 
         <div class="calendar-entry-actions">
           <button
@@ -1477,7 +1448,7 @@
             class="text-btn calendar-delete-btn"
             id="calendarEntryDeleteBtn"
           >
-            기록 삭제
+            일정 삭제
           </button>
 
           <button
@@ -1494,6 +1465,14 @@
           id="calendarEntryMessage"
         ></p>
       </form>
+
+      <section class="calendar-date-notes-section">
+        <div class="calendar-date-notes-head">
+          <strong>이날 올라온 자료</strong>
+          <span id="calendarDateNotesCount">0</span>
+        </div>
+        <div class="calendar-date-notes" id="calendarDateNotes"></div>
+      </section>
     </div>
   </div>
 
@@ -1691,13 +1670,13 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260902-chat-visible1"></script>
+  <script src="js/core.js?v=20260903-calendar-links1"></script>
   <script src="js/notes.js?v=20260902-memo-tags1"></script>
-  <script src="js/todo.js?v=20260903-time-projects3"></script>
+  <script src="js/todo.js?v=20260903-calendar-links1"></script>
   <script src="js/folders.js?v=20260828-storage-guard1"></script>
   <script src="js/auth.js?v=20260828-storage-guard1"></script>
   <script src="js/chat.js?v=20260902-chat-controls1"></script>
-  <script src="js/calendar.js?v=20260724-media4"></script>
+  <script src="js/calendar.js?v=20260903-note-feed1"></script>
   <script src="js/home.js?v=20260812-folder-visual2"></script>
   <script src="js/memo.js?v=20260902-memo-tags1"></script>
   <script src="js/moodboard.js?v=20260903-template-preserve1"></script>
@@ -1705,7 +1684,7 @@
   <script src="js/note-view.js?v=20260902-memo-tags1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260828-storage-guard1"></script>
-  <script src="js/events.js?v=20260902-chat-controls1"></script>
+  <script src="js/events.js?v=20260903-calendar-links1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

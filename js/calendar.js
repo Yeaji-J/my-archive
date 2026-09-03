@@ -16,6 +16,102 @@
     return `${year}-${month}-${day}`;
   }
 
+  function calendarNoteDateKey(note) {
+    const rawTimestamp =
+      note?.createdAt
+      || note?.updatedAt;
+    const timestamp =
+      Number(rawTimestamp)
+      || Date.parse(rawTimestamp);
+    if (!timestamp) return '';
+    return dateKey(new Date(timestamp));
+  }
+
+  function calendarNotesForDate(key) {
+    return (state.notes || [])
+      .filter(note =>
+        ['memo', 'todo', 'moodboard']
+          .includes(note.template || 'memo')
+        && calendarNoteDateKey(note) === key
+      )
+      .sort(
+        (first, second) =>
+          Number(second.createdAt || second.updatedAt)
+          - Number(first.createdAt || first.updatedAt)
+      );
+  }
+
+  function calendarNoteTypeLabel(note) {
+    const template = note.template || 'memo';
+    if (template === 'todo') {
+      return POSTIT_TYPES[
+        ensurePostitData(note).type
+      ]?.label || '포스트잇';
+    }
+    return template === 'moodboard'
+      ? '무드보드'
+      : '메모';
+  }
+
+  function calendarNoteSummary(note) {
+    const template = note.template || 'memo';
+    if (template === 'todo') {
+      const data = ensurePostitData(note);
+      if (data.type === 'time') {
+        return `총 ${postitTimeTotals(data).totalMinutes}분 기록`;
+      }
+      if (data.type === 'weekly') {
+        return data.weekly
+          .map(item => item.text)
+          .filter(Boolean)
+          .slice(0, 2)
+          .join(' · ')
+          || '아직 작성된 계획이 없어요.';
+      }
+      if (data.type === 'habit') {
+        return data.habits
+          .map(item => item.text)
+          .filter(Boolean)
+          .slice(0, 2)
+          .join(' · ')
+          || '아직 작성된 습관이 없어요.';
+      }
+      return data.items
+        .map(item => item.text)
+        .filter(Boolean)
+        .slice(0, 2)
+        .join(' · ')
+        || '아직 작성된 항목이 없어요.';
+    }
+    if (template === 'moodboard') {
+      const count =
+        note.moodboard?.items?.length || 0;
+      return `이미지와 텍스트 ${count}개`;
+    }
+    return String(
+      note.content
+      || note.memoData?.html
+      || ''
+    )
+      .replace(/<[^>]*>/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .slice(0, 90)
+      || '내용 없는 메모';
+  }
+
+  function calendarFeaturedNotes(notes) {
+    return notes.filter(note => {
+      if (note.template !== 'todo') {
+        return false;
+      }
+      const type =
+        ensurePostitData(note).type;
+      return type === 'todo'
+        || type === 'time';
+    });
+  }
+
   async function loadCalendarEntries() {
     if (!currentUser) return;
 
@@ -58,30 +154,12 @@
 
     calendarEntries.clear();
 
-    await Promise.all(
-      (data || []).map(
-        async entry => {
-          if (entry.image_path) {
-            const { data: signedData } =
-              await cloud.storage
-                .from('calendar-images')
-                .createSignedUrl(
-                  entry.image_path,
-                  3600
-                );
-
-            entry.image_url =
-              signedData?.signedUrl
-              || '';
-          }
-
-          calendarEntries.set(
-            entry.entry_date,
-            entry
-          );
-        }
-      )
-    );
+    (data || []).forEach(entry => {
+      calendarEntries.set(
+        entry.entry_date,
+        entry
+      );
+    });
 
     renderCalendar();
   }
@@ -189,6 +267,12 @@
         outside
           ? null
           : calendarEntries.get(key);
+      const notes =
+        outside
+          ? []
+          : calendarNotesForDate(key);
+      const featuredNotes =
+        calendarFeaturedNotes(notes);
 
       const cell =
         document.createElement(
@@ -215,21 +299,10 @@
             : ''
         )
         + (
-          entry
+          entry || notes.length
             ? ' has-entry'
             : ''
         );
-
-      const photoHtml =
-        entry?.image_url
-          ? `
-            <img
-              class="calendar-day-photo"
-              src="${entry.image_url}"
-              alt=""
-            >
-          `
-          : '';
 
       const noteHtml =
         entry?.note
@@ -240,13 +313,48 @@
           `
           : '';
 
+      const featuredHtml =
+        featuredNotes
+          .slice(0, 2)
+          .map(note => {
+            const data =
+              ensurePostitData(note);
+            const detail =
+              data.type === 'time'
+                ? `${postitTimeTotals(data).totalMinutes}분`
+                : `${
+                    data.items.filter(
+                      item =>
+                        item.text
+                        && !item.done
+                    ).length
+                  }개 남음`;
+
+            return `
+              <span class="calendar-day-record calendar-day-record-${data.type}">
+                <i></i>
+                <span>${escapeHtml(note.title || data.heading)}</span>
+                <strong>${detail}</strong>
+              </span>
+            `;
+          })
+          .join('');
+
+      const moreHtml =
+        featuredNotes.length > 2
+          ? `<span class="calendar-day-more">+${featuredNotes.length - 2}</span>`
+          : '';
+
       cell.innerHTML = `
         <span class="calendar-day-number">
           ${day}
         </span>
 
-        ${photoHtml}
         ${noteHtml}
+        <span class="calendar-day-records">
+          ${featuredHtml}
+          ${moreHtml}
+        </span>
       `;
 
       cell.addEventListener(
@@ -258,6 +366,51 @@
 
       calendarGrid.appendChild(cell);
     }
+  }
+
+  function renderCalendarDateNotes(
+    key
+  ) {
+    const list = $('#calendarDateNotes');
+    if (!list) return;
+
+    const notes =
+      calendarNotesForDate(key);
+    $('#calendarDateNotesCount')
+      .textContent = String(notes.length);
+    list.innerHTML = '';
+
+    if (!notes.length) {
+      list.innerHTML = `
+        <p class="calendar-date-notes-empty">
+          이 날짜에 올라온 자료가 없어요.
+        </p>
+      `;
+      return;
+    }
+
+    notes.forEach(note => {
+      const button =
+        document.createElement('button');
+      button.type = 'button';
+      button.className =
+        `calendar-date-note calendar-date-note-${note.template || 'memo'}`;
+      button.innerHTML = `
+        <span class="calendar-date-note-type">
+          ${escapeHtml(calendarNoteTypeLabel(note))}
+        </span>
+        <strong>${escapeHtml(note.title || '제목 없음')}</strong>
+        <small>${escapeHtml(calendarNoteSummary(note))}</small>
+      `;
+      button.addEventListener(
+        'click',
+        () => {
+          closeCalendarEntry();
+          openNoteView(note.id);
+        }
+      );
+      list.appendChild(button);
+    });
   }
 
   function openCalendarEntry(date) {
@@ -274,8 +427,6 @@
         selectedCalendarDate
       ) || null;
 
-    selectedCalendarFile = null;
-
     calendarEntryDate.textContent =
       date.toLocaleDateString(
         'ko-KR',
@@ -291,14 +442,14 @@
       selectedCalendarEntry?.note
       || '';
 
-    calendarPhotoInput.value = '';
-
     calendarEntryMessage.textContent =
       '';
-
-    showCalendarPreview(
-      selectedCalendarEntry?.image_url
-      || ''
+    $('#calendarEntryHeading').textContent =
+      selectedCalendarEntry
+        ? '일정 수정'
+        : '일정 추가';
+    renderCalendarDateNotes(
+      selectedCalendarDate
     );
 
     $('#calendarEntryDeleteBtn')
@@ -321,70 +472,9 @@
     );
   }
 
-  function showCalendarPreview(url) {
-    calendarPhotoPreview.hidden =
-      !url;
-
-    calendarPhotoEmpty.hidden =
-      Boolean(url);
-
-    if (url) {
-      calendarPhotoPreview.src = url;
-    } else {
-      calendarPhotoPreview
-        .removeAttribute('src');
-    }
-  }
-
   function closeCalendarEntry() {
     calendarEntryModal.hidden = true;
     scrim.classList.remove('visible');
-
-    selectedCalendarFile = null;
-  }
-
-  function previewCalendarPhoto(
-    source
-  ) {
-    const file =
-      source?.type
-        ?.startsWith('image/')
-        ? source
-        : calendarPhotoInput
-          .files?.[0];
-
-    if (!file) return;
-
-    calendarEntryMessage.textContent =
-      '';
-
-    if (
-      !file.type.startsWith('image/')
-    ) {
-      calendarEntryMessage.textContent =
-        '이미지 파일만 첨부할 수 있어요.';
-
-      calendarPhotoInput.value = '';
-      return;
-    }
-
-    if (
-      file.size
-      > 5 * 1024 * 1024
-    ) {
-      calendarEntryMessage.textContent =
-        '사진은 5MB 이하로 선택해주세요.';
-
-      calendarPhotoInput.value = '';
-      return;
-    }
-
-    selectedCalendarFile = file;
-
-    const previewUrl =
-      URL.createObjectURL(file);
-
-    showCalendarPreview(previewUrl);
   }
 
   async function saveCalendarEntry(
@@ -407,77 +497,19 @@
     calendarEntryMessage.textContent =
       '저장 중…';
 
-    let imagePath =
+    const imagePath =
       selectedCalendarEntry
         ?.image_path
       || null;
-
-    if (selectedCalendarFile) {
-      const extension = (
-        selectedCalendarFile.name
-          .split('.')
-          .pop()
-        || 'jpg'
-      )
-        .replace(
-          /[^a-z0-9]/gi,
-          ''
-        )
-        .toLowerCase();
-
-      const newPath =
-        `${currentUser.id}/`
-        + `${selectedCalendarDate}-`
-        + `${Date.now()}.${extension}`;
-
-      const {
-        error: uploadError
-      } = await cloud.storage
-        .from('calendar-images')
-        .upload(
-          newPath,
-          selectedCalendarFile,
-          {
-            contentType:
-              selectedCalendarFile.type,
-
-            upsert: false
-          }
-        );
-
-      if (uploadError) {
-        console.error(
-          'Calendar photo upload failed',
-          uploadError
-        );
-
-        calendarEntryMessage.textContent =
-          '사진 업로드에 실패했어요.';
-
-        saveButton.disabled = false;
-        return;
-      }
-
-      if (imagePath) {
-        await cloud.storage
-          .from('calendar-images')
-          .remove([imagePath]);
-      }
-
-      imagePath = newPath;
-    }
 
     const note =
       calendarEntryNote
         .value
         .trim();
 
-    if (
-      !note
-      && !imagePath
-    ) {
+    if (!note) {
       calendarEntryMessage.textContent =
-        '기록이나 사진을 하나 이상 추가해주세요.';
+        '일정 내용을 입력해주세요.';
 
       saveButton.disabled = false;
       return;
@@ -512,7 +544,7 @@
       );
 
       calendarEntryMessage.textContent =
-        '기록을 저장하지 못했어요.';
+        '일정을 저장하지 못했어요.';
 
       return;
     }
@@ -529,7 +561,7 @@
 
     const shouldDelete =
       confirm(
-        '이 날짜의 기록을 삭제할까요?'
+        '이 날짜의 일정을 삭제할까요?'
       );
 
     if (!shouldDelete) return;
@@ -554,7 +586,7 @@
       );
 
       calendarEntryMessage.textContent =
-        '기록을 삭제하지 못했어요.';
+        '일정을 삭제하지 못했어요.';
 
       return;
     }

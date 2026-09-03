@@ -214,13 +214,15 @@ Design/behavior:
 - tags
 - configurable marking/block color
 - todo/wish/shopping use checkable rows
-- todo-list rows include an optional second-line memo for URLs, file locations, or context; detected `http(s)`/`www` addresses are safe clickable links in read-only views and expose a direct link action while editing
+- todo-list rows keep the optional second-line memo collapsed behind a compact `+` control unless that row already has memo content; URLs and file locations remain supported, detected `http(s)`/`www` addresses remain safe clickable links in read-only views, and the editor still exposes a direct link action
+- todo-list rows also expose a compact `+` folder control. It opens a searchable archive picker and stores a `linkedNoteId`, allowing a task to connect to another saved Archive item without crowding the row
 - habit tracker uses per-item day dots; month-day counts should respect 30/31-day context where applicable
 - time tracker colors time blocks from `06` through `00`. Clicking a filled block again should clear it. Switching selected color must not recolor or erase blocks already painted with other colors. Existing matching hours are migrated by hour rather than array position so changing the visible range does not shift saved records.
 - default color chips use lighter Archive-compatible tints; legacy darker block colors remain valid and retain their color names in summaries
 - the time tracker has no row-level NOTE column. The right-side COLOR section provides a short saved project name per color (including custom colors), and those names appear in the duration summary
 - the time tracker alone shows a live color-by-color duration summary and a final total in a readable right-hand column beside the time grid; summary copy is at least `12px`, with no tinted background or left divider. Editor time rows use a `28px` minimum height to stay visually aligned with the right-side tools while remaining taller than compact preview rows. Every painted block counts as exactly 10 minutes, and the summary is derived from saved block colors rather than stored separately
 - the time tracker hides the post-it tag controls and the disabled “10분 단위 구성” button. Its editor paper expands with content and must not have an internal vertical scrollbar; normal page-level scrolling is allowed
+- all template 02 editor papers use content-driven height with no internal vertical scrollbar; page-level scrolling is preferred when content grows
 - all tracker state must auto-save and restore
 - right-side controls are intentionally more readable/larger than the first tiny version
 
@@ -368,7 +370,9 @@ Quick chat:
 - day number at the **top-left** of each day cell, not center
 - calendar page should fit within viewport height without creating unnecessary page-level vertical scrolling
 - dashboard uses a compact version focused on date + whether a record exists
-- date entry may include a note and photo
+- the main month grid shows schedule text plus only same-day template 02 `todo` and `time` records; time records show total minutes and todo records show remaining-item counts
+- clicking a date opens a schedule add/edit form and lists every memo, post-it, and moodboard created on that date (falling back to `updatedAt` only for legacy notes without `createdAt`); selecting a listed item opens its normal Archive editor
+- calendar photo attachment UI is removed. Existing legacy `image_path` values are preserved while editing an old schedule, but new calendar entries are text schedules only
 
 ## 10. Image input contract
 

@@ -1402,7 +1402,6 @@ const STORAGE_KEY = 'archive.data.v1';
 
   let calendarEntries = new Map();
   let selectedCalendarDate = null;
-  let selectedCalendarFile = null;
   let selectedCalendarEntry = null;
 
   /* ---------------- DOM refs ---------------- */
@@ -1559,15 +1558,6 @@ const STORAGE_KEY = 'archive.data.v1';
 
   const calendarEntryNote =
     $('#calendarEntryNote');
-
-  const calendarPhotoInput =
-    $('#calendarPhotoInput');
-
-  const calendarPhotoEmpty =
-    $('#calendarPhotoEmpty');
-
-  const calendarPhotoPreview =
-    $('#calendarPhotoPreview');
 
   const calendarEntryMessage =
     $('#calendarEntryMessage');

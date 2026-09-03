@@ -292,6 +292,11 @@ function setEditorTemplate(template, updateNote = true) {
     ensureMoodboard(note);
     initializeMoodboardHistory(note);
     requestAnimationFrame(renderMoodboard);
+    if (updateNote) {
+      requestAnimationFrame(
+        () => noteTitle.focus()
+      );
+    }
   }
 
   if (template === 'links') renderLinkEditor();
@@ -436,6 +441,8 @@ function updateMoodboardItemControls() {
     $('#moodboardTextSize');
   const rotationInput =
     $('#moodboardItemRotation');
+  const rotationNumberInput =
+    $('#moodboardItemRotationNumber');
   const textSizeField =
     $('#moodboardTextSizeField');
   const disabled = !item;
@@ -446,6 +453,7 @@ function updateMoodboardItemControls() {
   );
   sizeInput.disabled = disabled;
   rotationInput.disabled = disabled;
+  rotationNumberInput.disabled = disabled;
   textSizeInput.disabled =
     disabled
     || item?.type !== 'text';
@@ -458,8 +466,7 @@ function updateMoodboardItemControls() {
       .textContent = '—';
     $('#moodboardTextSizeValue')
       .textContent = '—';
-    $('#moodboardItemRotationValue')
-      .textContent = '—';
+    rotationNumberInput.value = '';
     if (
       typeof syncMoodboardFontControl
       === 'function'
@@ -495,12 +502,12 @@ function updateMoodboardItemControls() {
     String(fontSize);
   rotationInput.value =
     String(rotation);
+  rotationNumberInput.value =
+    String(rotation);
   $('#moodboardItemSizeValue')
     .textContent = `${width}px`;
   $('#moodboardTextSizeValue')
     .textContent = `${fontSize}px`;
-  $('#moodboardItemRotationValue')
-    .textContent = `${rotation}°`;
   if (
     typeof syncMoodboardFontControl
     === 'function'
@@ -635,9 +642,10 @@ function updateSelectedMoodboardRotation(
       `rotate(${item.rotation}deg)`;
   }
 
-  $('#moodboardItemRotationValue')
-    .textContent =
-      `${Math.round(item.rotation)}°`;
+  $('#moodboardItemRotation').value =
+    String(item.rotation);
+  $('#moodboardItemRotationNumber').value =
+    String(item.rotation);
   scheduleMoodboardSave();
 }
 
@@ -722,7 +730,7 @@ async function addMoodboardImages(
       ),
       width: 250,
       height: 180,
-      rotation: (index % 3 - 1) * 2
+      rotation: 0
     });
   }
 
@@ -966,6 +974,24 @@ $('#moodboardItemRotation')
       updateSelectedMoodboardRotation(
         event.target.value
       )
+  );
+$('#moodboardItemRotationNumber')
+  .addEventListener(
+    'change',
+    event =>
+      updateSelectedMoodboardRotation(
+        event.target.value
+      )
+  );
+$('#moodboardItemRotationNumber')
+  .addEventListener(
+    'keydown',
+    event => {
+      if (event.key === 'Enter') {
+        event.preventDefault();
+        event.currentTarget.blur();
+      }
+    }
   );
 $('#moodboardUndoBtn').addEventListener(
   'click',

@@ -502,6 +502,10 @@ function renderMoodboardAlbum(notes) {
               : ''
           }
         </span>
+        <span class="moodboard-album-copy">
+          <strong>${escapeHtml(note.title || '제목 없는 무드보드')}</strong>
+          <small>${formatDate(note.updatedAt)}</small>
+        </span>
       </button>
     `;
     bindSpecializedCard(

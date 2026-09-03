@@ -231,7 +231,7 @@ Post-it list page:
 
 ### 03 — 무드보드 (`template: "moodboard"`)
 
-This is the most canvas-like template. The writing screen intentionally gives the board as much space as possible and does not need a normal title field.
+This is the most canvas-like template. The writing screen gives the board as much space as practical while keeping a compact normal title field above the canvas. The title uses the shared note auto-save path and is visible on list/detail views.
 
 Tools/features:
 
@@ -245,7 +245,8 @@ Tools/features:
 - element delete / drawing clear
 - undo / redo history
 - resize selected text/images
-- rotate selected text/images
+- newly uploaded images start at `0deg`; existing saved rotations remain unchanged
+- rotate selected text/images with either the range control or the numeric `-30` to `30` degree field
 - select text font
 - select text weight: `400` / `600` / `700`
 - moodboard text item background is intentionally **transparent**, including editor/detail/list preview
@@ -266,7 +267,7 @@ Pattern skins were requested to be lighter and denser, with roughly 50:50 patter
 Moodboard list page:
 
 - larger album previews than other template lists; roughly 6 per page/screen
-- no unnecessary title/text block below the preview
+- show the saved moodboard title and update date below the preview without exposing canvas text as extra card copy
 - use shadows/depth so each looks like an actual sheet/scrapbook object, not a generic card
 
 ### 04 — 링크 (`template: "links"`)

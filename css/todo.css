@@ -831,7 +831,7 @@ input::placeholder {
 }
 
 .postit-time-row {
-  min-height: 34px;
+  min-height: 28px;
   align-items: stretch;
   border-bottom: 1px solid
     rgba(92, 54, 33, .25);

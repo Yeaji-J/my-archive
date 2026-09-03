@@ -477,7 +477,7 @@
   margin-top: -5px;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 7px;
 }
 
 .postit-list-row:not(.is-editing):not(.has-memo)
@@ -510,8 +510,7 @@
 
 .postit-list-row.is-editing
 .postit-item-note-link-btn {
-  width: 20px;
-  padding: 0 3px;
+  width: 14px;
   opacity: 1;
   pointer-events: auto;
 }
@@ -555,14 +554,14 @@
 
 .postit-linked-note-open {
   min-width: 0;
-  padding: 2px 5px;
+  padding: 2px 0;
   display: flex;
   align-items: center;
   gap: 6px;
   overflow: hidden;
   border: 0;
   border-radius: 5px;
-  background: rgba(255, 255, 255, .25);
+  background: transparent;
   color: inherit;
   font: inherit;
   cursor: pointer;
@@ -606,6 +605,8 @@
 
 .postit-list-row .postit-item-memo-input {
   flex: 1;
+  align-self: center;
+  padding: 0;
 }
 
 .postit-item-memo {
@@ -621,7 +622,7 @@
 }
 
 .postit-item-memo-link {
-  padding: 0 0 8px;
+  padding: 0;
   flex: 0 0 auto;
   font-size: 9px;
   white-space: nowrap;

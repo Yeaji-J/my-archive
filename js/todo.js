@@ -112,6 +112,7 @@ function blankPostitItems(count = 10) {
       text: '',
       memo: '',
       linkedNoteId: '',
+      linkedFolderId: '',
       done: false
     })
   );
@@ -427,6 +428,12 @@ function ensurePostitData(note) {
     item.linkedNoteId = String(
       item.linkedNoteId || ''
     );
+    item.linkedFolderId = String(
+      item.linkedFolderId || ''
+    );
+    if (item.linkedNoteId) {
+      item.linkedFolderId = '';
+    }
     item.done = Boolean(item.done);
   });
   data.weekly = POSTIT_WEEKDAYS.map(
@@ -678,6 +685,13 @@ function postitLinkedNote(item) {
   ) || null;
 }
 
+function postitLinkedFolder(item) {
+  return state.folders.find(
+    folder =>
+      folder.id === item.linkedFolderId
+  ) || null;
+}
+
 function postitLinkedNoteLabel(note) {
   const template = note.template || 'memo';
   if (template === 'todo') {
@@ -724,16 +738,69 @@ function renderPostitNoteLinkResults(
         - Number(first.updatedAt)
     )
     .slice(0, 40);
+  const folders = state.folders
+    .filter(folder => {
+      if (!term) return true;
+      return folderPathLabel(folder.id)
+        .toLowerCase()
+        .includes(term);
+    })
+    .sort((first, second) =>
+      first.name.localeCompare(
+        second.name,
+        'ko'
+      )
+    );
 
   results.innerHTML = '';
-  if (!notes.length) {
+  if (!folders.length && !notes.length) {
     results.innerHTML = `
       <p class="postit-note-link-empty">
-        연결할 자료를 찾지 못했어요.
+        연결할 자료나 폴더를 찾지 못했어요.
       </p>
     `;
     return;
   }
+
+
+  folders.forEach(folder => {
+    const button =
+      document.createElement('button');
+    button.type = 'button';
+    button.className =
+      'postit-note-link-result';
+    button.innerHTML = `
+      <i class="postit-folder-glyph" aria-hidden="true"></i>
+      <span>
+        <small>폴더</small>
+        <strong>${escapeHtml(folderPathLabel(folder.id))}</strong>
+      </span>
+    `;
+    button.addEventListener(
+      'click',
+      () => {
+        const targetNote = state.notes.find(
+          item =>
+            item.id === postitLinkTargetNoteId
+        );
+        if (!targetNote) return;
+        const targetItem =
+          ensurePostitData(targetNote)
+            .items.find(
+              item =>
+                item.id === postitLinkTargetItemId
+            );
+        if (!targetItem) return;
+        targetItem.linkedNoteId = '';
+        targetItem.linkedFolderId =
+          folder.id;
+        schedulePostitSave();
+        closePostitNoteLinkModal();
+        renderPostitEditor(targetNote);
+      }
+    );
+    results.appendChild(button);
+  });
 
   notes.forEach(note => {
     const folder = state.folders.find(
@@ -767,6 +834,7 @@ function renderPostitNoteLinkResults(
             );
         if (!targetItem) return;
         targetItem.linkedNoteId = note.id;
+        targetItem.linkedFolderId = '';
         schedulePostitSave();
         closePostitNoteLinkModal();
         renderPostitEditor(targetNote);
@@ -900,8 +968,27 @@ function renderPostitList(
     if (data.type === 'todo') {
       const linkedNote =
         postitLinkedNote(item);
+      const linkedFolder = linkedNote
+        ? null
+        : postitLinkedFolder(item);
 
       if (readOnly) {
+        if (linkedNote || linkedFolder) {
+          const linked =
+            document.createElement('span');
+          linked.className =
+            'postit-linked-note';
+          linked.innerHTML = `
+            <i class="postit-folder-glyph" aria-hidden="true"></i>
+            <span>${escapeHtml(
+              linkedNote
+                ? linkedNote.title || '제목 없음'
+                : linkedFolder.name
+            )}</span>
+          `;
+          fields.appendChild(linked);
+        }
+
         if (item.memo) {
           const memo =
             document.createElement('div');
@@ -912,32 +999,24 @@ function renderPostitList(
           );
           fields.appendChild(memo);
         }
-
-        if (linkedNote) {
-          const linked =
-            document.createElement('span');
-          linked.className =
-            'postit-linked-note';
-          linked.innerHTML = `
-            <i class="postit-folder-glyph" aria-hidden="true"></i>
-            <span>${escapeHtml(linkedNote.title || '제목 없음')}</span>
-          `;
-          fields.appendChild(linked);
-        }
       } else {
         const noteLinkButton =
           document.createElement('button');
         noteLinkButton.type = 'button';
         noteLinkButton.className =
           'postit-item-note-link-btn'
-          + (linkedNote ? ' active' : '');
+          + (
+            linkedNote || linkedFolder
+              ? ' active'
+              : ''
+          );
         noteLinkButton.innerHTML = `
           <i class="postit-folder-glyph" aria-hidden="true"></i>
         `;
         noteLinkButton.title =
-          linkedNote
-            ? '연결 자료 변경'
-            : '자료 연결';
+          linkedNote || linkedFolder
+            ? '연결 대상 변경'
+            : '자료 또는 폴더 연결';
         noteLinkButton.setAttribute(
           'aria-label',
           noteLinkButton.title
@@ -994,13 +1073,6 @@ function renderPostitList(
           }
         );
 
-        memoLine.append(
-          noteLinkButton,
-          memoInput,
-          memoLink
-        );
-        fields.append(memoLine);
-
         row.classList.toggle(
           'has-memo',
           Boolean(item.memo)
@@ -1033,7 +1105,7 @@ function renderPostitList(
           })
         );
 
-        if (linkedNote) {
+        if (linkedNote || linkedFolder) {
           const linked =
             document.createElement('div');
           linked.className =
@@ -1041,7 +1113,11 @@ function renderPostitList(
           linked.innerHTML = `
             <button type="button" class="postit-linked-note-open">
               <i class="postit-folder-glyph" aria-hidden="true"></i>
-              <span>${escapeHtml(linkedNote.title || '제목 없음')}</span>
+              <span>${escapeHtml(
+                linkedNote
+                  ? linkedNote.title || '제목 없음'
+                  : linkedFolder.name
+              )}</span>
             </button>
             <button type="button" class="postit-linked-note-remove" aria-label="연결 해제">×</button>
           `;
@@ -1056,9 +1132,11 @@ function renderPostitList(
               ) {
                 persistCurrentNote();
               }
-              openNoteView(
-                linkedNote.id
-              );
+              if (linkedNote) {
+                openNoteView(linkedNote.id);
+              } else {
+                setView(linkedFolder.id);
+              }
             }
           );
           linked.querySelector(
@@ -1067,12 +1145,24 @@ function renderPostitList(
             'click',
             () => {
               item.linkedNoteId = '';
+              item.linkedFolderId = '';
               renderPostitEditor(note);
               schedulePostitSave();
             }
           );
           fields.appendChild(linked);
         }
+
+        if (!linkedNote && !linkedFolder) {
+          memoLine.appendChild(
+            noteLinkButton
+          );
+        }
+        memoLine.append(
+          memoInput,
+          memoLink
+        );
+        fields.appendChild(memoLine);
       }
     }
 
@@ -1917,6 +2007,7 @@ function addPostitRow() {
       text: '',
       memo: '',
       linkedNoteId: '',
+      linkedFolderId: '',
       done: false
     });
   }

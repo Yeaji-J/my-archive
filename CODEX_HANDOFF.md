@@ -215,7 +215,7 @@ Design/behavior:
 - configurable marking/block color
 - todo/wish/shopping use checkable rows
 - todo-list rows reveal the optional second-line memo automatically while the title/memo row is focused; empty helper text disappears again when focus leaves, while saved memo content remains visible. URLs and file locations remain supported, detected `http(s)`/`www` addresses remain safe clickable links in read-only views, and the editor still exposes a direct link action
-- the focused todo memo line starts with a compact folder-only control (no `+`). It opens a searchable archive picker and stores a `linkedNoteId`, allowing a task to connect to another saved Archive item without crowding inactive rows
+- the focused todo memo line starts with a compact folder-only control (no `+`) only while no target is connected. It opens a searchable picker for either one Archive item or one folder, stored mutually exclusively as `linkedNoteId` / `linkedFolderId`. Once connected, the target row appears first and only the additional memo input opens beneath it; linked controls and memo text align with the main todo text column
 - habit tracker uses per-item day dots; month-day counts should respect 30/31-day context where applicable
 - time tracker colors time blocks from `06` through `00`. Clicking a filled block again should clear it. Switching selected color must not recolor or erase blocks already painted with other colors. Existing matching hours are migrated by hour rather than array position so changing the visible range does not shift saved records.
 - default color chips use lighter Archive-compatible tints; legacy darker block colors remain valid and retain their color names in summaries

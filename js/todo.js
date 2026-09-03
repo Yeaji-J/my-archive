@@ -1125,17 +1125,6 @@ function applyPostitTimeBlock(
       tracker,
       data
     );
-    if (
-      normalizedColor
-      && !tracker.querySelector(
-        `[data-time-project-color="${CSS.escape(normalizedColor)}"]`
-      )
-    ) {
-      renderPostitTimeProjects(
-        tracker,
-        data
-      );
-    }
   }
   schedulePostitSave();
 }
@@ -1167,18 +1156,11 @@ function postitTimeProjectColors(data) {
 }
 
 function renderPostitTimeProjects(
-  tracker,
   data
 ) {
-  let projects = tracker.querySelector(
-    '.postit-time-projects'
-  );
-  if (!projects) {
-    projects = document.createElement('div');
-    projects.className =
-      'postit-time-projects';
-    tracker.prepend(projects);
-  }
+  const projects =
+    $('#postitTimeProjectsPanel');
+  if (!projects) return;
 
   projects.innerHTML = `
     <span class="postit-time-projects-label">
@@ -1221,10 +1203,16 @@ function renderPostitTimeProjects(
             data.timeProjects[color] =
               event.target.value
                 .slice(0, 24);
-            renderPostitTimeSummary(
-              tracker,
-              data
-            );
+            const tracker =
+              document.querySelector(
+                '#postitEditorContent .postit-time'
+              );
+            if (tracker) {
+              renderPostitTimeSummary(
+                tracker,
+                data
+              );
+            }
             schedulePostitSave();
           }
         );
@@ -1326,13 +1314,10 @@ function renderPostitTime(
     document.createElement('div');
   tracker.className =
     'postit-time';
-
-  if (!readOnly) {
-    renderPostitTimeProjects(
-      tracker,
-      data
-    );
-  }
+  const table =
+    document.createElement('div');
+  table.className =
+    'postit-time-table';
 
   const head =
     document.createElement('div');
@@ -1345,7 +1330,7 @@ function renderPostitTime(
       <i>40</i><i>50</i><i>60</i>
     </span>
   `;
-  tracker.appendChild(head);
+  table.appendChild(head);
 
   data.timeSlots.forEach(slot => {
     const row =
@@ -1466,8 +1451,10 @@ function renderPostitTime(
     );
 
     row.append(hour, blocks);
-    tracker.appendChild(row);
+    table.appendChild(row);
   });
+
+  tracker.appendChild(table);
 
   renderPostitTimeSummary(
     tracker,
@@ -1565,8 +1552,13 @@ function renderPostitEditor(
     data.type === 'time';
   $('#postitColorHelp').textContent =
     data.type === 'time'
-      ? '색상을 고른 뒤 시간 블럭을 칠하고, 표 안에서 프로젝트명을 지정하세요.'
+      ? '색상을 고른 뒤 시간 블럭을 칠하고, 아래에서 프로젝트명을 지정하세요.'
       : '체크 표시와 해빗 도트에 적용돼요.';
+  $('#postitTimeProjectsPanel').hidden =
+    data.type !== 'time';
+  if (data.type === 'time') {
+    renderPostitTimeProjects(data);
+  }
   $('#postitCustomColor').value =
     data.accentColor;
 
@@ -2046,15 +2038,7 @@ function setPostitAccentColor(value) {
     });
 
   if (data.type === 'time') {
-    const tracker = document.querySelector(
-      '#postitEditorContent .postit-time'
-    );
-    if (tracker) {
-      renderPostitTimeProjects(
-        tracker,
-        data
-      );
-    }
+    renderPostitTimeProjects(data);
   }
 
   schedulePostitSave();

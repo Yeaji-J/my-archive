@@ -700,52 +700,54 @@ input::placeholder {
 
 .postit-time {
   margin-top: -28px;
+  display: grid;
+  grid-template-columns:
+    minmax(0, 1fr) 156px;
+  align-items: stretch;
   border-top: 1px solid
     rgba(92, 54, 33, .42);
   user-select: none;
 }
 
 .postit-time-projects {
-  display: grid;
-  min-height: 82px;
-  padding: 10px 8px 12px;
-  grid-template-columns:
-    78px minmax(0, 1fr);
-  align-items: start;
-  gap: 10px;
-  border-bottom: 1px solid
-    rgba(92, 54, 33, .25);
-  background: rgba(255, 255, 255, .13);
-  user-select: text;
+  display: block;
+  margin-top: 18px;
+  padding-top: 16px;
+  border-top: 1px solid
+    rgba(92, 54, 33, .09);
+}
+
+.postit-time-projects[hidden] {
+  display: none;
 }
 
 .postit-time-projects-label {
-  padding-top: 7px;
-  color: rgba(92, 54, 33, .48);
-  font-size: 7px;
+  display: block;
+  margin-bottom: 10px;
+  color: #8c837e;
+  font-size: 10px;
   font-weight: 750;
-  letter-spacing: .12em;
+  letter-spacing: .14em;
 }
 
 .postit-time-project-fields {
   display: grid;
   min-width: 0;
-  grid-template-columns:
-    repeat(2, minmax(0, 1fr));
-  gap: 6px 10px;
+  grid-template-columns: 1fr;
+  gap: 7px;
 }
 
 .postit-time-project-field {
   display: grid;
   min-width: 0;
-  grid-template-columns: 12px minmax(0, 1fr);
+  grid-template-columns: 16px minmax(0, 1fr);
   align-items: center;
   gap: 5px;
 }
 
 .postit-time-project-field i {
-  width: 11px;
-  height: 11px;
+  width: 14px;
+  height: 14px;
   border: 1px solid
     rgba(92, 54, 33, .1);
   border-radius: 3px;
@@ -760,25 +762,29 @@ input::placeholder {
 
 .postit-time-project-field input {
   min-width: 0;
-  height: 24px;
-  padding: 0 6px;
+  height: 29px;
+  padding: 0 7px;
   border: 0;
   border-bottom: 1px solid
     rgba(92, 54, 33, .18);
   outline: 0;
   background: transparent;
-  color: var(--postit-ink);
-  font: inherit;
-  font-size: 9px;
+  color: #665f5b;
+  font-family: inherit;
+  font-size: 11.5px;
 }
 
 .postit-time-project-field input:focus {
-  border-color: var(--postit-accent);
+  border-color: #7597bb;
 }
 
 .postit-time-project-field
 input::placeholder {
   color: rgba(92, 54, 33, .34);
+}
+
+.postit-time-table {
+  min-width: 0;
 }
 
 .postit-time-head,
@@ -871,22 +877,21 @@ button.postit-time-cell:hover {
 }
 
 .postit-time-summary {
-  display: grid;
-  min-height: 62px;
-  padding: 13px 8px 12px;
-  grid-template-columns:
-    78px minmax(0, 1fr) auto;
-  align-items: start;
-  gap: 12px;
-  border-bottom: 1px solid
+  display: flex;
+  min-width: 0;
+  min-height: 472px;
+  padding: 16px 12px 14px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 16px;
+  border-left: 1px solid
     rgba(92, 54, 33, .25);
   background: rgba(255, 255, 255, .13);
 }
 
 .postit-time-summary-label {
-  padding-top: 3px;
   color: rgba(92, 54, 33, .48);
-  font-size: 7px;
+  font-size: 11px;
   font-weight: 750;
   letter-spacing: .12em;
 }
@@ -894,16 +899,25 @@ button.postit-time-cell:hover {
 .postit-time-summary-colors {
   display: flex;
   min-width: 0;
-  flex-wrap: wrap;
-  gap: 6px 11px;
+  flex-direction: column;
+  gap: 10px;
 }
 
 .postit-time-summary-item {
-  display: inline-flex;
+  display: grid;
+  min-width: 0;
+  grid-template-columns:
+    12px minmax(0, 1fr) auto;
   align-items: center;
-  gap: 5px;
+  gap: 6px;
   color: rgba(92, 54, 33, .62);
-  font-size: 8px;
+  font-size: 12px;
+}
+
+.postit-time-summary-item > span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -920,28 +934,38 @@ button.postit-time-cell:hover {
 
 .postit-time-summary-item strong {
   color: rgba(92, 54, 33, .82);
-  font-size: 9px;
+  font-size: 12px;
 }
 
 .postit-time-summary-empty {
-  padding-top: 2px;
   color: rgba(92, 54, 33, .38);
-  font-size: 8px;
+  font-size: 12px;
+  line-height: 1.55;
 }
 
 .postit-time-summary-total {
   display: flex;
-  align-items: baseline;
-  gap: 6px;
+  margin-top: auto;
+  padding-top: 12px;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  border-top: 1px solid
+    rgba(92, 54, 33, .18);
   color: var(--postit-ink);
-  font-size: 13px;
+  font-size: 18px;
   white-space: nowrap;
 }
 
 .postit-time-summary-total span {
   color: rgba(92, 54, 33, .48);
-  font-size: 8px;
+  font-size: 12px;
   font-weight: 500;
+}
+
+.postit-paper-preview
+.postit-time {
+  display: block;
 }
 
 .postit-paper-preview

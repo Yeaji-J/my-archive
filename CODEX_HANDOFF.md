@@ -371,7 +371,7 @@ Quick chat:
 - calendar page should fit within viewport height without creating unnecessary page-level vertical scrolling
 - dashboard uses a compact version focused on date + whether a record exists
 - the main month grid shows compact `time + schedule` lines plus only same-day template 02 `todo` and `time` records; time records show total minutes and todo records show remaining-item counts
-- schedule entry uses separate one-line time and title fields with an inline save button. A date can hold multiple time-sorted schedules; they render vertically above the day-note list and expose an `×` delete action on hover/focus. Legacy single-string entries are parsed and migrated without being discarded
+- schedule entry uses separate one-line time and title fields with a baseline-aligned inline save button. Time is a plain `:`-placeholder field without the native clock picker and accepts valid 24-hour `H:MM`/`HH:MM` input. A date can hold multiple time-sorted schedules; they render as a borderless vertical list above the day-note list and expose an `×` delete action on hover/focus. Legacy single-string entries are parsed and migrated without being discarded
 - clicking a date lists every memo, post-it, and moodboard created on that date (falling back to `updatedAt` only for legacy notes without `createdAt`); selecting a listed item opens its normal Archive editor
 - calendar photo attachment UI is removed. Existing legacy `image_path` values are preserved while editing an old schedule, but new calendar entries are text schedules only
 

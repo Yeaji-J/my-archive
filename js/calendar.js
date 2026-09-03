@@ -184,6 +184,22 @@
       .join(' ');
   }
 
+  function normalizeCalendarTime(value) {
+    const match = String(value || '')
+      .trim()
+      .match(/^(\d{1,2})\s*:\s*(\d{1,2})$/);
+    if (!match) return '';
+    const hour = Number(match[1]);
+    const minute = Number(match[2]);
+    if (
+      hour > 23
+      || minute > 59
+    ) {
+      return '';
+    }
+    return `${String(hour).padStart(2, '0')}:${String(minute).padStart(2, '0')}`;
+  }
+
   async function loadCalendarEntries() {
     if (!currentUser) return;
 
@@ -608,9 +624,9 @@
       || null;
 
     const time =
-      calendarEntryTime
-        .value
-        .trim();
+      normalizeCalendarTime(
+        calendarEntryTime.value
+      );
     const scheduleText =
       calendarEntryNote
         .value
@@ -618,7 +634,7 @@
 
     if (!time || !scheduleText) {
       calendarEntryMessage.textContent =
-        '시간과 일정을 모두 입력해주세요.';
+        '시간은 09:30처럼 입력하고 일정을 작성해주세요.';
 
       saveButton.disabled = false;
       return;

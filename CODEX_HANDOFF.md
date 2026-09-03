@@ -409,6 +409,8 @@ Template save paths that must remain connected:
 - link/collection: `scheduleTemplateDataSave`
 - generic note metadata/title: `persistCurrentNote` / `saveData`
 
+Switching an existing note between the five editor template tabs must preserve every template-specific payload already stored on that note. Flush the active editor before changing `note.template`; returning to a previously used template restores its prior data instead of resetting it. Full template-data reset is only appropriate while initializing an intentionally new note.
+
 For any save-related change, regression-test at least:
 
 1. create new note

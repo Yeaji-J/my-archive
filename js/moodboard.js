@@ -269,11 +269,16 @@ function setEditorTemplate(template, updateNote = true) {
 
   if (updateNote) {
     if (note.template !== template) {
-      resetNoteForTemplate(
-        note,
-        template
-      );
-      noteTitle.value = '';
+      if (
+        typeof persistCurrentNote
+        === 'function'
+      ) {
+        persistCurrentNote();
+      }
+
+      note.template = template;
+      noteTitle.value =
+        note.title || '';
     }
     note.updatedAt = Date.now();
     saveData();

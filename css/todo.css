@@ -831,7 +831,7 @@ input::placeholder {
 }
 
 .postit-time-row {
-  min-height: 26px;
+  min-height: 34px;
   align-items: stretch;
   border-bottom: 1px solid
     rgba(92, 54, 33, .25);
@@ -884,9 +884,6 @@ button.postit-time-cell:hover {
   flex-direction: column;
   align-items: stretch;
   gap: 16px;
-  border-left: 1px solid
-    rgba(92, 54, 33, .25);
-  background: rgba(255, 255, 255, .13);
 }
 
 .postit-time-summary-label {

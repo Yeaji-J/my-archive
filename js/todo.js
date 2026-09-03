@@ -137,11 +137,11 @@ function blankHabitRows(count = 3) {
 
 function blankTimeSlots() {
   return Array.from(
-    { length: 17 },
+    { length: 19 },
     (_, index) => ({
       id: uid(),
       hour: String(
-        (index + 8) % 24
+        (index + 6) % 24
       ).padStart(2, '0'),
       label: '',
       blocks: Array(6).fill('')

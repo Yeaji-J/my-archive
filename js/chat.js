@@ -862,19 +862,44 @@ function showChatImageFailure(
         >= new Date(lastReadAt).getTime()
     ) return;
     chatOwnReadAt.set(roomId, lastReadAt);
-    const { error } = await cloud
-      .from('messages')
-      .insert({
-        room_id: roomId,
-        user_id: currentUser.id,
-        body: `${CHAT_READ_PREFIX}${JSON.stringify({
-          lastMessageId: String(latestIncoming.id),
+    await broadcastChatRead(roomId, lastReadAt);
+  }
+
+  async function broadcastChatRead(roomId, lastReadAt) {
+    const channels = [
+      activeRoomId === roomId ? messageSubscription : null,
+      quickChatRoomId === roomId ? quickChatSubscription : null
+    ].filter(Boolean);
+    if (!channels.length) return;
+    await Promise.allSettled(
+      channels.map(channel => channel.send({
+        type: 'broadcast',
+        event: 'read',
+        payload: {
+          roomId,
+          userId: currentUser?.id,
           lastReadAt
-        })}`
-      });
-    if (error) {
-      chatOwnReadAt.delete(roomId);
-      console.error('Chat read receipt failed', error);
+        }
+      }))
+    );
+  }
+
+  function receiveChatReadBroadcast(roomId, event) {
+    const payload = event?.payload || event;
+    if (
+      !payload
+      || payload.roomId !== roomId
+      || payload.userId === currentUser?.id
+      || !payload.lastReadAt
+    ) return;
+    const previous = chatPeerReadAt.get(roomId);
+    if (
+      !previous
+      || new Date(payload.lastReadAt).getTime()
+        > new Date(previous).getTime()
+    ) {
+      chatPeerReadAt.set(roomId, payload.lastReadAt);
+      updateChatReadIndicators(roomId);
     }
   }
 
@@ -1237,6 +1262,11 @@ function showChatImageFailure(
       cloud
         .channel(`room:${roomId}`)
         .on(
+          'broadcast',
+          { event: 'read' },
+          event => receiveChatReadBroadcast(roomId, event)
+        )
+        .on(
           'postgres_changes',
           {
             event: 'INSERT',
@@ -1274,7 +1304,11 @@ function showChatImageFailure(
             }
           }
         )
-        .subscribe();
+        .subscribe(status => {
+          if (status !== 'SUBSCRIBED') return;
+          const readAt = chatOwnReadAt.get(roomId);
+          if (readAt) broadcastChatRead(roomId, readAt);
+        });
   }
 
   async function sendChatMessage(event) {

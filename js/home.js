@@ -541,6 +541,11 @@ function subscribeQuickChat(roomId) {
   quickChatSubscription = cloud
     .channel(`quick-room:${roomId}`)
     .on(
+      'broadcast',
+      { event: 'read' },
+      event => receiveChatReadBroadcast(roomId, event)
+    )
+    .on(
       'postgres_changes',
       {
         event: 'INSERT',
@@ -562,7 +567,11 @@ function subscribeQuickChat(roomId) {
         }
       }
     )
-    .subscribe();
+    .subscribe(status => {
+      if (status !== 'SUBSCRIBED') return;
+      const readAt = chatOwnReadAt.get(roomId);
+      if (readAt) broadcastChatRead(roomId, readAt);
+    });
 }
 
 async function sendQuickChatMessage(event) {

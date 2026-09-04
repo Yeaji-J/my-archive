@@ -707,6 +707,30 @@ function postitLinkedNoteLabel(note) {
   })[template] || '자료';
 }
 
+function focusPostitItemMemo(itemId) {
+  requestAnimationFrame(() => {
+    const row = [
+      ...document.querySelectorAll(
+        '#postitEditorContent .postit-list-row'
+      )
+    ].find(
+      item =>
+        item.dataset.postitItemId
+          === itemId
+    );
+    const input = row?.querySelector(
+      '.postit-item-memo-input'
+    );
+    if (!input) return;
+    row.classList.add('is-editing');
+    input.focus();
+    input.setSelectionRange(
+      input.value.length,
+      input.value.length
+    );
+  });
+}
+
 function renderPostitNoteLinkResults(
   query = ''
 ) {
@@ -797,6 +821,7 @@ function renderPostitNoteLinkResults(
         schedulePostitSave();
         closePostitNoteLinkModal();
         renderPostitEditor(targetNote);
+        focusPostitItemMemo(targetItem.id);
       }
     );
     results.appendChild(button);
@@ -838,6 +863,7 @@ function renderPostitNoteLinkResults(
         schedulePostitSave();
         closePostitNoteLinkModal();
         renderPostitEditor(targetNote);
+        focusPostitItemMemo(targetItem.id);
       }
     );
     results.appendChild(button);
@@ -899,6 +925,7 @@ function renderPostitList(
     row.className =
       'postit-list-row'
       + (item.done ? ' done' : '');
+    row.dataset.postitItemId = item.id;
 
     const check =
       document.createElement(
@@ -971,6 +998,14 @@ function renderPostitList(
       const linkedFolder = linkedNote
         ? null
         : postitLinkedFolder(item);
+      row.classList.toggle(
+        'has-details',
+        Boolean(
+          item.memo
+          || linkedNote
+          || linkedFolder
+        )
+      );
 
       if (readOnly) {
         if (linkedNote || linkedFolder) {
@@ -1064,6 +1099,14 @@ function renderPostitList(
             row.classList.toggle(
               'has-memo',
               Boolean(item.memo)
+            );
+            row.classList.toggle(
+              'has-details',
+              Boolean(
+                item.memo
+                || linkedNote
+                || linkedFolder
+              )
             );
             syncPostitMemoLink(
               memoLink,

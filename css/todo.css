@@ -403,13 +403,46 @@
 }
 
 .postit-list-todo .postit-list-row {
-  min-height: 52px;
-  align-items: start;
+  min-height: 47px;
+  align-items: center;
 }
 
 .postit-list-todo .postit-check,
 .postit-list-todo .postit-row-remove {
-  margin-top: 13px;
+  margin-top: 0;
+}
+
+.postit-list-todo
+.postit-list-row.is-editing,
+.postit-list-todo
+.postit-list-row.has-details {
+  align-items: start;
+}
+
+.postit-list-todo
+.postit-list-row.is-editing
+.postit-check,
+.postit-list-todo
+.postit-list-row.is-editing
+.postit-row-remove,
+.postit-list-todo
+.postit-list-row.has-details
+.postit-check,
+.postit-list-todo
+.postit-list-row.has-details
+.postit-row-remove {
+  margin-top: 9px;
+}
+
+.postit-list-todo
+.postit-list-row.has-memo {
+  padding-bottom: 9px;
+}
+
+.postit-list-todo
+.postit-item-title {
+  padding-top: 7px;
+  padding-bottom: 7px;
 }
 
 .postit-check {
@@ -474,7 +507,7 @@
 
 .postit-item-memo-line {
   min-width: 0;
-  margin-top: -5px;
+  margin-top: -3px;
   display: flex;
   align-items: center;
   gap: 7px;
@@ -1528,6 +1561,11 @@ input[type="search"]:focus {
 .postit-list-todo
 .postit-list-row {
   min-height: 34px;
+}
+
+.postit-paper-preview
+.postit-list-row.has-memo {
+  padding-bottom: 0;
 }
 
 .postit-paper-preview

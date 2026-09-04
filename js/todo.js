@@ -2,7 +2,7 @@
 
 /* ---------------- 02 Post-it template ---------------- */
 
-const POSTIT_PAGE_SIZE = 12;
+const POSTIT_PAGE_SIZE = 15;
 const POSTIT_TIME_SNAPSHOT_PREFIX =
   'archive.postit-time.v1.';
 const restoredPostitTimeData = new WeakSet();

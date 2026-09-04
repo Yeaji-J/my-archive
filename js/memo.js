@@ -3,7 +3,7 @@
 /* ---------------- 01 Memo editor / album ---------------- */
 
 const MEMO_SKINS = ['pink-grid', 'yellow-line', 'blue-dot', 'purple-grid'];
-const MEMO_PAGE_SIZE = 12;
+const MEMO_PAGE_SIZE = 15;
 const MEMO_FONT_KEYS = [
   'pretendard',
   'lee-seoyun',

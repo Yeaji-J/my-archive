@@ -190,6 +190,7 @@ Writing/editor requirements already represented in the UI:
 Memo list page:
 
 - use width generously; target five columns on desktop
+- full desktop pages contain 15 items so the five-column album fills three rows before pagination
 - maintain album/paper feeling rather than a generic rounded SaaS card
 - content preview does not need to expose the entire long note via internal scrolling
 - title/date/star controls should stay clear
@@ -232,6 +233,7 @@ Post-it list page:
 
 - album/post-it preview
 - target five columns on desktop and use available width
+- full desktop pages contain 15 items so the five-column album fills three rows before pagination
 - pagination controls where required
 - shared select / select-all / bulk-delete behavior remains available
 

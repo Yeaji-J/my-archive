@@ -2,6 +2,78 @@
 
 /* ---------------- Rendering ---------------- */
 
+  let draggedSidebarFolderId = null;
+  let suppressSidebarFolderClick = false;
+
+  function clearSidebarFolderDropState() {
+    folderList
+      .querySelectorAll(
+        '.drag-before, .drag-after'
+      )
+      .forEach(item => {
+        item.classList.remove(
+          'drag-before',
+          'drag-after'
+        );
+      });
+  }
+
+  function reorderSidebarFolder(
+    draggedId,
+    targetId,
+    placeAfter
+  ) {
+    const dragged = state.folders.find(
+      folder => folder.id === draggedId
+    );
+    const target = state.folders.find(
+      folder => folder.id === targetId
+    );
+
+    if (
+      !dragged
+      || !target
+      || dragged.id === target.id
+      || folderParentId(dragged)
+        !== folderParentId(target)
+    ) {
+      return false;
+    }
+
+    const parentId = folderParentId(dragged);
+    const siblings = orderedFolderEntries()
+      .map(entry => entry.folder)
+      .filter(
+        folder =>
+          folderParentId(folder)
+            === parentId
+      );
+    const draggedIndex = siblings.findIndex(
+      folder => folder.id === draggedId
+    );
+    if (draggedIndex < 0) return false;
+
+    const [moved] = siblings.splice(
+      draggedIndex,
+      1
+    );
+    let targetIndex = siblings.findIndex(
+      folder => folder.id === targetId
+    );
+    if (targetIndex < 0) return false;
+    if (placeAfter) targetIndex += 1;
+    siblings.splice(targetIndex, 0, moved);
+
+    const changedAt = Date.now();
+    siblings.forEach((folder, index) => {
+      folder.order = index;
+      folder.updatedAt = changedAt;
+    });
+    saveData();
+    render();
+    return true;
+  }
+
   function render() {
     if (
       currentView === 'chat'
@@ -186,6 +258,8 @@
         '--folder-depth',
         depth
       );
+      item.dataset.folderId = folder.id;
+      item.draggable = true;
 
       item.innerHTML = `
         <button
@@ -235,6 +309,12 @@
       item.addEventListener(
         'click',
         event => {
+          if (suppressSidebarFolderClick) {
+            event.preventDefault();
+            event.stopPropagation();
+            return;
+          }
+
           if (
             event.target.closest(
               '.folder-del, .folder-add-child, .folder-toggle'
@@ -255,6 +335,102 @@
             }
           }
           setView(folder.id);
+        }
+      );
+
+      item.addEventListener(
+        'dragstart',
+        event => {
+          if (
+            event.target.closest('button')
+          ) {
+            event.preventDefault();
+            return;
+          }
+
+          draggedSidebarFolderId =
+            folder.id;
+          item.classList.add('dragging');
+          event.dataTransfer.effectAllowed =
+            'move';
+          event.dataTransfer.setData(
+            'text/plain',
+            folder.id
+          );
+        }
+      );
+
+      item.addEventListener(
+        'dragover',
+        event => {
+          const dragged = state.folders.find(
+            current =>
+              current.id
+                === draggedSidebarFolderId
+          );
+          if (
+            !dragged
+            || dragged.id === folder.id
+            || folderParentId(dragged)
+              !== folderParentId(folder)
+          ) {
+            return;
+          }
+
+          event.preventDefault();
+          event.dataTransfer.dropEffect =
+            'move';
+          const bounds =
+            item.getBoundingClientRect();
+          const placeAfter =
+            event.clientY
+              > bounds.top
+                + bounds.height / 2;
+          clearSidebarFolderDropState();
+          item.classList.add(
+            placeAfter
+              ? 'drag-after'
+              : 'drag-before'
+          );
+        }
+      );
+
+      item.addEventListener(
+        'drop',
+        event => {
+          if (!draggedSidebarFolderId) {
+            return;
+          }
+          event.preventDefault();
+          event.stopPropagation();
+          const bounds =
+            item.getBoundingClientRect();
+          suppressSidebarFolderClick = true;
+          reorderSidebarFolder(
+            draggedSidebarFolderId,
+            folder.id,
+            event.clientY
+              > bounds.top
+                + bounds.height / 2
+          );
+          draggedSidebarFolderId = null;
+          clearSidebarFolderDropState();
+          setTimeout(() => {
+            suppressSidebarFolderClick = false;
+          }, 120);
+        }
+      );
+
+      item.addEventListener(
+        'dragend',
+        () => {
+          draggedSidebarFolderId = null;
+          suppressSidebarFolderClick = true;
+          item.classList.remove('dragging');
+          clearSidebarFolderDropState();
+          setTimeout(() => {
+            suppressSidebarFolderClick = false;
+          }, 120);
         }
       );
 

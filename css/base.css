@@ -474,8 +474,28 @@ svg {
   color: var(--text);
   font-size: 13.5px;
   font-weight: 500;
-  cursor: pointer;
+  cursor: grab;
   transition: background .15s;
+}
+
+.folder-item:active {
+  cursor: grabbing;
+}
+
+.folder-item.dragging {
+  opacity: .42;
+}
+
+.folder-item.drag-before {
+  box-shadow: inset 0 2px var(--accent);
+}
+
+.folder-item.drag-after {
+  box-shadow: inset 0 -2px var(--accent);
+}
+
+.folder-item button {
+  cursor: pointer;
 }
 
 .chat-feature-hidden {

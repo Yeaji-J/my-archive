@@ -94,6 +94,7 @@ let postitTimePainting = false;
 let postitTimePaintColor = '';
 let postitLinkTargetNoteId = null;
 let postitLinkTargetItemId = null;
+let draggedPostitItemId = null;
 
 function postitMonthValue() {
   const date = new Date();
@@ -908,6 +909,15 @@ function renderPostitList(
 
   list.className =
     `postit-list postit-list-${data.type}`;
+  const sortable =
+    !readOnly
+    && ['todo', 'wish', 'shopping']
+      .includes(data.type);
+
+  list.classList.toggle(
+    'is-sortable',
+    sortable
+  );
 
   if (!data.items.length) {
     data.items =
@@ -924,8 +934,27 @@ function renderPostitList(
 
     row.className =
       'postit-list-row'
-      + (item.done ? ' done' : '');
+      + (item.done ? ' done' : '')
+      + (sortable ? ' is-sortable' : '');
     row.dataset.postitItemId = item.id;
+    row.draggable = sortable;
+
+    let dragHandle = null;
+    if (sortable) {
+      dragHandle =
+        document.createElement('button');
+      dragHandle.type = 'button';
+      dragHandle.className =
+        'postit-row-drag';
+      dragHandle.tabIndex = -1;
+      dragHandle.title = '드래그해서 순서 변경';
+      dragHandle.setAttribute(
+        'aria-label',
+        '드래그해서 항목 순서 변경'
+      );
+      dragHandle.innerHTML =
+        '<i></i><i></i><i></i>';
+    }
 
     const check =
       document.createElement(
@@ -1209,6 +1238,9 @@ function renderPostitList(
       }
     }
 
+    if (dragHandle) {
+      row.append(dragHandle);
+    }
     row.append(check, fields);
 
     if (!readOnly) {
@@ -1235,6 +1267,154 @@ function renderPostitList(
         }
       );
       row.appendChild(remove);
+    }
+
+    if (sortable) {
+      const clearDropState = () => {
+        list.querySelectorAll(
+          '.drag-before, .drag-after'
+        ).forEach(current => {
+          current.classList.remove(
+            'drag-before',
+            'drag-after'
+          );
+        });
+      };
+
+      fields.querySelectorAll('input')
+        .forEach(field => {
+          field.addEventListener(
+            'focus',
+            () => {
+              row.draggable = false;
+            }
+          );
+          field.addEventListener(
+            'blur',
+            () => {
+              row.draggable = true;
+            }
+          );
+        });
+
+      dragHandle.addEventListener(
+        'mousedown',
+        () => {
+          row.draggable = true;
+          document.activeElement?.blur?.();
+        }
+      );
+
+      row.addEventListener(
+        'dragstart',
+        event => {
+          const interactive =
+            event.target.closest(
+              'input, button, a'
+            );
+          if (
+            interactive
+            && !event.target.closest(
+              '.postit-row-drag'
+            )
+          ) {
+            event.preventDefault();
+            return;
+          }
+
+          draggedPostitItemId = item.id;
+          row.classList.add('dragging');
+          event.dataTransfer.effectAllowed =
+            'move';
+          event.dataTransfer.setData(
+            'text/plain',
+            item.id
+          );
+        }
+      );
+
+      row.addEventListener(
+        'dragover',
+        event => {
+          if (
+            !draggedPostitItemId
+            || draggedPostitItemId
+              === item.id
+          ) {
+            return;
+          }
+
+          event.preventDefault();
+          event.dataTransfer.dropEffect =
+            'move';
+          const bounds =
+            row.getBoundingClientRect();
+          clearDropState();
+          row.classList.add(
+            event.clientY
+              > bounds.top
+                + bounds.height / 2
+              ? 'drag-after'
+              : 'drag-before'
+          );
+        }
+      );
+
+      row.addEventListener(
+        'drop',
+        event => {
+          if (!draggedPostitItemId) return;
+          event.preventDefault();
+          const sourceIndex =
+            data.items.findIndex(
+              current =>
+                current.id
+                  === draggedPostitItemId
+            );
+          if (
+            sourceIndex < 0
+            || draggedPostitItemId
+              === item.id
+          ) {
+            clearDropState();
+            return;
+          }
+
+          const bounds =
+            row.getBoundingClientRect();
+          const placeAfter =
+            event.clientY
+              > bounds.top
+                + bounds.height / 2;
+          const [moved] = data.items.splice(
+            sourceIndex,
+            1
+          );
+          let targetIndex =
+            data.items.findIndex(
+              current =>
+                current.id === item.id
+            );
+          if (placeAfter) targetIndex += 1;
+          data.items.splice(
+            targetIndex,
+            0,
+            moved
+          );
+          draggedPostitItemId = null;
+          renderPostitEditor(note);
+          schedulePostitSave();
+        }
+      );
+
+      row.addEventListener(
+        'dragend',
+        () => {
+          draggedPostitItemId = null;
+          row.classList.remove('dragging');
+          clearDropState();
+        }
+      );
     }
 
     list.appendChild(row);

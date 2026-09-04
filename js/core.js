@@ -1258,13 +1258,43 @@ const STORAGE_KEY = 'archive.data.v1';
     const entries = [];
     const visited = new Set();
 
-    function appendBranch(parentId, depth) {
-      state.folders
+    function orderedChildren(parentId) {
+      return state.folders
+        .map((folder, index) => ({
+          folder,
+          index
+        }))
         .filter(
-          folder =>
+          ({ folder }) =>
             folderParentId(folder)
               === parentId
         )
+        .sort((first, second) => {
+          const firstOrder = Number(
+            first.folder.order
+          );
+          const secondOrder = Number(
+            second.folder.order
+          );
+
+          return (
+            (
+              Number.isFinite(firstOrder)
+                ? firstOrder
+                : first.index
+            )
+            - (
+              Number.isFinite(secondOrder)
+                ? secondOrder
+                : second.index
+            )
+          );
+        })
+        .map(({ folder }) => folder);
+    }
+
+    function appendBranch(parentId, depth) {
+      orderedChildren(parentId)
         .forEach(folder => {
           if (visited.has(folder.id)) return;
           visited.add(folder.id);

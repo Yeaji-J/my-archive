@@ -256,12 +256,31 @@
       return;
     }
 
+    const parentId =
+      folderParentSelect.value || '';
+    const siblingOrders =
+      state.folders
+        .filter(
+          item =>
+            folderParentId(item)
+              === parentId
+        )
+        .map((item, index) => {
+          const order = Number(item.order);
+          return Number.isFinite(order)
+            ? order
+            : index;
+        });
+
     const folder = {
       id: uid(),
       name,
       color: pendingFolderColor,
-      parentId:
-        folderParentSelect.value || '',
+      parentId,
+      order:
+        siblingOrders.length
+          ? Math.max(...siblingOrders) + 1
+          : 0,
       updatedAt: Date.now()
     };
 

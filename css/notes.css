@@ -443,6 +443,25 @@
   font-weight: 620;
 }
 
+.folder-list-actions {
+  display: flex;
+  min-width: 0;
+  margin-left: auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.folder-list-actions .archive-bulk-bar {
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex: 0 1 auto;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
 .folder-view-buttons {
   display: flex;
   align-items: center;
@@ -4115,6 +4134,16 @@ input:disabled {
   .folder-list-toolbar {
     align-items: flex-start;
     flex-direction: column;
+  }
+  .folder-list-actions {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+  }
+  .folder-list-actions .archive-bulk-bar {
+    width: 100%;
+    flex-wrap: wrap;
+    justify-content: flex-start;
   }
   .folder-view-buttons {
     width: 100%;

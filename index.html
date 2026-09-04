@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260828-storage-guard1">
-  <link rel="stylesheet" href="css/notes.css?v=20260904-bulk-move3">
+  <link rel="stylesheet" href="css/notes.css?v=20260904-bulk-move4">
   <link rel="stylesheet" href="css/chat.css?v=20260902-chat-controls1">
   <link rel="stylesheet" href="css/todo.css?v=20260904-memo-align5">
   <link rel="stylesheet" href="css/calendar.css?v=20260903-schedule-align3">
@@ -435,15 +435,17 @@
             <span class="folder-list-eyebrow">ARCHIVE VIEW</span>
             <strong id="folderListResultCount">0개의 자료</strong>
           </div>
-          <div class="folder-view-buttons" aria-label="폴더 자료 보기 방식">
-            <button type="button" class="active" data-folder-view="preview" title="미리보기 카드" aria-label="미리보기 카드로 보기">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="2"/><path d="M3 13h8"/><rect x="13" y="3" width="8" height="18" rx="2"/><path d="M13 13h8"/></svg>
-              <span>미리보기</span>
-            </button>
-            <button type="button" data-folder-view="text" title="텍스트 목록" aria-label="텍스트 목록으로 보기">
-              <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="3" cy="6" r=".7"/><circle cx="3" cy="12" r=".7"/><circle cx="3" cy="18" r=".7"/></svg>
-              <span>목록</span>
-            </button>
+          <div class="folder-list-actions" id="folderListActions">
+            <div class="folder-view-buttons" aria-label="폴더 자료 보기 방식">
+              <button type="button" class="active" data-folder-view="preview" title="미리보기 카드" aria-label="미리보기 카드로 보기">
+                <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="2"/><path d="M3 13h8"/><rect x="13" y="3" width="8" height="18" rx="2"/><path d="M13 13h8"/></svg>
+                <span>미리보기</span>
+              </button>
+              <button type="button" data-folder-view="text" title="텍스트 목록" aria-label="텍스트 목록으로 보기">
+                <svg viewBox="0 0 24 24"><path d="M5 6h14M5 12h14M5 18h14"/><circle cx="3" cy="6" r=".7"/><circle cx="3" cy="12" r=".7"/><circle cx="3" cy="18" r=".7"/></svg>
+                <span>목록</span>
+              </button>
+            </div>
           </div>
         </div>
 
@@ -471,29 +473,31 @@
           </div>
         </div>
 
-        <div class="archive-bulk-bar" id="archiveBulkBar" hidden>
-          <div class="archive-bulk-summary">
-            <button class="archive-select-toggle" id="archiveSelectModeBtn" type="button">
-              선택
-            </button>
-            <button class="archive-bulk-action" id="archiveSelectAllBtn" type="button" hidden>
-              전체 선택
-            </button>
-            <button class="archive-bulk-action" id="archiveClearSelectionBtn" type="button" hidden>
-              선택 해제
-            </button>
-            <span id="archiveSelectedCount" hidden>0개 선택</span>
-          </div>
-          <div class="archive-bulk-commands">
-            <select id="archiveBulkFolderSelect" aria-label="선택한 자료를 이동할 폴더" hidden disabled>
-              <option value="">이동할 폴더</option>
-            </select>
-            <button class="archive-bulk-move" id="archiveBulkMoveBtn" type="button" hidden disabled>
-              이동
-            </button>
-            <button class="archive-bulk-delete" id="archiveBulkDeleteBtn" type="button" hidden disabled>
-              선택 삭제
-            </button>
+        <div class="archive-bulk-default-slot" id="archiveBulkDefaultSlot">
+          <div class="archive-bulk-bar" id="archiveBulkBar" hidden>
+            <div class="archive-bulk-summary">
+              <button class="archive-select-toggle" id="archiveSelectModeBtn" type="button">
+                선택
+              </button>
+              <button class="archive-bulk-action" id="archiveSelectAllBtn" type="button" hidden>
+                전체 선택
+              </button>
+              <button class="archive-bulk-action" id="archiveClearSelectionBtn" type="button" hidden>
+                선택 해제
+              </button>
+              <span id="archiveSelectedCount" hidden>0개 선택</span>
+            </div>
+            <div class="archive-bulk-commands">
+              <select id="archiveBulkFolderSelect" aria-label="선택한 자료를 이동할 폴더" hidden disabled>
+                <option value="">이동할 폴더</option>
+              </select>
+              <button class="archive-bulk-move" id="archiveBulkMoveBtn" type="button" hidden disabled>
+                이동
+              </button>
+              <button class="archive-bulk-delete" id="archiveBulkDeleteBtn" type="button" hidden disabled>
+                선택 삭제
+              </button>
+            </div>
           </div>
         </div>
 
@@ -1692,7 +1696,7 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/core.js?v=20260904-bulk-move1"></script>
-  <script src="js/notes.js?v=20260904-bulk-move3"></script>
+  <script src="js/notes.js?v=20260904-bulk-move4"></script>
   <script src="js/todo.js?v=20260904-album-page15"></script>
   <script src="js/folders.js?v=20260828-storage-guard1"></script>
   <script src="js/auth.js?v=20260828-storage-guard1"></script>

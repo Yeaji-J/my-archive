@@ -1709,6 +1709,27 @@
 
   function renderArchiveBulkBar(notes) {
     const bar = $('#archiveBulkBar');
+    const folderActions =
+      $('#folderListActions');
+    const templateControls =
+      document.querySelector(
+        '.template-list-controls'
+      );
+    const defaultSlot =
+      $('#archiveBulkDefaultSlot');
+    const templateListView =
+      currentView === 'all'
+      && browseMode === 'template'
+      && browseTemplate !== 'all';
+
+    if (browseMode === 'folder') {
+      folderActions.prepend(bar);
+    } else if (templateListView) {
+      templateControls.appendChild(bar);
+    } else {
+      defaultSlot.appendChild(bar);
+    }
+
     const visible =
       isArchiveListView();
 

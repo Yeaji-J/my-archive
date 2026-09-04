@@ -345,21 +345,28 @@
   padding: 10px 22px;
   display: flex;
   flex-direction: column;
-  justify-content: flex-start;
-  gap: 0;
+  justify-content: flex-start !important;
+  align-content: flex-start;
+  row-gap: 1px !important;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
 
 .message-row {
   max-width: 76%;
-  min-height: 18px;
+  min-height: 16px;
   height: auto;
-  flex: none;
+  margin: 0 !important;
+  padding: 0 !important;
+  flex: 0 0 auto !important;
   display: flex;
-  align-items: center;
+  align-items: center !important;
   gap: 5px;
-  line-height: 17px;
+  line-height: 16px;
+}
+
+.message-row:not(.mine) {
+  column-gap: 8px;
 }
 
 .message-row.mine + .message-row:not(.mine),
@@ -385,7 +392,7 @@
   box-shadow: none;
   color: var(--text);
   font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1));
-  line-height: 1.08;
+  line-height: 1.05;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -398,11 +405,18 @@
 
 .message-time {
   padding: 0;
+  align-self: center;
+  display: inline-flex;
+  align-items: center;
   flex-shrink: 0;
   color: var(--text-tertiary);
   font-size: 9.5px;
-  line-height: 17px;
+  line-height: 1;
   white-space: nowrap;
+}
+
+.message-row:not(.mine) .message-time {
+  margin-left: 2px;
 }
 
 .message-unread {

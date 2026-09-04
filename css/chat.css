@@ -9,12 +9,12 @@
 }
 
 .message-bubble {
-  font-size: 16px;
-  line-height: 1.7;
+  font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1));
+  line-height: 1.08;
 }
 
 .chat-composer textarea {
-  font-size: 15px;
+  font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1));
 }
 
 .view.view--chat {
@@ -311,6 +311,10 @@
   cursor: pointer;
 }
 
+.chat-size-control select {
+  width: 42px;
+}
+
 .chat-leave-btn {
   height: 32px;
   padding: 0 10px;
@@ -354,8 +358,8 @@
   flex: none;
   display: flex;
   align-items: center;
-  gap: 8px;
-  line-height: 18px;
+  gap: 5px;
+  line-height: 17px;
 }
 
 .message-row.mine + .message-row:not(.mine),
@@ -380,8 +384,8 @@
   background: transparent;
   box-shadow: none;
   color: var(--text);
-  font-size: 17px;
-  line-height: 18px;
+  font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1));
+  line-height: 1.08;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -397,7 +401,71 @@
   flex-shrink: 0;
   color: var(--text-tertiary);
   font-size: 9.5px;
-  line-height: 18px;
+  line-height: 17px;
+  white-space: nowrap;
+}
+
+.message-unread {
+  flex: none;
+  color: #83a9cf;
+  font-family: "Pretendard", sans-serif;
+  font-size: 9px;
+  line-height: 17px;
+}
+
+.message-reply-btn {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  font-size: 13px;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.message-row:hover .message-reply-btn,
+.message-reply-btn:focus-visible {
+  opacity: .8;
+}
+
+.message-row.reply-highlight .message-bubble {
+  animation: chat-reply-highlight 1s ease;
+}
+
+@keyframes chat-reply-highlight {
+  50% { background: rgba(220, 232, 241, .62); }
+}
+
+.chat-reply-quote {
+  max-width: 260px;
+  margin: 0 0 3px;
+  padding: 3px 7px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  border: 0;
+  border-left: 2px solid rgba(139, 169, 197, .55);
+  background: rgba(220, 232, 241, .38);
+  color: var(--text-secondary);
+  font-family: "Pretendard", sans-serif;
+  text-align: left;
+  cursor: pointer;
+}
+
+.chat-reply-quote small {
+  color: #7f9db8;
+  font-size: 8px;
+}
+
+.chat-reply-quote span {
+  max-width: 100%;
+  overflow: hidden;
+  font-size: 10px;
+  line-height: 1.35;
+  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -425,6 +493,10 @@
     font-size: 10px;
   }
 
+  .chat-size-control select {
+    width: 38px;
+  }
+
   .chat-leave-btn {
     padding-inline: 7px;
   }
@@ -441,6 +513,50 @@
   border: 1px solid var(--border);
   border-radius: 16px;
   background: var(--bg);
+}
+
+.chat-reply-preview {
+  flex: 1 0 100%;
+  min-width: 0;
+  padding: 1px 6px 5px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-bottom: 1px solid rgba(92, 54, 33, .08);
+  font-family: "Pretendard", sans-serif;
+}
+
+.chat-reply-preview[hidden] {
+  display: none;
+}
+
+.chat-reply-preview > span {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.chat-reply-preview small {
+  color: #7f9db8;
+  font-size: 8px;
+}
+
+.chat-reply-preview strong {
+  overflow: hidden;
+  color: var(--text-secondary);
+  font-size: 10px;
+  font-weight: 450;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.chat-reply-preview button {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text-tertiary);
+  cursor: pointer;
 }
 
 .chat-composer:focus-within {
@@ -723,6 +839,14 @@
   align-items: flex-end;
 }
 
+.image-message-row:not(.mine) {
+  align-self: flex-start;
+}
+
+.image-message-row.mine {
+  align-self: flex-end;
+}
+
 .failed-image-message-row {
   min-height: 24px;
   margin-block: 2px;
@@ -752,9 +876,15 @@
 }
 
 .chat-image-caption {
+  width: 100%;
   margin: 0;
-  font-size: 17px;
-  line-height: 24px;
+  font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1));
+  line-height: 1.08;
+  text-align: left;
+}
+
+.message-row.mine .chat-image-caption {
+  text-align: right;
 }
 
 .chat-image-thumb {

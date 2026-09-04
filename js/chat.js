@@ -4,8 +4,12 @@
 
 const CHAT_IMAGE_PREFIX = '__ARCHIVE_IMAGE__:';
 const CHAT_MEDIA_PREFIX = '__ARCHIVE_MEDIA__:';
+const CHAT_REPLY_PREFIX = '__ARCHIVE_REPLY__:';
+const CHAT_READ_PREFIX = '__ARCHIVE_READ__:';
 const CHAT_FONT_STORAGE_KEY =
   'archive.chat-font.v1';
+const CHAT_FONT_SIZE_STORAGE_KEY =
+  'archive.chat-font-size.v1';
 const CHAT_FONT_STACKS = {
   'lee-seoyun':
     '"IsYun", "Pretendard", sans-serif',
@@ -26,7 +30,22 @@ const CHAT_FONT_STACKS = {
   'song-myung':
     '"Song Myung", serif'
 };
+const CHAT_FONT_SCALES = {
+  'lee-seoyun': .95,
+  pretendard: .86,
+  'gowun-dodum': .9,
+  'gowun-batang': .9,
+  'nanum-pen': 1.05,
+  gaegu: 1,
+  dongle: 1.18,
+  'black-han': .84,
+  'song-myung': .9
+};
+const CHAT_FONT_SIZES = [14, 15, 16, 17, 18, 20];
 let pendingChatImage = '';
+let pendingChatReply = null;
+const chatPeerReadAt = new Map();
+const chatOwnReadAt = new Map();
 let chatDrawingActive = false;
 let chatDrawingLastPoint = null;
 let chatDrawingColor = '#5C3621';
@@ -52,6 +71,23 @@ function loadChatFontKey() {
 
 let chatFontKey = loadChatFontKey();
 
+function loadChatFontSize() {
+  try {
+    const value = Number(
+      localStorage.getItem(
+        CHAT_FONT_SIZE_STORAGE_KEY
+      )
+    );
+    return CHAT_FONT_SIZES.includes(value)
+      ? value
+      : 17;
+  } catch (_error) {
+    return 17;
+  }
+}
+
+let chatFontSize = loadChatFontSize();
+
 function applyChatFont(value) {
   const key = Object.prototype.hasOwnProperty.call(
     CHAT_FONT_STACKS,
@@ -64,6 +100,10 @@ function applyChatFont(value) {
   document.documentElement.style.setProperty(
     '--chat-font-family',
     CHAT_FONT_STACKS[key]
+  );
+  document.documentElement.style.setProperty(
+    '--chat-font-scale',
+    CHAT_FONT_SCALES[key] || 1
   );
 
   const select = $('#chatFontSelect');
@@ -84,6 +124,71 @@ function applyChatFont(value) {
 }
 
 applyChatFont(chatFontKey);
+
+function applyChatFontSize(value) {
+  const size = Number(value);
+  chatFontSize = CHAT_FONT_SIZES.includes(size)
+    ? size
+    : 17;
+  document.documentElement.style.setProperty(
+    '--chat-font-size',
+    `${chatFontSize}px`
+  );
+  const select = $('#chatFontSizeSelect');
+  if (select) select.value = String(chatFontSize);
+  try {
+    localStorage.setItem(
+      CHAT_FONT_SIZE_STORAGE_KEY,
+      String(chatFontSize)
+    );
+  } catch (_error) {
+    /* 저장소가 막혀도 현재 화면에는 적용합니다. */
+  }
+}
+
+applyChatFontSize(chatFontSize);
+
+function parseChatReceipt(body) {
+  const value = String(body || '').trim();
+  if (!value.startsWith(CHAT_READ_PREFIX)) return null;
+  try {
+    const data = JSON.parse(
+      value.slice(CHAT_READ_PREFIX.length)
+    );
+    return {
+      lastMessageId: String(data.lastMessageId || ''),
+      lastReadAt: String(data.lastReadAt || '')
+    };
+  } catch (_error) {
+    return null;
+  }
+}
+
+function parseChatEnvelope(body) {
+  const value = String(body || '');
+  if (!value.trim().startsWith(CHAT_REPLY_PREFIX)) {
+    return { content: value, reply: null };
+  }
+  try {
+    const data = JSON.parse(
+      value.trim().slice(CHAT_REPLY_PREFIX.length)
+    );
+    return {
+      content: String(data.content || ''),
+      reply: data.reply && typeof data.reply === 'object'
+        ? {
+            id: String(data.reply.id || ''),
+            userId: String(data.reply.userId || ''),
+            author: String(data.reply.author || '답글'),
+            text: String(data.reply.text || '').slice(0, 180),
+            createdAt: String(data.reply.createdAt || '')
+          }
+        : null
+    };
+  } catch (_error) {
+    return { content: value, reply: null };
+  }
+}
 
 function parseChatMedia(body) {
   const value =
@@ -192,8 +297,10 @@ function chatImagePath(body) {
 }
 
 function chatMessagePreview(body) {
-  const media = parseChatMedia(body);
-  if (!media) return String(body || '');
+  if (parseChatReceipt(body)) return '';
+  const envelope = parseChatEnvelope(body);
+  const media = parseChatMedia(envelope.content);
+  if (!media) return envelope.content;
   return media.text
     ? `사진 · ${media.text}`
     : '사진';
@@ -498,7 +605,7 @@ function showChatImageFailure(
               cloud
                 .from('messages')
                 .select(
-                  'body,created_at'
+                  'id,user_id,body,created_at'
                 )
                 .eq('room_id', roomId)
                 .order(
@@ -507,7 +614,7 @@ function showChatImageFailure(
                     ascending: false
                   }
                 )
-                .limit(1)
+                .limit(30)
             ]);
 
             const otherUserId =
@@ -535,7 +642,10 @@ function showChatImageFailure(
               id: roomId,
               profile,
               latest:
-                latest?.[0] || null
+                (latest || []).find(
+                  message =>
+                    !parseChatReceipt(message.body)
+                ) || null
             };
           })
       );
@@ -700,6 +810,98 @@ function showChatImageFailure(
       );
   }
 
+  function updateChatReadIndicators(roomId) {
+    const readAt = chatPeerReadAt.get(roomId);
+    if (!readAt) return;
+    chatMessages
+      .querySelectorAll('.message-row.mine[data-created-at]')
+      .forEach(row => {
+        if (
+          new Date(row.dataset.createdAt).getTime()
+          <= new Date(readAt).getTime()
+        ) {
+          row.querySelector('.message-unread')?.remove();
+        }
+      });
+  }
+
+  function recordChatReceipt(message) {
+    const receipt = parseChatReceipt(message.body);
+    if (!receipt) return false;
+    const map = message.user_id === currentUser?.id
+      ? chatOwnReadAt
+      : chatPeerReadAt;
+    const previous = map.get(message.room_id);
+    if (
+      !previous
+      || new Date(receipt.lastReadAt).getTime()
+        > new Date(previous).getTime()
+    ) {
+      map.set(message.room_id, receipt.lastReadAt);
+    }
+    if (message.user_id !== currentUser?.id) {
+      updateChatReadIndicators(message.room_id);
+    }
+    return true;
+  }
+
+  async function markChatMessagesRead(roomId, messages = []) {
+    if (!currentUser || !roomId) return;
+    const latestIncoming = [...messages]
+      .reverse()
+      .find(message =>
+        message.user_id !== currentUser.id
+        && !parseChatReceipt(message.body)
+      );
+    if (!latestIncoming) return;
+    const lastReadAt = latestIncoming.created_at;
+    const previous = chatOwnReadAt.get(roomId);
+    if (
+      previous
+      && new Date(previous).getTime()
+        >= new Date(lastReadAt).getTime()
+    ) return;
+    chatOwnReadAt.set(roomId, lastReadAt);
+    const { error } = await cloud
+      .from('messages')
+      .insert({
+        room_id: roomId,
+        user_id: currentUser.id,
+        body: `${CHAT_READ_PREFIX}${JSON.stringify({
+          lastMessageId: String(latestIncoming.id),
+          lastReadAt
+        })}`
+      });
+    if (error) {
+      chatOwnReadAt.delete(roomId);
+      console.error('Chat read receipt failed', error);
+    }
+  }
+
+  function clearPendingChatReply() {
+    pendingChatReply = null;
+    const preview = $('#chatReplyPreview');
+    if (preview) preview.hidden = true;
+  }
+
+  function setPendingChatReply(message, content) {
+    const room = chatRooms.find(item => item.id === activeRoomId);
+    const isMine = message.user_id === currentUser?.id;
+    pendingChatReply = {
+      id: String(message.id),
+      userId: String(message.user_id),
+      author: isMine
+        ? (currentProfile?.display_name || '나')
+        : (room?.profile?.display_name || '상대방'),
+      text: chatMessagePreview(content).slice(0, 180) || '사진',
+      createdAt: String(message.created_at || '')
+    };
+    $('#chatReplyAuthor').textContent = `${pendingChatReply.author}에게 답글`;
+    $('#chatReplyText').textContent = pendingChatReply.text;
+    $('#chatReplyPreview').hidden = false;
+    chatInput.focus();
+  }
+
   async function openChatRoom(roomId) {
     const room =
       chatRooms.find(
@@ -711,6 +913,7 @@ function showChatImageFailure(
     activeRoomId = roomId;
     quickChatRoomId = roomId;
     clearPendingChatImage();
+    clearPendingChatReply();
 
     renderedMessageIds.clear();
     renderChatRooms();
@@ -784,12 +987,12 @@ function showChatImageFailure(
 
     chatMessages.innerHTML = '';
 
-    (data || []).forEach(
-      appendMessage
-    );
+    (data || []).forEach(recordChatReceipt);
+    (data || []).forEach(appendMessage);
 
     scrollChatToBottom();
     subscribeToMessages(roomId);
+    await markChatMessagesRead(roomId, data || []);
   }
 
   async function leaveActiveChatRoom() {
@@ -831,6 +1034,7 @@ function showChatImageFailure(
     activeRoomId = null;
     renderedMessageIds.clear();
     clearPendingChatImage();
+    clearPendingChatReply();
     chatMessages.innerHTML = '';
     chatActive.hidden = true;
     chatEmptyConversation.hidden = false;
@@ -859,6 +1063,7 @@ function showChatImageFailure(
   }
 
   async function appendMessage(message) {
+    if (recordChatReceipt(message)) return;
     const messageId =
       String(message.id);
 
@@ -881,9 +1086,18 @@ function showChatImageFailure(
           ? ' mine'
           : ''
       );
+    row.dataset.messageId = messageId;
+    row.dataset.createdAt = message.created_at;
 
-    const media =
-      parseChatMedia(message.body);
+    const envelope = parseChatEnvelope(message.body);
+    const media = parseChatMedia(envelope.content);
+    const isMine = message.user_id === currentUser?.id;
+    const peerReadAt = chatPeerReadAt.get(message.room_id);
+    const isUnread = isMine && (
+      !peerReadAt
+      || new Date(message.created_at).getTime()
+        > new Date(peerReadAt).getTime()
+    );
 
     if (media) {
       row.classList.add(
@@ -893,13 +1107,36 @@ function showChatImageFailure(
 
     row.innerHTML = `
       <div class="message-bubble ${media ? 'message-bubble-image' : ''}">
-        ${media ? '<span class="chat-image-loading">사진 불러오는 중…</span>' : escapeHtml(message.body)}
+        ${envelope.reply ? `
+          <button type="button" class="chat-reply-quote" data-reply-id="${escapeHtml(envelope.reply.id)}">
+            <small>${escapeHtml(envelope.reply.author)}</small>
+            <span>${escapeHtml(envelope.reply.text)}</span>
+          </button>
+        ` : ''}
+        ${media ? '<span class="chat-image-loading">사진 불러오는 중…</span>' : `<span class="message-text">${escapeHtml(envelope.content)}</span>`}
       </div>
 
+      ${isUnread ? '<span class="message-unread" aria-label="읽지 않음">1</span>' : ''}
       <time class="message-time">
         ${messageTime(message.created_at)}
       </time>
+      <button type="button" class="message-reply-btn" aria-label="이 메시지에 답글">↩</button>
     `;
+
+    row.querySelector('.message-reply-btn')
+      ?.addEventListener('click', () =>
+        setPendingChatReply(message, envelope.content)
+      );
+    row.querySelector('.chat-reply-quote')
+      ?.addEventListener('click', event => {
+        const target = chatMessages.querySelector(
+          `.message-row[data-message-id="${CSS.escape(event.currentTarget.dataset.replyId)}"]`
+        );
+        if (!target) return;
+        target.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        target.classList.add('reply-highlight');
+        setTimeout(() => target.classList.remove('reply-highlight'), 1000);
+      });
 
     chatMessages.appendChild(row);
 
@@ -926,7 +1163,7 @@ function showChatImageFailure(
         );
 
       if (url) {
-        bubble.innerHTML = '';
+        bubble.querySelector('.chat-image-loading')?.remove();
         const button =
           document.createElement('button');
         button.type = 'button';
@@ -1015,6 +1252,10 @@ function showChatImageFailure(
               return;
             }
 
+            if (recordChatReceipt(payload.new)) {
+              loadChatRooms();
+              return;
+            }
             appendMessage(payload.new);
             if (
               typeof appendQuickChatMessage
@@ -1028,6 +1269,9 @@ function showChatImageFailure(
             }
             scrollChatToBottom();
             loadChatRooms();
+            if (payload.new.user_id !== currentUser?.id) {
+              markChatMessagesRead(roomId, [payload.new]);
+            }
           }
         )
         .subscribe();
@@ -1076,7 +1320,7 @@ function showChatImageFailure(
           );
       }
 
-      const outgoingBody =
+      const outgoingContent =
         uploadedPath
           ? `${CHAT_MEDIA_PREFIX}${JSON.stringify({
               path: uploadedPath,
@@ -1084,6 +1328,12 @@ function showChatImageFailure(
               text: body
             })}`
           : body;
+      const outgoingBody = pendingChatReply
+        ? `${CHAT_REPLY_PREFIX}${JSON.stringify({
+            content: outgoingContent,
+            reply: pendingChatReply
+          })}`
+        : outgoingContent;
 
       const { data, error } =
         await cloud
@@ -1101,6 +1351,7 @@ function showChatImageFailure(
       chatInput.value = '';
       chatInput.style.height = 'auto';
       clearPendingChatImage();
+      clearPendingChatReply();
 
       appendMessage(data);
       if (

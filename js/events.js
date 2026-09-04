@@ -421,6 +421,20 @@
       )
     );
 
+  $('#chatFontSizeSelect')
+    .addEventListener(
+      'change',
+      event => applyChatFontSize(
+        event.target.value
+      )
+    );
+
+  $('#chatReplyCancel')
+    .addEventListener(
+      'click',
+      clearPendingChatReply
+    );
+
   $('#chatLeaveBtn')
     .addEventListener(
       'click',

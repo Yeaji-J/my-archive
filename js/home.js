@@ -395,18 +395,25 @@ async function loadQuickChatRoom(room) {
 
   $('#quickChatLines').innerHTML = '';
 
-  if (!data?.length) {
+  (data || []).forEach(recordChatReceipt);
+  const visibleMessages = (data || []).filter(
+    message => !parseChatReceipt(message.body)
+  );
+
+  if (!visibleMessages.length) {
     $('#quickChatLines').innerHTML =
       '<p class="quick-chat-empty">아직 적힌 메모가 없어요.</p>';
   } else {
-    data.forEach(appendQuickChatMessage);
+    visibleMessages.forEach(appendQuickChatMessage);
   }
 
   subscribeQuickChat(room.id);
   scrollQuickChatToBottom();
+  await markChatMessagesRead(room.id, data || []);
 }
 
 async function appendQuickChatMessage(message) {
+  if (recordChatReceipt(message)) return;
   const messageId = String(message.id);
   if (
     quickRenderedMessageIds.has(messageId)
@@ -424,11 +431,22 @@ async function appendQuickChatMessage(message) {
     message.user_id === currentUser?.id
       ? 'mine'
       : '';
-  const media =
-    parseChatMedia(message.body);
+  const envelope = parseChatEnvelope(message.body);
+  const media = parseChatMedia(envelope.content);
+
+  if (envelope.reply) {
+    row.classList.add('reply');
+    const quote = document.createElement('span');
+    quote.className = 'quick-chat-reply-quote';
+    quote.innerHTML = `<small>${escapeHtml(envelope.reply.author)}</small><span>${escapeHtml(envelope.reply.text)}</span>`;
+    row.appendChild(quote);
+  }
 
   if (!media) {
-    row.textContent = message.body;
+    const text = document.createElement('span');
+    text.className = 'quick-chat-message-text';
+    text.textContent = envelope.content;
+    row.appendChild(text);
     $('#quickChatLines').appendChild(row);
     scrollQuickChatToBottom();
     return;
@@ -450,7 +468,10 @@ async function appendQuickChatMessage(message) {
     return;
   }
 
-  row.textContent = '사진 불러오는 중…';
+  const loading = document.createElement('span');
+  loading.className = 'quick-chat-image-loading';
+  loading.textContent = '사진 불러오는 중…';
+  row.appendChild(loading);
   $('#quickChatLines').appendChild(row);
 
   const url = media.image
@@ -466,7 +487,7 @@ async function appendQuickChatMessage(message) {
     return;
   }
 
-  row.innerHTML = '';
+  loading.remove();
   const button = document.createElement('button');
   button.type = 'button';
   button.className = 'quick-chat-image';
@@ -534,7 +555,11 @@ function subscribeQuickChat(roomId) {
         ) {
           return;
         }
+        if (recordChatReceipt(payload.new)) return;
         appendQuickChatMessage(payload.new);
+        if (payload.new.user_id !== currentUser?.id) {
+          markChatMessagesRead(roomId, [payload.new]);
+        }
       }
     )
     .subscribe();

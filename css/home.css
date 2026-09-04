@@ -512,17 +512,24 @@ body.chat-view-active .quick-chat-note {
 .quick-room-chip { flex: 0 0 auto; padding: 5px 9px; border: 1px solid rgba(102, 104, 91, .12); border-radius: 999px; background: rgba(255,255,255,.45); color: #777569; font-size: 9px; cursor: pointer; }
 .quick-room-chip.active { background: #dbe8d5; color: #52634f; }
 .quick-chat-lines { height: 330px; padding: 20px 5px 15px; overflow-y: auto; }
-.quick-chat-lines p { margin: 0 0 3px; color: #747266; font-family: var(--chat-font-family, 'IsYun', "Pretendard", sans-serif); font-size: 16px; line-height: 1.3; }
+.quick-chat-lines p { margin: 0 0 1px; color: #747266; font-family: var(--chat-font-family, 'IsYun', "Pretendard", sans-serif); font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1)); line-height: 1.08; }
 .quick-chat-lines p.mine { color: #7590aa; text-align: right; }
-.quick-chat-lines p.image { display: flex; flex-direction: column; align-items: flex-start; gap: 7px; margin-block: 8px; line-height: 1; }
+.quick-chat-lines p.image, .quick-chat-lines p.reply { display: flex; flex-direction: column; align-items: flex-start; }
+.quick-chat-lines p.image { gap: 4px; margin-block: 4px; line-height: 1; }
 .quick-chat-lines p.image.mine { align-items: flex-end; }
+.quick-chat-lines p.reply.mine { align-items: flex-end; }
 .quick-chat-lines p.failed-image { margin-bottom: 8px; color: #aaa597; font-family: "Pretendard", sans-serif; font-size: 9px; line-height: 1.4; }
 .quick-chat-image { width: 110px; height: 91px; padding: 0; overflow: hidden; border: 0; border-radius: 8px; background: #fff; cursor: pointer; }
 .quick-chat-image img { width: 100%; height: 100%; display: block; object-fit: cover; }
 .quick-chat-image-failed { width: 110px; min-height: 91px; display: grid; place-items: center; padding: 8px; border-radius: 8px; background: rgba(255,255,255,.62); color: #999486; font-family: "Pretendard", sans-serif; font-size: 9px; line-height: 1.45; text-align: center; }
-.quick-chat-image-caption { display: block; font-family: 'IsYun', "Pretendard", sans-serif; font-size: 16px; line-height: 1.55; }
+.quick-chat-image-caption { width: 110px; display: block; font-family: var(--chat-font-family, 'IsYun', "Pretendard", sans-serif); font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1)); line-height: 1.08; text-align: left; }
+.quick-chat-lines p.mine .quick-chat-image-caption { text-align: right; }
+.quick-chat-reply-quote { max-width: 180px; margin-bottom: 2px; padding: 3px 6px; display: flex; flex-direction: column; border-left: 2px solid rgba(139, 169, 197, .5); background: rgba(255,255,255,.36); color: #858779; font-family: "Pretendard", sans-serif; text-align: left; }
+.quick-chat-reply-quote small { color: #7f9db8; font-size: 7px; }
+.quick-chat-reply-quote span { max-width: 100%; overflow: hidden; font-size: 9px; line-height: 1.3; text-overflow: ellipsis; white-space: nowrap; }
+.quick-chat-message-text { display: block; }
 .quick-chat-form { display: flex; gap: 8px; align-items: flex-end; }
-.quick-chat-form textarea { flex: 1; min-height: 37px; max-height: 70px; resize: none; border: 0; border-bottom: 1px solid rgba(100, 103, 91, .2); outline: none; background: rgba(255,255,255,.3); color: #585950; font-family: var(--chat-font-family, 'IsYun', "Pretendard", sans-serif); font-size: 15px; }
+.quick-chat-form textarea { flex: 1; min-height: 37px; max-height: 70px; resize: none; border: 0; border-bottom: 1px solid rgba(100, 103, 91, .2); outline: none; background: rgba(255,255,255,.3); color: #585950; font-family: var(--chat-font-family, 'IsYun', "Pretendard", sans-serif); font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1)); }
 .quick-chat-form button { padding: 8px 10px; border: 0; background: transparent; color: #779374; font-size: 10px; cursor: pointer; }
 
 @media (max-width: 1250px) {

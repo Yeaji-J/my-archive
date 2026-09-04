@@ -25,10 +25,10 @@
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260904-folder-sort1">
   <link rel="stylesheet" href="css/notes.css?v=20260904-bulk-move5">
-  <link rel="stylesheet" href="css/chat.css?v=20260904-compact-messages1">
+  <link rel="stylesheet" href="css/chat.css?v=20260904-chat-replies1">
   <link rel="stylesheet" href="css/todo.css?v=20260904-item-sort1">
   <link rel="stylesheet" href="css/calendar.css?v=20260903-schedule-align3">
-  <link rel="stylesheet" href="css/home.css?v=20260904-compact-messages1">
+  <link rel="stylesheet" href="css/home.css?v=20260904-chat-replies1">
   <link rel="stylesheet" href="css/responsive-theme.css?v=20260812-folder-visual1">
   <link rel="stylesheet" href="css/theme.css?v=20260724-skin-switch1">
   <link rel="stylesheet" href="css/template-paper-board.css?v=20260730-free-board3">
@@ -647,6 +647,17 @@
                       <option value="song-myung">송명체</option>
                     </select>
                   </label>
+                  <label class="chat-font-control chat-size-control">
+                    <span>SIZE</span>
+                    <select id="chatFontSizeSelect" aria-label="채팅 글씨 크기">
+                      <option value="14">14px</option>
+                      <option value="15">15px</option>
+                      <option value="16">16px</option>
+                      <option value="17" selected>17px</option>
+                      <option value="18">18px</option>
+                      <option value="20">20px</option>
+                    </select>
+                  </label>
                   <button class="chat-leave-btn" id="chatLeaveBtn" type="button" title="채팅 나가기">
                     나가기
                   </button>
@@ -662,6 +673,13 @@
                 class="chat-composer"
                 id="chatForm"
               >
+                <div class="chat-reply-preview" id="chatReplyPreview" hidden>
+                  <span>
+                    <small id="chatReplyAuthor">답글</small>
+                    <strong id="chatReplyText"></strong>
+                  </span>
+                  <button type="button" id="chatReplyCancel" aria-label="답글 취소">×</button>
+                </div>
                 <div class="chat-attachment-preview" id="chatAttachmentPreview" hidden>
                   <img id="chatAttachmentPreviewImage" alt="전송할 사진 미리보기">
                   <button type="button" id="chatAttachmentRemove" aria-label="첨부 사진 삭제">×</button>
@@ -1702,16 +1720,16 @@
   <script src="js/todo.js?v=20260904-item-sort1"></script>
   <script src="js/folders.js?v=20260828-storage-guard1"></script>
   <script src="js/auth.js?v=20260904-folder-sort1"></script>
-  <script src="js/chat.js?v=20260902-chat-controls1"></script>
+  <script src="js/chat.js?v=20260904-chat-replies1"></script>
   <script src="js/calendar.js?v=20260903-schedule-align3"></script>
-  <script src="js/home.js?v=20260812-folder-visual2"></script>
+  <script src="js/home.js?v=20260904-chat-replies1"></script>
   <script src="js/memo.js?v=20260904-album-page15"></script>
   <script src="js/moodboard.js?v=20260903-template-preserve1"></script>
   <script src="js/templates.js?v=20260904-link-save1"></script>
   <script src="js/note-view.js?v=20260902-memo-tags1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260828-storage-guard1"></script>
-  <script src="js/events.js?v=20260904-bulk-move1"></script>
+  <script src="js/events.js?v=20260904-chat-replies1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

@@ -1,6 +1,7 @@
 /* ---------- Chat ---------- */
 
 .message-bubble,
+.message-text,
 .chat-composer textarea {
   font-family: var(
     --chat-font-family,
@@ -312,8 +313,12 @@
 }
 
 .chat-size-control select {
-  width: 58px;
+  width: 72px;
   padding-right: 18px;
+}
+
+.chat-size-control {
+  min-width: 108px;
 }
 
 .chat-leave-btn {
@@ -348,7 +353,7 @@
   flex-direction: column;
   justify-content: flex-start !important;
   align-content: flex-start;
-  row-gap: 1px !important;
+  row-gap: 8px !important;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -583,7 +588,11 @@
   }
 
   .chat-size-control select {
-    width: 48px;
+    width: 62px;
+  }
+
+  .chat-size-control {
+    min-width: 76px;
   }
 
   .chat-leave-btn {

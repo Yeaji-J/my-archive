@@ -1366,14 +1366,13 @@ const STORAGE_KEY = 'archive.data.v1';
         );
 
       return [
-        'mixed',
         'preview',
         'text'
       ].includes(saved)
         ? saved
-        : 'mixed';
+        : 'preview';
     } catch (_error) {
-      return 'mixed';
+      return 'preview';
     }
   })();
   let browseTemplate = 'all';
@@ -1383,6 +1382,7 @@ const STORAGE_KEY = 'archive.data.v1';
   let templateListSearchTerm = '';
   let archiveSelectionMode = false;
   const selectedArchiveNoteIds = new Set();
+  let archiveBulkTargetFolderId = '';
   let noteDeleteInProgress = false;
   let pendingFolderColor =
     FOLDER_COLORS[0];

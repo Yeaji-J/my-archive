@@ -238,6 +238,25 @@
       deleteSelectedArchiveNotes
     );
 
+  $('#archiveBulkFolderSelect')
+    .addEventListener(
+      'change',
+      event => {
+        archiveBulkTargetFolderId =
+          event.target.value;
+        $('#archiveBulkMoveBtn').disabled =
+          !archiveBulkTargetFolderId
+          || selectedArchiveNoteIds.size
+            === 0;
+      }
+    );
+
+  $('#archiveBulkMoveBtn')
+    .addEventListener(
+      'click',
+      moveSelectedArchiveNotes
+    );
+
   $('#addFolderBtn')
     .addEventListener(
       'click',

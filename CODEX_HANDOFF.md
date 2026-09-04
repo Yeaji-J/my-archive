@@ -123,9 +123,10 @@ Folder visuals share the same compact, softly irregular silhouette across the da
 
 Folder contents support multiple view styles:
 
-- mixed/object view
 - preview/card view (image/preview + text)
 - text/notice-board view
+
+The former `기본`/mixed folder-view filter was removed. Stored legacy `mixed` preferences fall back to `preview` without changing note data.
 
 Folders now support nested hierarchy through an optional `parentId` on each folder. Existing folders without `parentId` remain top-level without migration or data reset. The sidebar renders the hierarchy collapsed by default with expand/collapse controls and a per-folder child-add action; clicking a parent row toggles its children instead of leaving it permanently expanded. Opening a parent folder includes notes from all descendants; opening a child folder narrows to that branch. The writing-page toolbar exposes separate `상위 폴더` and conditional `하위 폴더` selectors, restoring both values from an existing note and saving the selected child folder through the normal note save path. Detail-view folder movement retains a compact hierarchical selector. Deleting a folder moves its direct notes and child folders one level upward instead of discarding them.
 
@@ -325,7 +326,7 @@ Terminology correction from the old conversation:
 
 Editing is intentionally lightweight: there is no mandatory completion state. Saved content can be opened and immediately edited. Do not introduce an artificial draft/completed status unless explicitly requested.
 
-All five list pages should retain search/filter controls and support select / select-all / bulk delete. Selection controls should be compact and on the same top row as search when possible, without extra duplicated template-name bars that waste vertical space.
+All five list pages should retain search/filter controls and support select / select-all / bulk delete. The same selection bar supports moving all selected notes to one top-level or nested folder; the move updates `folderId` through localStorage, IndexedDB durable snapshots, and Supabase cloud sync before selection mode closes. Selection controls should be compact and on the same top row as search when possible, without extra duplicated template-name bars that waste vertical space.
 
 ## 8. Chat contract
 

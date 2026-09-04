@@ -39,6 +39,7 @@
 
 .archive-select-toggle,
 .archive-bulk-action,
+.archive-bulk-move,
 .archive-bulk-delete {
   min-height: 28px;
   padding: 5px 11px;
@@ -62,6 +63,46 @@
 .archive-bulk-action {
   background: transparent;
   color: var(--archive-gray);
+}
+
+.archive-bulk-commands {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+#archiveBulkFolderSelect {
+  max-width: 170px;
+  min-height: 28px;
+  padding: 4px 26px 4px 9px;
+  border: 1px solid rgba(92, 54, 33, .13);
+  border-radius: 999px;
+  outline: 0;
+  background: #fff;
+  color: var(--archive-brown);
+  font-size: 10px;
+}
+
+#archiveBulkFolderSelect:focus {
+  border-color: #9eb397;
+  box-shadow:
+    0 0 0 3px rgba(158, 179, 151, .12);
+}
+
+.archive-bulk-move {
+  background:
+    color-mix(
+      in srgb,
+      var(--archive-blue) 30%,
+      #fff 70%
+    );
+  color: #617b94;
+}
+
+.archive-bulk-move:disabled,
+#archiveBulkFolderSelect:disabled {
+  opacity: .4;
+  cursor: default;
 }
 
 .archive-bulk-delete {
@@ -4087,6 +4128,13 @@ input:disabled {
   .folder-text-folder,
   .folder-text-summary {
     display: none;
+  }
+  .archive-bulk-commands {
+    width: 100%;
+  }
+  #archiveBulkFolderSelect {
+    min-width: 0;
+    flex: 1;
   }
   .date-archive-row.note-card {
     grid-template-columns:

@@ -24,7 +24,7 @@
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
   <link rel="stylesheet" href="css/base.css?v=20260828-storage-guard1">
-  <link rel="stylesheet" href="css/notes.css?v=20260904-date-archive1">
+  <link rel="stylesheet" href="css/notes.css?v=20260904-bulk-move2">
   <link rel="stylesheet" href="css/chat.css?v=20260902-chat-controls1">
   <link rel="stylesheet" href="css/todo.css?v=20260904-memo-focus4">
   <link rel="stylesheet" href="css/calendar.css?v=20260903-schedule-align3">
@@ -436,11 +436,7 @@
             <strong id="folderListResultCount">0개의 자료</strong>
           </div>
           <div class="folder-view-buttons" aria-label="폴더 자료 보기 방식">
-            <button type="button" class="active" data-folder-view="mixed" title="기본 카드" aria-label="기본 카드로 보기">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="8" rx="2"/><rect x="13" y="3" width="8" height="8" rx="2"/><rect x="3" y="13" width="8" height="8" rx="2"/><rect x="13" y="13" width="8" height="8" rx="2"/></svg>
-              <span>기본</span>
-            </button>
-            <button type="button" data-folder-view="preview" title="미리보기 카드" aria-label="미리보기 카드로 보기">
+            <button type="button" class="active" data-folder-view="preview" title="미리보기 카드" aria-label="미리보기 카드로 보기">
               <svg viewBox="0 0 24 24"><rect x="3" y="3" width="8" height="18" rx="2"/><path d="M3 13h8"/><rect x="13" y="3" width="8" height="18" rx="2"/><path d="M13 13h8"/></svg>
               <span>미리보기</span>
             </button>
@@ -485,9 +481,17 @@
                 </button>
                 <span id="archiveSelectedCount" hidden>0개 선택</span>
               </div>
-              <button class="archive-bulk-delete" id="archiveBulkDeleteBtn" type="button" hidden disabled>
-                선택 삭제
-              </button>
+              <div class="archive-bulk-commands">
+                <select id="archiveBulkFolderSelect" aria-label="선택한 자료를 이동할 폴더" hidden disabled>
+                  <option value="">이동할 폴더</option>
+                </select>
+                <button class="archive-bulk-move" id="archiveBulkMoveBtn" type="button" hidden disabled>
+                  이동
+                </button>
+                <button class="archive-bulk-delete" id="archiveBulkDeleteBtn" type="button" hidden disabled>
+                  선택 삭제
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1686,8 +1690,8 @@
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="js/core.js?v=20260903-schedule-list2"></script>
-  <script src="js/notes.js?v=20260904-date-archive1"></script>
+  <script src="js/core.js?v=20260904-bulk-move1"></script>
+  <script src="js/notes.js?v=20260904-bulk-move2"></script>
   <script src="js/todo.js?v=20260904-memo-focus4"></script>
   <script src="js/folders.js?v=20260828-storage-guard1"></script>
   <script src="js/auth.js?v=20260828-storage-guard1"></script>
@@ -1700,7 +1704,7 @@
   <script src="js/note-view.js?v=20260902-memo-tags1"></script>
   <script src="js/font-system.js?v=20260730-font-system1"></script>
   <script src="js/router.js?v=20260828-storage-guard1"></script>
-  <script src="js/events.js?v=20260903-schedule-list2"></script>
+  <script src="js/events.js?v=20260904-bulk-move1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

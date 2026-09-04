@@ -1669,11 +1669,13 @@
   function resetArchiveSelection() {
     archiveSelectionMode = false;
     selectedArchiveNoteIds.clear();
+    archiveBulkTargetFolderId = '';
   }
 
   function setArchiveSelectionMode(enabled) {
     archiveSelectionMode = Boolean(enabled);
     selectedArchiveNoteIds.clear();
+    archiveBulkTargetFolderId = '';
     renderFolderGridView();
   }
 
@@ -1761,6 +1763,46 @@
       !archiveSelectionMode;
     deleteButton.disabled =
       count === 0;
+
+    const folderSelect =
+      $('#archiveBulkFolderSelect');
+    const folderEntries =
+      orderedFolderEntries();
+    folderSelect.innerHTML = `
+      <option value="">이동할 폴더</option>
+      ${folderEntries
+        .map(({ folder, depth }) => `
+          <option value="${escapeHtml(folder.id)}">
+            ${'　'.repeat(depth)}${escapeHtml(folder.name)}
+          </option>
+        `)
+        .join('')}
+    `;
+    if (
+      folderEntries.some(
+        ({ folder }) =>
+          folder.id
+            === archiveBulkTargetFolderId
+      )
+    ) {
+      folderSelect.value =
+        archiveBulkTargetFolderId;
+    } else {
+      archiveBulkTargetFolderId = '';
+    }
+    folderSelect.hidden =
+      !archiveSelectionMode;
+    folderSelect.disabled =
+      count === 0
+      || folderEntries.length === 0;
+
+    const moveButton =
+      $('#archiveBulkMoveBtn');
+    moveButton.hidden =
+      !archiveSelectionMode;
+    moveButton.disabled =
+      count === 0
+      || !archiveBulkTargetFolderId;
   }
 
   async function deleteNotesByIds(noteIds) {
@@ -1842,6 +1884,55 @@
     }
 
     await deleteNotesByIds(ids);
+    resetArchiveSelection();
+    render();
+  }
+
+  async function moveSelectedArchiveNotes() {
+    const folder = state.folders.find(
+      item =>
+        item.id === archiveBulkTargetFolderId
+    );
+    if (
+      !folder
+      || selectedArchiveNoteIds.size === 0
+    ) {
+      return;
+    }
+
+    const selectedIds = new Set(
+      selectedArchiveNoteIds
+    );
+    const movedAt = Date.now();
+    let movedCount = 0;
+    state.notes.forEach(note => {
+      if (!selectedIds.has(note.id)) return;
+      note.folderId = folder.id;
+      note.updatedAt = movedAt;
+      movedCount += 1;
+    });
+    if (!movedCount) return;
+
+    saveData();
+    clearTimeout(cloudSaveTimer);
+    await persistDurableState(
+      true,
+      lastLocalSavedAt
+    );
+
+    if (currentUser) {
+      setSyncStatus(
+        '폴더 이동 저장 중…',
+        'syncing'
+      );
+      const saved = await pushCloudData();
+      if (!saved) {
+        alert(
+          '이 브라우저에서는 이동되었지만 클라우드 동기화에 실패했어요. 네트워크를 확인한 뒤 다시 시도해주세요.'
+        );
+      }
+    }
+
     resetArchiveSelection();
     render();
   }

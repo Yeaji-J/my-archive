@@ -440,9 +440,8 @@
 }
 
 .postit-list-todo
-.postit-item-title {
-  padding-top: 7px;
-  padding-bottom: 7px;
+.postit-list-row.is-editing:not(.has-memo) {
+  padding-bottom: 6px;
 }
 
 .postit-check {
@@ -500,6 +499,13 @@
   line-height: 1.45;
 }
 
+.postit-list-todo
+.postit-list-row
+.postit-item-title {
+  padding-top: 7px;
+  padding-bottom: 7px;
+}
+
 .postit-list-row.done .postit-item-title {
   opacity: .48;
   text-decoration: line-through;
@@ -507,6 +513,7 @@
 
 .postit-item-memo-line {
   min-width: 0;
+  min-height: 22px;
   margin-top: -3px;
   display: flex;
   align-items: center;
@@ -520,7 +527,7 @@
 
 .postit-item-note-link-btn {
   width: 0;
-  height: 18px;
+  height: 22px;
   padding: 0;
   display: inline-flex;
   align-items: center;
@@ -577,6 +584,7 @@
 
 .postit-linked-note {
   min-width: 0;
+  min-height: 22px;
   margin: 0 0 7px;
   display: flex;
   align-items: center;
@@ -587,6 +595,7 @@
 
 .postit-linked-note-open {
   min-width: 0;
+  min-height: 22px;
   padding: 2px 0;
   display: flex;
   align-items: center;
@@ -639,7 +648,9 @@
 .postit-list-row .postit-item-memo-input {
   flex: 1;
   align-self: center;
+  height: 22px;
   padding: 0;
+  line-height: 22px;
 }
 
 .postit-item-memo {
@@ -658,6 +669,7 @@
   padding: 0;
   flex: 0 0 auto;
   font-size: 9px;
+  line-height: 22px;
   white-space: nowrap;
 }
 

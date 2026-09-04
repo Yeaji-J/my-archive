@@ -312,7 +312,8 @@
 }
 
 .chat-size-control select {
-  width: 42px;
+  width: 58px;
+  padding-right: 18px;
 }
 
 .chat-leave-btn {
@@ -355,6 +356,7 @@
 .message-row {
   position: relative;
   max-width: 76%;
+  width: fit-content;
   min-height: 16px;
   height: auto;
   margin: 0 !important;
@@ -367,6 +369,7 @@
 }
 
 .message-row:not(.mine) {
+  align-self: flex-start;
   column-gap: 8px;
 }
 
@@ -382,8 +385,10 @@
 
 /* 말풍선 없이 줄글로 표시 */
 
-.message-bubble,
-.message-row.mine .message-bubble {
+.message-text,
+.message-bubble-image,
+.message-row.mine .message-text,
+.message-row.mine .message-bubble-image {
   min-width: 0;
   max-width: 100%;
   padding: 0;
@@ -394,12 +399,16 @@
   color: var(--text);
   font-size: calc(var(--chat-font-size, 17px) * var(--chat-font-scale, 1));
   line-height: 1.05;
-  white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
 }
 
-.message-row.mine .message-bubble {
+.message-text {
+  white-space: pre-wrap;
+}
+
+.message-row.mine .message-text,
+.message-row.mine .message-bubble-image {
   color: var(--accent);
   font-weight: 500;
 }
@@ -460,7 +469,8 @@
   pointer-events: auto;
 }
 
-.message-row.reply-highlight .message-bubble {
+.message-row.reply-highlight .message-text,
+.message-row.reply-highlight .message-bubble-image {
   animation: chat-reply-highlight 1s ease;
 }
 
@@ -482,6 +492,51 @@
   font-family: "Pretendard", sans-serif;
   text-align: left;
   cursor: pointer;
+}
+
+.message-row.has-reply:not(.image-message-row) {
+  display: grid;
+  grid-template-columns: repeat(3, auto);
+  align-items: center;
+  column-gap: 8px;
+}
+
+.message-row.has-reply:not(.image-message-row) .chat-reply-quote {
+  grid-column: 1 / -1;
+  grid-row: 1;
+  justify-self: start;
+}
+
+.message-row.has-reply:not(.image-message-row) .message-text {
+  grid-column: 1;
+  grid-row: 2;
+}
+
+.message-row.has-reply:not(.image-message-row) .message-time {
+  grid-column: 2;
+  grid-row: 2;
+}
+
+.message-row.has-reply:not(.image-message-row) .message-unread {
+  grid-column: 3;
+  grid-row: 2;
+}
+
+.message-row.has-reply.mine:not(.image-message-row) .chat-reply-quote {
+  justify-self: end;
+}
+
+.message-row.has-reply.mine:not(.image-message-row) .message-text {
+  grid-column: 3;
+  justify-self: end;
+}
+
+.message-row.has-reply.mine:not(.image-message-row) .message-unread {
+  grid-column: 2;
+}
+
+.message-row.has-reply.mine:not(.image-message-row) .message-time {
+  grid-column: 1;
 }
 
 .chat-reply-quote small {
@@ -523,7 +578,7 @@
   }
 
   .chat-size-control select {
-    width: 38px;
+    width: 48px;
   }
 
   .chat-leave-btn {

@@ -1130,23 +1130,18 @@ function showChatImageFailure(
       );
     }
 
-    row.innerHTML = `
-      <div class="message-bubble ${media ? 'message-bubble-image' : ''}">
-        ${envelope.reply ? `
-          <button type="button" class="chat-reply-quote" data-reply-id="${escapeHtml(envelope.reply.id)}">
-            <small>${escapeHtml(envelope.reply.author)}</small>
-            <span>${escapeHtml(envelope.reply.text)}</span>
-          </button>
-        ` : ''}
-        ${media ? '<span class="chat-image-loading">사진 불러오는 중…</span>' : `<span class="message-text">${escapeHtml(envelope.content)}</span>`}
-      </div>
+    if (envelope.reply) {
+      row.classList.add('has-reply');
+    }
 
-      ${isUnread ? '<span class="message-unread" aria-label="읽지 않음">1</span>' : ''}
-      <time class="message-time">
-        ${messageTime(message.created_at)}
-      </time>
-      <button type="button" class="message-reply-btn" aria-label="이 메시지에 답글">↩</button>
-    `;
+    const replyHtml = envelope.reply
+      ? `<button type="button" class="chat-reply-quote" data-reply-id="${escapeHtml(envelope.reply.id)}"><small>${escapeHtml(envelope.reply.author)}</small><span>${escapeHtml(envelope.reply.text)}</span></button>`
+      : '';
+    const contentHtml = media
+      ? `<div class="message-bubble message-bubble-image">${replyHtml}<span class="chat-image-loading">사진 불러오는 중…</span></div>`
+      : `${replyHtml}<span class="message-text">${escapeHtml(envelope.content)}</span>`;
+
+    row.innerHTML = `${contentHtml}${isUnread ? '<span class="message-unread" aria-label="읽지 않음">1</span>' : ''}<time class="message-time">${messageTime(message.created_at)}</time><button type="button" class="message-reply-btn" aria-label="이 메시지에 답글">↩</button>`;
 
     row.querySelector('.message-reply-btn')
       ?.addEventListener('click', () =>

@@ -338,7 +338,7 @@
 .chat-messages {
   flex: 1 1 0;
   min-height: 0;
-  padding: 13px 22px;
+  padding: 10px 22px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
@@ -349,18 +349,18 @@
 
 .message-row {
   max-width: 76%;
-  min-height: 20px;
+  min-height: 18px;
   height: auto;
   flex: none;
   display: flex;
   align-items: center;
   gap: 8px;
-  line-height: 20px;
+  line-height: 18px;
 }
 
 .message-row.mine + .message-row:not(.mine),
 .message-row:not(.mine) + .message-row.mine {
-  margin-top: 1px;
+  margin-top: 0;
 }
 
 .message-row.mine {
@@ -381,7 +381,7 @@
   box-shadow: none;
   color: var(--text);
   font-size: 17px;
-  line-height: 20px;
+  line-height: 18px;
   white-space: pre-wrap;
   word-break: break-word;
   overflow-wrap: anywhere;
@@ -397,7 +397,7 @@
   flex-shrink: 0;
   color: var(--text-tertiary);
   font-size: 9.5px;
-  line-height: 20px;
+  line-height: 18px;
   white-space: nowrap;
 }
 
@@ -683,13 +683,13 @@
 .chat-attachment-preview {
   position: relative;
   flex: 0 0 100%;
-  min-height: 92px;
+  min-height: 109px;
   padding: 4px 0 8px;
 }
 
 .chat-attachment-preview img {
-  width: 108px;
-  height: 84px;
+  width: 130px;
+  height: 101px;
   display: block;
   object-fit: cover;
   border: 1px solid rgba(72, 86, 105, .14);
@@ -700,7 +700,7 @@
 .chat-attachment-preview button {
   position: absolute;
   top: 0;
-  left: 96px;
+  left: 118px;
   width: 23px;
   height: 23px;
   display: grid;
@@ -717,8 +717,8 @@
 
 .image-message-row {
   width: fit-content;
-  min-height: 132px;
-  margin-block: 12px;
+  min-height: 125px;
+  margin-block: 6px;
   flex: 0 0 auto;
   align-items: flex-end;
 }
@@ -738,12 +738,12 @@
 }
 
 .message-bubble-image {
-  min-width: 132px;
-  min-height: 104px;
+  min-width: 158px;
+  min-height: 125px;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: 14px;
+  gap: 8px;
   line-height: 1;
 }
 
@@ -758,11 +758,11 @@
 }
 
 .chat-image-thumb {
-  width: 132px;
-  height: 104px;
-  min-width: 132px;
-  min-height: 104px;
-  flex: 0 0 104px;
+  width: 158px;
+  height: 125px;
+  min-width: 158px;
+  min-height: 125px;
+  flex: 0 0 125px;
   padding: 0;
   display: block;
   overflow: hidden;
@@ -781,8 +781,8 @@
 }
 
 .chat-image-failed {
-  width: 132px;
-  min-height: 104px;
+  width: 158px;
+  min-height: 125px;
   display: grid;
   place-items: center;
   padding: 14px;

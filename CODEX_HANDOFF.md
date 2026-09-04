@@ -341,7 +341,7 @@ Full chat page:
 - default chat handwriting uses 이서윤체, with the header selector able to switch among the bundled Archive fonts
 - current requested message text size settled around 17px
 - messages should be dense enough to show more history but not overlap
-- text-message rows are fixed to a 20px content line with zero list gap and only a 1px sender-change break, so a short conversation never stretches messages across the full viewport
+- text-message rows use a compact 18px content line with zero list gap and no sender-change margin, so a short conversation never stretches messages across the full viewport
 - the full-chat header provides a locally persisted font selector; the selected bundled font applies to full chat and quick chat without changing message data
 - `나가기` removes only the current user's `chat_members` row after confirmation; it does not delete the room or message history for the other participant
 - time and message alignment must remain visually coherent on narrow screens
@@ -355,7 +355,7 @@ Image/drawing functionality requested and represented in UI:
 - Ctrl/Cmd+V clipboard image paste
 - browser image drag/drop when accessible
 - preview before send with X/removal
-- sent image shown as a small thumbnail, click to enlarge
+- sent images use `158 × 125px` thumbnails (about 120% of the earlier size), with matching larger composer and quick-chat previews; click still opens the full image
 - drawing/pencil modal, attach drawing as an image
 - adequate vertical space between image messages and surrounding text so rows never overlap
 

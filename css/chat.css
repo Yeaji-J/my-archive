@@ -353,6 +353,7 @@
 }
 
 .message-row {
+  position: relative;
   max-width: 76%;
   min-height: 16px;
   height: auto;
@@ -413,6 +414,7 @@
   font-size: 9.5px;
   line-height: 1;
   white-space: nowrap;
+  user-select: none;
 }
 
 .message-row:not(.mine) .message-time {
@@ -425,9 +427,13 @@
   font-family: "Pretendard", sans-serif;
   font-size: 9px;
   line-height: 17px;
+  user-select: none;
 }
 
 .message-reply-btn {
+  position: absolute;
+  top: 50%;
+  right: -24px;
   width: 20px;
   height: 20px;
   flex: none;
@@ -437,12 +443,21 @@
   color: var(--text-tertiary);
   font-size: 13px;
   opacity: 0;
+  pointer-events: none;
+  transform: translateY(-50%);
+  user-select: none;
   cursor: pointer;
+}
+
+.message-row.mine .message-reply-btn {
+  right: auto;
+  left: -24px;
 }
 
 .message-row:hover .message-reply-btn,
 .message-reply-btn:focus-visible {
   opacity: .8;
+  pointer-events: auto;
 }
 
 .message-row.reply-highlight .message-bubble {

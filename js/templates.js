@@ -50,6 +50,49 @@ function renderLinkEditor() {
   updateLinkPreview();
 }
 
+function persistLinkEditor(
+  note = getCurrentNote()
+) {
+  if (
+    !note
+    || note.template !== 'links'
+    || $('#linkEditorPanel')?.hidden
+  ) {
+    return false;
+  }
+
+  const data = ensureLinkData(note);
+  const values = {
+    url: $('#linkUrlInput').value.trimStart(),
+    siteName:
+      $('#linkSiteNameInput').value.trimStart(),
+    description:
+      $('#linkDescriptionInput').value.trimStart(),
+    category:
+      $('#linkCategoryInput').value.trimStart()
+  };
+  const changed = Object.entries(values)
+    .some(
+      ([field, value]) =>
+        String(data[field] || '') !== value
+    );
+
+  if (!changed) return false;
+
+  const previousSiteName =
+    data.previousSiteName || data.siteName;
+  Object.assign(data, values);
+  if (
+    !note.title
+    || note.title === previousSiteName
+  ) {
+    note.title = values.siteName;
+    noteTitle.value = values.siteName;
+  }
+  data.previousSiteName = values.siteName;
+  return true;
+}
+
 function updateLinkPreview() {
   const note = getCurrentNote();
   if (!note) return;
@@ -81,7 +124,7 @@ function updateLinkField(field, value) {
   }
   if (field === 'siteName') data.previousSiteName = value;
   updateLinkPreview();
-  scheduleTemplateDataSave();
+  scheduleTemplateDataSave(note);
 }
 
 function ensureCollectionData(note) {

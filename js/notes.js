@@ -244,9 +244,15 @@
           }
 
           if (hasChildren) {
-            expandedSidebarFolderIds.add(
-              folder.id
-            );
+            if (expanded) {
+              expandedSidebarFolderIds.delete(
+                folder.id
+              );
+            } else {
+              expandedSidebarFolderIds.add(
+                folder.id
+              );
+            }
           }
           setView(folder.id);
         }
@@ -1840,6 +1846,126 @@
     render();
   }
 
+  function archiveNoteDateValue(note) {
+    const raw = note.createdAt
+      || note.updatedAt;
+    return Number(raw)
+      || Date.parse(raw)
+      || 0;
+  }
+
+  function archiveDateKey(timestamp) {
+    if (!timestamp) return 'unknown';
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return 'unknown';
+    }
+    return [
+      date.getFullYear(),
+      String(date.getMonth() + 1)
+        .padStart(2, '0'),
+      String(date.getDate())
+        .padStart(2, '0')
+    ].join('-');
+  }
+
+  function archiveDateLabel(timestamp) {
+    if (!timestamp) return '날짜 없음';
+    const date = new Date(timestamp);
+    if (Number.isNaN(date.getTime())) {
+      return '날짜 없음';
+    }
+    return date.toLocaleDateString(
+      'ko-KR',
+      {
+        year: 'numeric',
+        month: 'long',
+        day: 'numeric',
+        weekday: 'long'
+      }
+    );
+  }
+
+  function renderDateArchiveList(notes) {
+    const groups = new Map();
+    notes
+      .slice()
+      .sort(
+        (first, second) =>
+          archiveNoteDateValue(second)
+          - archiveNoteDateValue(first)
+      )
+      .forEach(note => {
+        const timestamp =
+          archiveNoteDateValue(note);
+        const key = archiveDateKey(timestamp);
+        if (!groups.has(key)) {
+          groups.set(key, {
+            timestamp,
+            notes: []
+          });
+        }
+        groups.get(key).notes.push(note);
+      });
+
+    groups.forEach(group => {
+      const section =
+        document.createElement('section');
+      section.className =
+        'date-archive-group';
+      section.innerHTML = `
+        <div class="date-archive-divider">
+          <strong>${escapeHtml(archiveDateLabel(group.timestamp))}</strong>
+          <span>${group.notes.length}개</span>
+          <i></i>
+        </div>
+        <div class="date-archive-rows"></div>
+      `;
+      const rows = section.querySelector(
+        '.date-archive-rows'
+      );
+
+      group.notes.forEach(note => {
+        const folder = state.folders.find(
+          item => item.id === note.folderId
+        );
+        const row =
+          document.createElement('div');
+        row.className =
+          'note-card date-archive-row';
+        row.style.setProperty(
+          '--folder-color',
+          folder?.color || '#dce8f3'
+        );
+        row.innerHTML = `
+          <span class="date-archive-template">
+            ${escapeHtml(templateCardLabel(note))}
+          </span>
+          <strong class="date-archive-title">
+            ${escapeHtml(note.title || '제목 없음')}
+          </strong>
+          <span class="date-archive-summary">
+            ${escapeHtml(noteCardPreview(note) || '내용 없음')}
+          </span>
+          <span class="date-archive-folder">
+            <i></i>
+            ${escapeHtml(folder?.name || '폴더 없음')}
+          </span>
+          ${note.starred
+            ? '<span class="date-archive-star">★</span>'
+            : '<span class="date-archive-star"></span>'}
+        `;
+        row.addEventListener(
+          'click',
+          () => openNoteView(note.id)
+        );
+        rows.appendChild(row);
+      });
+
+      noteGrid.appendChild(section);
+    });
+  }
+
   function renderFolderGridView() {
     renderArchiveBrowserControls();
 
@@ -1990,6 +2116,9 @@
     let notes = getFilteredNotes();
     const folderListMode =
       browseMode === 'folder';
+    const dateListMode =
+      currentView === 'all'
+      && browseMode === 'date';
     const memoAlbumMode =
       currentView === 'all'
       && browseMode === 'template'
@@ -2082,7 +2211,8 @@
 
     noteGrid.classList.toggle(
       'list-mode',
-      !gridMode
+      !dateListMode
+      && !gridMode
       && !memoAlbumMode
       && !postitAlbumMode
       && !specializedTemplateMode
@@ -2124,7 +2254,11 @@
     noteGrid.classList.toggle(
       'folder-text-list',
       folderListMode
-      && folderNoteViewMode === 'text'
+        && folderNoteViewMode === 'text'
+    );
+    noteGrid.classList.toggle(
+      'date-archive-list',
+      dateListMode
     );
 
     noteGrid.innerHTML = '';
@@ -2169,6 +2303,11 @@
 
     $('#templateAlbumPagination').hidden =
       true;
+
+    if (dateListMode) {
+      renderDateArchiveList(notes);
+      return;
+    }
 
     notes.forEach((note, index) => {
       const folder =
@@ -2704,10 +2843,18 @@
       persistMemoEditor(note);
     }
 
+    const linkChanged =
+      (note.template || 'memo') === 'links'
+      && typeof persistLinkEditor
+        === 'function'
+      ? persistLinkEditor(note)
+      : false;
+
     const changed =
       note.title !== noteTitle.value
       || previousMemoHtml !== (note.memoData?.html || '')
-      || previousContent !== (note.content || '');
+      || previousContent !== (note.content || '')
+      || linkChanged;
 
     note.title = noteTitle.value;
 

@@ -127,7 +127,7 @@ Folder contents support multiple view styles:
 - preview/card view (image/preview + text)
 - text/notice-board view
 
-Folders now support nested hierarchy through an optional `parentId` on each folder. Existing folders without `parentId` remain top-level without migration or data reset. The sidebar renders the hierarchy with expand/collapse controls and a per-folder child-add action. Opening a parent folder includes notes from all descendants; opening a child folder narrows to that branch. The writing-page toolbar exposes separate `상위 폴더` and conditional `하위 폴더` selectors, restoring both values from an existing note and saving the selected child folder through the normal note save path. Detail-view folder movement retains a compact hierarchical selector. Deleting a folder moves its direct notes and child folders one level upward instead of discarding them.
+Folders now support nested hierarchy through an optional `parentId` on each folder. Existing folders without `parentId` remain top-level without migration or data reset. The sidebar renders the hierarchy collapsed by default with expand/collapse controls and a per-folder child-add action; clicking a parent row toggles its children instead of leaving it permanently expanded. Opening a parent folder includes notes from all descendants; opening a child folder narrows to that branch. The writing-page toolbar exposes separate `상위 폴더` and conditional `하위 폴더` selectors, restoring both values from an existing note and saving the selected child folder through the normal note save path. Detail-view folder movement retains a compact hierarchical selector. Deleting a folder moves its direct notes and child folders one level upward instead of discarding them.
 
 The folder `미리보기` list mode no longer rebuilds each template with unrelated miniature font rules. All five templates render inside the same `720 × 680` canonical snapshot canvas and are scaled uniformly to the card width, preserving each template's own content proportions while preventing page-level horizontal overflow.
 
@@ -135,10 +135,11 @@ When inside one folder, show a back control to “전체 자료” and only the 
 
 ### All archive — folder vs template browsing
 
-There are two axes:
+There are three axes:
 
 - 폴더별
 - 템플릿별
+- 날짜별: groups all notes by `createdAt` (legacy fallback `updatedAt`) in newest-first date sections, with one compact row per note and a divider between date groups
 
 Template filters: 전체 / 메모 / 포스트잇 / 무드보드 / 링크 / 컬렉션.
 
@@ -179,7 +180,7 @@ Writing/editor requirements already represented in the UI:
 - four paper skins: pink micro-grid, yellow line, blue dot, purple grid
 - image insertion
 - general file attachments are available only in template 01; each memo stores up to 12 files, with a 3MB per-file and 8MB total limit. Attachments use the normal memo/archive persistence paths and remain downloadable after reopening or from the detail view.
-- each memo supports up to 12 comma-separated tags; tags auto-save with the memo, appear on album/detail views, participate in search, and become multi-value filters on the template 01 list page
+- each memo supports up to 12 comma-separated tags; tags auto-save with the memo, appear on album/detail views, participate in search, and become multi-value filters on the template 01 list page. In the editor tag row, saved tag chips are aligned flush to the right with `justify-content: space-between`
 - toolbar should remain reachable when the memo gets long (sticky/fixed behavior)
 - editor may scroll; long content must not trap the user
 - auto-save, no completion button required
@@ -287,7 +288,7 @@ The older “상세 메모” area was intentionally removed.
 
 List page should look like a clean notice-board/link directory: one row per link, title on the left, direct/open action on the right. Avoid oversized album cards.
 
-All link field changes must auto-save. This was previously a recurring data-loss bug and is explicitly wired through `scheduleTemplateDataSave` now.
+All link field changes must auto-save. This was previously a recurring data-loss bug and is explicitly wired through `scheduleTemplateDataSave`; `persistCurrentNote` also flushes the visible link form back into `linkData` before editor close, template navigation, page hide, or reload.
 
 ### 05 — 컬렉션 (`template: "collection"`)
 

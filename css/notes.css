@@ -18,6 +18,29 @@
   overflow-x: auto;
 }
 
+.archive-top-actions {
+  display: flex;
+  min-width: 0;
+  margin-left: auto;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 9px;
+}
+
+.archive-top-actions .template-overview-tools {
+  margin-left: 0;
+}
+
+.archive-top-actions .archive-bulk-bar {
+  max-width: none;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+  flex: 0 0 auto;
+  justify-content: flex-end;
+  gap: 7px;
+}
+
 .archive-bulk-bar {
   max-width: 1380px;
   min-height: 42px;

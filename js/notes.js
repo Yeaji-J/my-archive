@@ -1717,6 +1717,8 @@
       );
     const defaultSlot =
       $('#archiveBulkDefaultSlot');
+    const topActions =
+      $('#archiveTopActions');
     const templateListView =
       currentView === 'all'
       && browseMode === 'template'
@@ -1726,6 +1728,14 @@
       folderActions.prepend(bar);
     } else if (templateListView) {
       templateControls.appendChild(bar);
+    } else if (
+      currentView === 'all'
+      && (
+        browseMode === 'template'
+        || browseMode === 'date'
+      )
+    ) {
+      topActions.appendChild(bar);
     } else {
       defaultSlot.appendChild(bar);
     }

@@ -328,7 +328,7 @@ Terminology correction from the old conversation:
 
 Editing is intentionally lightweight: there is no mandatory completion state. Saved content can be opened and immediately edited. Do not introduce an artificial draft/completed status unless explicitly requested.
 
-All archive list contexts—including folder, date, template overview, and each of the five template-specific lists—support select / select-all / bulk delete. The shared selection bar supports moving all selected notes to one top-level or nested folder; the move updates `folderId` through localStorage, IndexedDB durable snapshots, and Supabase cloud sync before selection mode closes. In folder views it sits inline beside the preview/list switch instead of consuming a separate row, and selection mode reveals both move and bulk-delete actions there. Folder preview mode uses five columns on desktop. In template-specific views it stays on the same top row as search when possible, without extra duplicated template-name bars that waste vertical space.
+All archive list contexts—including folder, date, template overview, and each of the five template-specific lists—support select / select-all / bulk delete. The shared selection bar supports moving all selected notes to one top-level or nested folder; the move updates `folderId` through localStorage, IndexedDB durable snapshots, and Supabase cloud sync before selection mode closes. It never consumes a separate row: folder views place it beside the preview/list switch, template-specific views place it beside search, and date/template-overview modes place it at the right edge of the top browse controls. Selection mode reveals both move and bulk-delete actions there. Folder preview mode uses five columns on desktop.
 
 ## 8. Chat contract
 

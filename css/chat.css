@@ -496,7 +496,7 @@
 
 .message-row.has-reply:not(.image-message-row) {
   display: grid;
-  grid-template-columns: repeat(3, auto);
+  grid-template-columns: auto auto 1fr;
   align-items: center;
   column-gap: 8px;
 }
@@ -526,17 +526,22 @@
   justify-self: end;
 }
 
+.message-row.has-reply.mine:not(.image-message-row) {
+  grid-template-columns: 1fr auto auto auto;
+}
+
 .message-row.has-reply.mine:not(.image-message-row) .message-text {
-  grid-column: 3;
+  grid-column: 4;
   justify-self: end;
 }
 
 .message-row.has-reply.mine:not(.image-message-row) .message-unread {
-  grid-column: 2;
+  grid-column: 3;
 }
 
 .message-row.has-reply.mine:not(.image-message-row) .message-time {
-  grid-column: 1;
+  grid-column: 2;
+  justify-self: end;
 }
 
 .chat-reply-quote small {

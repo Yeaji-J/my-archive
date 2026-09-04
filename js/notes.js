@@ -1658,11 +1658,10 @@
     });
   }
 
-  function isTemplateArchiveView() {
+  function isArchiveListView() {
     return (
       currentView === 'all'
-      && browseMode === 'template'
-      && browseTemplate !== 'all'
+      || browseMode === 'folder'
     );
   }
 
@@ -1711,7 +1710,7 @@
   function renderArchiveBulkBar(notes) {
     const bar = $('#archiveBulkBar');
     const visible =
-      isTemplateArchiveView();
+      isArchiveListView();
 
     bar.hidden = !visible;
 
@@ -2023,12 +2022,28 @@
         const row =
           document.createElement('div');
         row.className =
-          'note-card date-archive-row';
+          'note-card date-archive-row'
+          + (
+            archiveSelectionMode
+              ? ' selection-mode'
+              : ''
+          )
+          + (
+            selectedArchiveNoteIds
+              .has(note.id)
+              ? ' selected'
+              : ''
+          );
         row.style.setProperty(
           '--folder-color',
           folder?.color || '#dce8f3'
         );
         row.innerHTML = `
+          ${
+            archiveSelectionMode
+              ? archiveSelectionButton(note.id)
+              : ''
+          }
           <span class="date-archive-template">
             ${escapeHtml(templateCardLabel(note))}
           </span>
@@ -2048,7 +2063,21 @@
         `;
         row.addEventListener(
           'click',
-          () => openNoteView(note.id)
+          event => {
+            if (
+              event.target.closest(
+                '[data-note-select]'
+              )
+              || archiveSelectionMode
+            ) {
+              toggleArchiveNoteSelection(
+                note.id
+              );
+              return;
+            }
+
+            openNoteView(note.id);
+          }
         );
         rows.appendChild(row);
       });
@@ -2601,6 +2630,18 @@
         `;
       }
 
+      if (
+        archiveSelectionMode
+        && !card.querySelector(
+          '[data-note-select]'
+        )
+      ) {
+        card.insertAdjacentHTML(
+          'afterbegin',
+          archiveSelectionButton(note.id)
+        );
+      }
+
       const snapshotViewport =
         card.querySelector(
           '[data-folder-snapshot]'
@@ -2644,7 +2685,10 @@
       noteGrid.appendChild(card);
     });
 
-    if (templateOverviewMode) {
+    if (
+      templateOverviewMode
+      && !archiveSelectionMode
+    ) {
       if (
         typeof window
           .initializeTemplateOverviewBoard

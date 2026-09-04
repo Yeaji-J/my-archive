@@ -328,7 +328,7 @@ Terminology correction from the old conversation:
 
 Editing is intentionally lightweight: there is no mandatory completion state. Saved content can be opened and immediately edited. Do not introduce an artificial draft/completed status unless explicitly requested.
 
-All five list pages should retain search/filter controls and support select / select-all / bulk delete. The same selection bar supports moving all selected notes to one top-level or nested folder; the move updates `folderId` through localStorage, IndexedDB durable snapshots, and Supabase cloud sync before selection mode closes. Selection controls should be compact and on the same top row as search when possible, without extra duplicated template-name bars that waste vertical space.
+All archive list contexts—including folder, date, template overview, and each of the five template-specific lists—support select / select-all / bulk delete. The shared selection bar remains outside template-only controls and supports moving all selected notes to one top-level or nested folder; the move updates `folderId` through localStorage, IndexedDB durable snapshots, and Supabase cloud sync before selection mode closes. Folder preview mode uses five columns on desktop. Selection controls should be compact and on the same top row as search when possible, without extra duplicated template-name bars that waste vertical space.
 
 ## 8. Chat contract
 

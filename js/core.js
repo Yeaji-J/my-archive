@@ -1,6 +1,27 @@
 'use strict';
 
 const STORAGE_KEY = 'archive.data.v1';
+  const LOCAL_SAVED_AT_KEY =
+    'archive.data.savedAt.v1';
+  const ARCHIVE_IDENTITY_KEY =
+    'archive.active-user.v1';
+  let activeArchiveIdentity = 'guest';
+
+  function archiveStorageKey(
+    identity = activeArchiveIdentity
+  ) {
+    return identity === 'guest'
+      ? `${STORAGE_KEY}.guest`
+      : `${STORAGE_KEY}.user.${identity}`;
+  }
+
+  function archiveSavedAtKey(
+    identity = activeArchiveIdentity
+  ) {
+    return identity === 'guest'
+      ? `${LOCAL_SAVED_AT_KEY}.guest`
+      : `${LOCAL_SAVED_AT_KEY}.user.${identity}`;
+  }
   const TODO_KEY = 'archive.todos.v1';
   const CHAT_FEATURE_VISIBLE = true;
 
@@ -262,15 +283,16 @@ const STORAGE_KEY = 'archive.data.v1';
 
   /* ---------------- Data layer ---------------- */
 
-  const LOCAL_SAVED_AT_KEY =
-    'archive.data.savedAt.v1';
   const ARCHIVE_DB_NAME =
     'archive-durable-storage';
   const ARCHIVE_DB_VERSION = 1;
   const ARCHIVE_STORE_NAME =
     'snapshots';
-  const ARCHIVE_STATE_RECORD =
-    'main';
+  function archiveStateRecord(
+    identity = activeArchiveIdentity
+  ) {
+    return `main:${identity}`;
+  }
   const ARCHIVE_BACKUP_PREFIX =
     'backup:';
   const ARCHIVE_BACKUP_LIMIT = 5;
@@ -284,13 +306,19 @@ const STORAGE_KEY = 'archive.data.v1';
   function loadData() {
     try {
       const raw =
-        localStorage.getItem(STORAGE_KEY);
+        localStorage.getItem(
+          archiveStorageKey()
+        )
+        || localStorage.getItem(STORAGE_KEY);
 
       if (raw) {
         localDataWasLoaded = true;
         lastLocalSavedAt =
           Number(
             localStorage.getItem(
+              archiveSavedAtKey()
+            )
+            || localStorage.getItem(
               LOCAL_SAVED_AT_KEY
             )
           ) || 0;
@@ -382,7 +410,9 @@ const STORAGE_KEY = 'archive.data.v1';
     );
   }
 
-  async function readDurableState() {
+  async function readDurableState(
+    recordKey = archiveStateRecord()
+  ) {
     const database =
       await openArchiveDatabase();
 
@@ -400,7 +430,7 @@ const STORAGE_KEY = 'archive.data.v1';
                 ARCHIVE_STORE_NAME
               )
               .get(
-                ARCHIVE_STATE_RECORD
+                recordKey
               );
 
           request.onsuccess =
@@ -418,9 +448,56 @@ const STORAGE_KEY = 'archive.data.v1';
     }
   }
 
+  async function readDurableBackups(
+    prefix = `${archiveStateRecord()}:${ARCHIVE_BACKUP_PREFIX}`
+  ) {
+    const database = await openArchiveDatabase();
+
+    try {
+      return await new Promise(
+        (resolve, reject) => {
+          const records = [];
+          const transaction = database.transaction(
+            ARCHIVE_STORE_NAME,
+            'readonly'
+          );
+          const request = transaction
+            .objectStore(ARCHIVE_STORE_NAME)
+            .openCursor();
+
+          request.onsuccess = () => {
+            const cursor = request.result;
+            if (!cursor) {
+              resolve(
+                records.sort(
+                  (first, second) =>
+                    (Number(second.savedAt) || 0)
+                    - (Number(first.savedAt) || 0)
+                )
+              );
+              return;
+            }
+            if (
+              typeof cursor.key === 'string'
+              && cursor.key.startsWith(prefix)
+              && cursor.value?.state
+            ) {
+              records.push(cursor.value);
+            }
+            cursor.continue();
+          };
+          request.onerror = () => reject(request.error);
+        }
+      );
+    } finally {
+      database.close();
+    }
+  }
+
   async function writeDurableState(
     snapshot,
-    savedAt
+    savedAt,
+    recordKey = archiveStateRecord()
   ) {
     const database =
       await openArchiveDatabase();
@@ -445,11 +522,11 @@ const STORAGE_KEY = 'archive.data.v1';
 
           store.put(
             record,
-            ARCHIVE_STATE_RECORD
+            recordKey
           );
           store.put(
             record,
-            `${ARCHIVE_BACKUP_PREFIX}${String(savedAt).padStart(16, '0')}`
+            `${recordKey}:${ARCHIVE_BACKUP_PREFIX}${String(savedAt).padStart(16, '0')}`
           );
 
           const backupKeys = [];
@@ -462,7 +539,7 @@ const STORAGE_KEY = 'archive.data.v1';
               backupKeys
                 .filter(key =>
                   key.startsWith(
-                    ARCHIVE_BACKUP_PREFIX
+                    `${recordKey}:${ARCHIVE_BACKUP_PREFIX}`
                   )
                 )
                 .sort()
@@ -483,7 +560,7 @@ const STORAGE_KEY = 'archive.data.v1';
             if (
               typeof cursor.key === 'string'
               && cursor.key.startsWith(
-                ARCHIVE_BACKUP_PREFIX
+                `${recordKey}:${ARCHIVE_BACKUP_PREFIX}`
               )
             ) {
               backupKeys.push(cursor.key);
@@ -519,6 +596,8 @@ const STORAGE_KEY = 'archive.data.v1';
         cloneArchiveState();
       const snapshotSavedAt =
         savedAt || Date.now();
+      const recordKey =
+        archiveStateRecord();
 
       durableSavePromise =
         durableSavePromise
@@ -527,7 +606,8 @@ const STORAGE_KEY = 'archive.data.v1';
             async () => {
               await writeDurableState(
                 snapshot,
-                snapshotSavedAt
+                snapshotSavedAt,
+                recordKey
               );
 
               if (!currentUser) {
@@ -559,7 +639,7 @@ const STORAGE_KEY = 'archive.data.v1';
 
   async function restoreDurableState() {
     try {
-      const record =
+      let record =
         await readDurableState();
 
       if (!record?.state) {
@@ -576,48 +656,72 @@ const STORAGE_KEY = 'archive.data.v1';
         return;
       }
 
+      const backups =
+        await readDurableBackups();
+      backups.forEach(backup => {
+        record = {
+          state: mergeArchiveStates(
+            record.state,
+            backup.state,
+            Number(record.savedAt) || 0,
+            Number(backup.savedAt) || 0
+          ),
+          savedAt: Math.max(
+            Number(record.savedAt) || 0,
+            Number(backup.savedAt) || 0
+          )
+        };
+      });
+
       const localTimestamp =
         lastLocalSavedAt
         || stateLatestTimestamp(state);
       const durableTimestamp =
         Number(record.savedAt) || 0;
+      const nextState = localDataWasLoaded
+        ? mergeArchiveStates(
+            state,
+            record.state,
+            localTimestamp,
+            durableTimestamp
+          )
+        : normalizeArchiveState(record.state);
+      const nextTimestamp = Math.max(
+        localTimestamp,
+        durableTimestamp,
+        archiveStateSavedAt(nextState)
+      );
+      const changed =
+        JSON.stringify(nextState)
+        !== JSON.stringify(state);
+
+      state = nextState;
+      localDataWasLoaded = true;
+      lastLocalSavedAt = nextTimestamp;
+
+      try {
+        localStorage.setItem(
+          archiveStorageKey(),
+          JSON.stringify(state)
+        );
+        localStorage.setItem(
+          archiveSavedAtKey(),
+          String(nextTimestamp)
+        );
+      } catch (error) {
+        console.warn(
+          'Local archive restore cache failed',
+          error
+        );
+      }
 
       if (
-        !localDataWasLoaded
-        || durableTimestamp
-          > localTimestamp
-      ) {
-        state = normalizeArchiveState(
-          record.state
-        );
-        localDataWasLoaded = true;
-        lastLocalSavedAt =
-          durableTimestamp;
-
-        try {
-          localStorage.setItem(
-            STORAGE_KEY,
-            JSON.stringify(state)
-          );
-          localStorage.setItem(
-            LOCAL_SAVED_AT_KEY,
-            String(
-              durableTimestamp
-            )
-          );
-        } catch (error) {
-          console.warn(
-            'Local archive restore cache failed',
-            error
-          );
-        }
-      } else if (
-        localTimestamp
-        > durableTimestamp
+        changed
+        || localTimestamp > durableTimestamp
       ) {
         persistDurableState(
           true,
-          localTimestamp
+          nextTimestamp
         );
       }
     } catch (error) {
@@ -683,11 +787,11 @@ const STORAGE_KEY = 'archive.data.v1';
 
     try {
       localStorage.setItem(
-        STORAGE_KEY,
+        archiveStorageKey(),
         JSON.stringify(state)
       );
       localStorage.setItem(
-        LOCAL_SAVED_AT_KEY,
+        archiveSavedAtKey(),
         String(savedAt)
       );
       localStorageSaved = true;
@@ -811,43 +915,138 @@ const STORAGE_KEY = 'archive.data.v1';
 
     const savingRevision =
       cloudMutationRevision;
+    const savingUserId = currentUser.id;
+    const savingIdentity = activeArchiveIdentity;
     const snapshot =
       cloneArchiveState();
 
     cloudSaveInFlight =
       (async () => {
-        const { error } = await cloud
-          .from('archive_data')
-          .upsert(
-            {
-              user_id: currentUser.id,
-              data: snapshot,
-              updated_at:
-                new Date()
-                  .toISOString()
-            },
-            {
-              onConflict: 'user_id'
+        let mergedSnapshot = snapshot;
+        let saved = false;
+        let retryableConflict = false;
+
+        for (let attempt = 0; attempt < 4; attempt += 1) {
+          const {
+            data: remote,
+            error: loadError
+          } = await cloud
+            .from('archive_data')
+            .select('data,updated_at')
+            .eq('user_id', savingUserId)
+            .maybeSingle();
+
+          if (loadError) {
+            console.error('Cloud pre-save merge failed', loadError);
+            break;
+          }
+
+          if (remote?.data) {
+            const remoteSavedAt =
+              archiveStateSavedAt(
+                remote.data,
+                Date.parse(remote.updated_at || '') || 0
+              );
+            mergedSnapshot = mergeArchiveStates(
+              mergedSnapshot,
+              remote.data,
+              archiveStateSavedAt(mergedSnapshot),
+              remoteSavedAt
+            );
+          }
+
+          const updatedAt = new Date().toISOString();
+          mergedSnapshot.savedAt = Math.max(
+            archiveStateSavedAt(mergedSnapshot),
+            Date.parse(updatedAt)
+          );
+
+          if (!remote) {
+            const { error: insertError } = await cloud
+              .from('archive_data')
+              .insert({
+                user_id: savingUserId,
+                data: mergedSnapshot,
+                updated_at: updatedAt
+              });
+            if (!insertError) {
+              saved = true;
+              break;
             }
-          );
+            if (insertError.code === '23505') {
+              retryableConflict = true;
+              continue;
+            }
+            console.error('Cloud save failed', insertError);
+            break;
+          }
 
-        if (error) {
-          console.error(
-            'Cloud save failed',
-            error
-          );
+          const {
+            data: updated,
+            error: updateError
+          } = await cloud
+            .from('archive_data')
+            .update({
+              data: mergedSnapshot,
+              updated_at: updatedAt
+            })
+            .eq('user_id', savingUserId)
+            .eq('updated_at', remote.updated_at)
+            .select('updated_at')
+            .maybeSingle();
 
+          if (updateError) {
+            console.error('Cloud save failed', updateError);
+            break;
+          }
+          if (updated) {
+            saved = true;
+            break;
+          }
+          retryableConflict = true;
+        }
+
+        if (!saved) {
           setSyncStatus(
-            '동기화 실패',
+            retryableConflict
+              ? '동기화 충돌 · 다시 시도 중'
+              : '동기화 실패',
             'error'
           );
-
+          cloudSaveQueued = retryableConflict;
           return false;
+        }
+
+        if (
+          currentUser?.id === savingUserId
+          && activeArchiveIdentity === savingIdentity
+        ) {
+          state = mergeArchiveStates(
+            state,
+            mergedSnapshot,
+            archiveStateSavedAt(state, lastLocalSavedAt),
+            archiveStateSavedAt(mergedSnapshot)
+          );
+          lastLocalSavedAt = archiveStateSavedAt(state);
+          try {
+            localStorage.setItem(
+              archiveStorageKey(),
+              JSON.stringify(state)
+            );
+            localStorage.setItem(
+              archiveSavedAtKey(),
+              String(lastLocalSavedAt)
+            );
+          } catch (_error) {
+            /* IndexedDB snapshot remains available. */
+          }
+          persistDurableState(true, lastLocalSavedAt);
         }
 
         if (
           savingRevision
           === cloudMutationRevision
+          && currentUser?.id === savingUserId
         ) {
           setSyncStatus(
             '모든 기기에 저장됨'
@@ -979,11 +1178,11 @@ const STORAGE_KEY = 'archive.data.v1';
 
       try {
         localStorage.setItem(
-          STORAGE_KEY,
+          archiveStorageKey(),
           JSON.stringify(state)
         );
         localStorage.setItem(
-          LOCAL_SAVED_AT_KEY,
+          archiveSavedAtKey(),
           String(lastLocalSavedAt)
         );
       } catch (storageError) {
@@ -1034,6 +1233,148 @@ const STORAGE_KEY = 'archive.data.v1';
     loadData()
   );
   let todos = loadTodos();
+
+  async function switchArchiveIdentity(
+    userId = ''
+  ) {
+    const nextIdentity = userId || 'guest';
+    if (nextIdentity === activeArchiveIdentity) {
+      return;
+    }
+
+    clearTimeout(durableSaveTimer);
+    clearTimeout(cloudSaveTimer);
+    cloudMutationRevision += 1;
+    pullingCloudData = false;
+    await persistDurableState(
+      true,
+      lastLocalSavedAt || Date.now()
+    );
+
+    const previousIdentity = activeArchiveIdentity;
+    const previousState = cloneArchiveState(state);
+    const previousSavedAt = lastLocalSavedAt;
+    activeArchiveIdentity = nextIdentity;
+
+    let raw = '';
+    let savedAt = 0;
+    let lastIdentity = '';
+    try {
+      raw = localStorage.getItem(
+        archiveStorageKey()
+      ) || '';
+      savedAt = Number(
+        localStorage.getItem(
+          archiveSavedAtKey()
+        )
+      ) || 0;
+      lastIdentity = localStorage.getItem(
+        ARCHIVE_IDENTITY_KEY
+      ) || '';
+    } catch (_error) {
+      /* IndexedDB/cloud paths remain available. */
+    }
+
+    if (raw) {
+      try {
+        state = normalizeArchiveState(
+          JSON.parse(raw)
+        );
+        localDataWasLoaded = true;
+        lastLocalSavedAt = savedAt
+          || archiveStateSavedAt(state);
+      } catch (_error) {
+        raw = '';
+      }
+    }
+
+    if (!raw) {
+      const mayMigrateLegacy =
+        nextIdentity !== 'guest'
+        && previousIdentity === 'guest'
+        && (
+          !lastIdentity
+          || lastIdentity === nextIdentity
+        );
+      state = mayMigrateLegacy
+        ? normalizeArchiveState(previousState)
+        : seedData();
+      localDataWasLoaded = mayMigrateLegacy;
+      lastLocalSavedAt = mayMigrateLegacy
+        ? previousSavedAt
+          || archiveStateSavedAt(state)
+        : 0;
+
+      if (mayMigrateLegacy) {
+        try {
+          const legacyDurable =
+            await readDurableState('main');
+          if (legacyDurable?.state) {
+            state = mergeArchiveStates(
+              state,
+              legacyDurable.state,
+              archiveStateSavedAt(state, lastLocalSavedAt),
+              Number(legacyDurable.savedAt) || 0
+            );
+            lastLocalSavedAt = archiveStateSavedAt(
+              state,
+              Math.max(
+                lastLocalSavedAt,
+                Number(legacyDurable.savedAt) || 0
+              )
+            );
+          }
+          const legacyBackups =
+            await readDurableBackups(
+              ARCHIVE_BACKUP_PREFIX
+            );
+          legacyBackups.forEach(backup => {
+            state = mergeArchiveStates(
+              state,
+              backup.state,
+              archiveStateSavedAt(state, lastLocalSavedAt),
+              Number(backup.savedAt) || 0
+            );
+            lastLocalSavedAt = archiveStateSavedAt(
+              state,
+              Math.max(
+                lastLocalSavedAt,
+                Number(backup.savedAt) || 0
+              )
+            );
+          });
+        } catch (_error) {
+          /* Legacy localStorage/cloud data can still migrate. */
+        }
+      }
+    }
+
+    if (nextIdentity !== 'guest') {
+      try {
+        localStorage.setItem(
+          ARCHIVE_IDENTITY_KEY,
+          nextIdentity
+        );
+      } catch (_error) {
+        /* 저장소가 막혀도 클라우드 동기화는 계속합니다. */
+      }
+    }
+
+    await restoreDurableState();
+
+    try {
+      localStorage.setItem(
+        archiveStorageKey(),
+        JSON.stringify(state)
+      );
+      localStorage.setItem(
+        archiveSavedAtKey(),
+        String(lastLocalSavedAt || 0)
+      );
+    } catch (_error) {
+      /* Durable/cloud storage remains available. */
+    }
+  }
 
   function folderParentId(folder) {
     const parentId =

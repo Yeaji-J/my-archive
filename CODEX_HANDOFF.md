@@ -401,15 +401,17 @@ The user has repeatedly reported “썼던 게 날아갔어 / 저장이 안 돼�
 
 Current strategy in `js/core.js`:
 
-1. `state` serialized to `localStorage` (`archive.data.v1`)
+1. `state` serialized to identity-scoped `localStorage` (`archive.data.v1.user.<user-id>` or the guest key); the legacy unscoped key is migration input only
 2. timestamp stored separately
 3. IndexedDB durable snapshot (`archive-durable-storage`)
-4. when signed in, delayed Supabase `archive_data` upsert
+4. when signed in, delayed Supabase `archive_data` sync; every push first merges the latest remote snapshot and uses `updated_at` as an optimistic concurrency guard before writing
 5. mutation revision + timestamps prevent stale cloud pulls from overwriting newer local edits
 6. `beforeunload`, `visibilitychange`, and `pagehide` flush paths in `js/events.js`
 7. local and cloud archive states merge by item id instead of replacing the whole local archive; local-only and cloud-only records are retained
 8. note/folder deletion tombstones prevent intentionally deleted records from returning during a merge
 9. IndexedDB keeps the current snapshot plus the five most recent rolling backups, so a cloud reconciliation does not immediately erase the last known-good local state
+10. IndexedDB records and rolling backups are identity-scoped; switching accounts on one browser cannot merge one person's memo/post-it archive into another person's state
+11. startup restoration merges recent durable backups with the current snapshot using deletion tombstones, allowing notes omitted by an accidental stale snapshot overwrite to return without resurrecting intentionally deleted notes
 
 Do not simplify this back to one storage mechanism without the user's explicit agreement.
 

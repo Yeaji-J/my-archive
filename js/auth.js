@@ -179,6 +179,12 @@
       nextUser?.id
       !== currentUser?.id;
 
+    if (changed) {
+      await switchArchiveIdentity(
+        nextUser?.id || ''
+      );
+    }
+
     currentUser = nextUser;
 
     authBtn.title =
@@ -201,6 +207,12 @@
     }
 
     if (!currentUser) {
+      render();
+
+      if (typeof syncArchiveRouteFromLocation === 'function') {
+        syncArchiveRouteFromLocation();
+      }
+
       setSyncStatus(
         '이 브라우저에 저장됨'
       );

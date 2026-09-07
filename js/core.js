@@ -1229,6 +1229,29 @@ const STORAGE_KEY = 'archive.data.v1';
     );
   }
 
+  function noteContentUpdatedAt(note) {
+    if (!note) return 0;
+    const raw = note.contentUpdatedAt
+      || note.createdAt
+      || note.updatedAt;
+    return Number(raw)
+      || Date.parse(raw)
+      || 0;
+  }
+
+  function markNoteContentUpdated(
+    note,
+    timestamp = Date.now()
+  ) {
+    if (!note) return 0;
+    const changedAt = Number(timestamp)
+      || Date.parse(timestamp)
+      || Date.now();
+    note.contentUpdatedAt = changedAt;
+    note.updatedAt = changedAt;
+    return changedAt;
+  }
+
   let state = normalizeArchiveState(
     loadData()
   );

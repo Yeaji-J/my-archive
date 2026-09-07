@@ -132,7 +132,7 @@ function saveCurrentNoteFont(
     renderMoodboard();
   }
 
-  note.updatedAt = Date.now();
+  markNoteContentUpdated(note);
   updateEditorMeta(note);
   applyEditorFont(note);
   saveData();

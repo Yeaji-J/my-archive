@@ -18,7 +18,7 @@ function scheduleTemplateDataSave(
   const note = targetNote;
   if (!note) return;
 
-  note.updatedAt = Date.now();
+  markNoteContentUpdated(note);
   updateEditorMeta(note);
   saveData();
 
@@ -254,8 +254,8 @@ function renderTemplateLibraryBar(template) {
     )
     .sort(
       (first, second) =>
-        (second.updatedAt || 0)
-        - (first.updatedAt || 0)
+        noteContentUpdatedAt(second)
+        - noteContentUpdatedAt(first)
     )
     .slice(0, 6);
 
@@ -268,7 +268,7 @@ function renderTemplateLibraryBar(template) {
           title="${escapeHtml(note.title || '제목 없음')}"
         >
           <span>${escapeHtml(note.title || '제목 없음')}</span>
-          <small>${formatDate(note.updatedAt)}</small>
+          <small>${formatDate(noteContentUpdatedAt(note))}</small>
         </button>
       `).join('')
     : `
@@ -547,7 +547,7 @@ function renderMoodboardAlbum(notes) {
         </span>
         <span class="moodboard-album-copy">
           <strong>${escapeHtml(note.title || '제목 없는 무드보드')}</strong>
-          <small>${formatDate(note.updatedAt)}</small>
+          <small>${formatDate(noteContentUpdatedAt(note))}</small>
         </span>
       </button>
     `;

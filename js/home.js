@@ -77,7 +77,11 @@ function renderHomeLibraryStrip() {
 
   noteWrap.innerHTML = state.notes
     .slice()
-    .sort((first, second) => second.updatedAt - first.updatedAt)
+    .sort(
+      (first, second) =>
+        noteContentUpdatedAt(second)
+        - noteContentUpdatedAt(first)
+    )
     .slice(0, 8)
     .map(note => {
       const folder = state.folders.find(item => item.id === note.folderId);
@@ -92,7 +96,7 @@ function renderHomeLibraryStrip() {
           <em>${escapeHtml(templateCardLabel(note))}</em>
           <strong>${escapeHtml(note.title || '제목 없음')}</strong>
           <span>${escapeHtml(summary)}</span>
-          <small><i></i>${escapeHtml(folder ? folderPathLabel(folder.id) : '폴더 없음')} · ${formatDate(note.updatedAt)}</small>
+          <small><i></i>${escapeHtml(folder ? folderPathLabel(folder.id) : '폴더 없음')} · ${formatDate(noteContentUpdatedAt(note))}</small>
         </button>
       `;
     }).join('');
@@ -239,7 +243,11 @@ function renderTemplatePreview(template) {
   const recentNotes = state.notes
     .filter(note => (note.template || 'memo') === template)
     .slice()
-    .sort((first, second) => second.updatedAt - first.updatedAt)
+    .sort(
+      (first, second) =>
+        noteContentUpdatedAt(second)
+        - noteContentUpdatedAt(first)
+    )
     .slice(0, 3);
   const todoItems = template === 'todo'
     ? `
@@ -275,7 +283,7 @@ function renderTemplatePreview(template) {
             <button class="template-preview-card" type="button" data-preview-note-id="${note.id}">
               <strong>${escapeHtml(note.title || '제목 없음')}</strong>
               <span>${escapeHtml(noteCardPreview(note) || '내용 없음')}</span>
-              <small>${formatDate(note.updatedAt)}</small>
+              <small>${formatDate(noteContentUpdatedAt(note))}</small>
             </button>
           `).join('')}
         </div>

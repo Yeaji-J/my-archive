@@ -405,6 +405,8 @@ Current strategy in `js/core.js`:
 2. timestamp stored separately
 3. IndexedDB durable snapshot (`archive-durable-storage`)
 4. when signed in, delayed Supabase `archive_data` sync; every push first merges the latest remote snapshot and uses `updated_at` as an optimistic concurrency guard before writing
+
+List/detail/editor dates use `note.contentUpdatedAt`, falling back to the original `createdAt` for legacy notes. Opening, rendering, recovery normalization, starring, or moving a note may still update synchronization metadata but must not change the user-visible content date. Only an actual title, body, template data, attachment, moodboard, post-it, collection/link, or font edit calls `markNoteContentUpdated`; this prevents revisiting a note from making an old record look newly edited.
 5. mutation revision + timestamps prevent stale cloud pulls from overwriting newer local edits
 6. `beforeunload`, `visibilitychange`, and `pagehide` flush paths in `js/events.js`
 7. local and cloud archive states merge by item id instead of replacing the whole local archive; local-only and cloud-only records are retained

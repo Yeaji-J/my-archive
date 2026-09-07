@@ -218,7 +218,7 @@ function renderMemoAttachments(
         memo.attachments = memo.attachments.filter(
           item => item.id !== attachment.id
         );
-        currentNote.updatedAt = Date.now();
+        markNoteContentUpdated(currentNote);
         renderMemoAttachments(currentNote);
         updateEditorMeta(currentNote);
         saveData();
@@ -1557,7 +1557,7 @@ function scheduleMemoSave() {
     const note = getCurrentNote();
     if (!note || (note.template || 'memo') !== 'memo') return;
     persistMemoEditor(note);
-    note.updatedAt = Date.now();
+    markNoteContentUpdated(note);
     updateEditorMeta(note);
     saveData();
   }, 400);
@@ -1671,7 +1671,7 @@ async function attachMemoFiles(files) {
     }
   }
 
-  note.updatedAt = Date.now();
+  markNoteContentUpdated(note);
   renderMemoAttachments(note);
   updateEditorMeta(note);
   saveData();
@@ -1754,7 +1754,7 @@ function renderMemoAlbum(notes) {
                 ? `<span class="memo-album-tags">${memoTagsHtml(memo.tags)}</span>`
                 : ''
             }
-            <small>${formatDate(note.updatedAt)}</small>
+            <small>${formatDate(noteContentUpdatedAt(note))}</small>
           </span>
         </button>
         <button

@@ -565,7 +565,7 @@ function schedulePostitSave() {
     return;
   }
 
-  note.updatedAt = Date.now();
+  markNoteContentUpdated(note);
   updateEditorMeta(note);
   persistPostitTimeSnapshot(
     note,
@@ -759,8 +759,8 @@ function renderPostitNoteLinkResults(
     })
     .sort(
       (first, second) =>
-        Number(second.updatedAt)
-        - Number(first.updatedAt)
+        noteContentUpdatedAt(second)
+        - noteContentUpdatedAt(first)
     )
     .slice(0, 40);
   const folders = state.folders
@@ -2391,7 +2391,7 @@ function renderPostitAlbum(notes) {
           ${escapeHtml(POSTIT_TYPES[data.type].label)}
         </span>
         <strong>${escapeHtml(note.title || '제목 없음')}</strong>
-        <small>${formatDate(note.updatedAt)}</small>
+        <small>${formatDate(noteContentUpdatedAt(note))}</small>
       `;
 
       open.append(preview, copy);
@@ -2655,7 +2655,7 @@ function finishPostitTimePainting() {
   const data = ensurePostitData(note);
   if (data.type !== 'time') return;
 
-  note.updatedAt = Date.now();
+  markNoteContentUpdated(note);
   persistPostitTimeSnapshot(note, data);
   saveData();
 

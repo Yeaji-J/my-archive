@@ -36,7 +36,7 @@ function renderNoteView(note = getViewedNote()) {
 
   $('#noteViewType').textContent = NOTE_TYPE_LABELS[note.template || 'memo'];
   $('#noteViewTitle').textContent = note.title || '제목 없음';
-  $('#noteViewMeta').textContent = `${folder ? folderPathLabel(folder.id) : '폴더 없음'} · 마지막 수정 ${formatDate(note.updatedAt)}`;
+  $('#noteViewMeta').textContent = `${folder ? folderPathLabel(folder.id) : '폴더 없음'} · 마지막 수정 ${formatDate(noteContentUpdatedAt(note))}`;
   $('#noteViewStarBtn').classList.toggle('active', Boolean(note.starred));
   populateNoteViewFolderSelect(note.folderId);
 

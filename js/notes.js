@@ -717,8 +717,8 @@
 
     return notes.sort(
       (first, second) =>
-        second.updatedAt
-        - first.updatedAt
+        noteContentUpdatedAt(second)
+        - noteContentUpdatedAt(first)
     );
   }
 
@@ -1564,7 +1564,7 @@
         <strong>
           ${escapeHtml(note.title || '제목 없음')}
         </strong>
-        <time>${formatDate(note.updatedAt)}</time>
+        <time>${formatDate(noteContentUpdatedAt(note))}</time>
       </span>
     `;
   }
@@ -2743,7 +2743,7 @@
             <strong>${escapeHtml(note.title || '제목 없음')}</strong>
             <small>
               ${escapeHtml(folder?.name || '폴더 없음')}
-              · ${formatDate(note.updatedAt)}
+              · ${formatDate(noteContentUpdatedAt(note))}
             </small>
           </div>
         `;
@@ -2769,7 +2769,7 @@
             <i style="--folder-color:${escapeHtml(folder?.color || '#C3C2D9')}"></i>
             ${escapeHtml(folder?.name || '폴더 없음')}
           </span>
-          <time>${formatDate(note.updatedAt)}</time>
+          <time>${formatDate(noteContentUpdatedAt(note))}</time>
           ${
             note.starred
               ? '<span class="folder-text-star">★</span>'
@@ -2824,12 +2824,12 @@
 
                 <span class="note-card-date">
                   ${escapeHtml(folder.name)}
-                  · ${formatDate(note.updatedAt)}
+                  · ${formatDate(noteContentUpdatedAt(note))}
                 </span>
               `
               : `
                 <span class="note-card-date">
-                  ${formatDate(note.updatedAt)}
+                  ${formatDate(noteContentUpdatedAt(note))}
                 </span>
               `
           }
@@ -3017,7 +3017,7 @@
   function updateEditorMeta(note) {
     noteMeta.textContent =
       `마지막 수정: ${
-        formatDate(note.updatedAt)
+        formatDate(noteContentUpdatedAt(note))
       }`;
   }
 
@@ -3201,7 +3201,7 @@
     note.title = noteTitle.value;
 
     if (changed) {
-      note.updatedAt = Date.now();
+      markNoteContentUpdated(note);
       updateEditorMeta(note);
     }
 
@@ -3240,7 +3240,8 @@
       folderId,
       starred: false,
       createdAt: Date.now(),
-      updatedAt: Date.now()
+      updatedAt: Date.now(),
+      contentUpdatedAt: Date.now()
     };
 
     if (template) {

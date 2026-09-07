@@ -147,7 +147,7 @@ function restoreMoodboardHistory(
       ]
     );
   selectedMoodboardItemId = null;
-  note.updatedAt = Date.now();
+  markNoteContentUpdated(note);
   updateEditorMeta(note);
   saveData();
   renderMoodboard();
@@ -280,7 +280,7 @@ function setEditorTemplate(template, updateNote = true) {
       noteTitle.value =
         note.title || '';
     }
-    note.updatedAt = Date.now();
+    markNoteContentUpdated(note);
     saveData();
     updateEditorMeta(note);
   }
@@ -321,7 +321,7 @@ function scheduleMoodboardSave() {
     const note = getCurrentNote();
     if (!note) return;
     captureMoodboardHistory(note);
-    note.updatedAt = Date.now();
+    markNoteContentUpdated(note);
     updateEditorMeta(note);
     saveData();
   }, 350);

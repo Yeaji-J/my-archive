@@ -3,6 +3,9 @@
 /* ---------------- Links / Collection / Template search ---------------- */
 
 let templateDataSaveTimer = null;
+let linkReaderRequestId = 0;
+const linkReaderRequests = new Map();
+const LINK_READER_CONTENT_LIMIT = 80000;
 const TEMPLATE_ALBUM_PAGE_SIZE = {
   moodboard: 6,
   collection: 15
@@ -36,7 +39,300 @@ function ensureLinkData(note) {
   if (!note.linkData) {
     note.linkData = { url: '', siteName: '', description: '', category: '' };
   }
+  if (
+    !note.linkData.reader
+    || typeof note.linkData.reader !== 'object'
+  ) {
+    note.linkData.reader = {
+      sourceUrl: '',
+      title: '',
+      content: '',
+      fetchedAt: 0,
+      truncated: false
+    };
+  }
   return note.linkData;
+}
+
+function normalizedLinkReaderUrl(value) {
+  const raw = String(value || '').trim();
+  if (!raw) return '';
+
+  try {
+    const parsed = new URL(
+      /^[a-z][a-z0-9+.-]*:\/\//i.test(raw)
+        ? raw
+        : `https://${raw}`
+    );
+    if (
+      !['http:', 'https:'].includes(parsed.protocol)
+      || parsed.username
+      || parsed.password
+    ) {
+      return '';
+    }
+
+    const hostname = parsed.hostname
+      .toLowerCase()
+      .replace(/^\[|\]$/g, '');
+    const privateHost =
+      hostname === 'localhost'
+      || hostname === '::1'
+      || hostname.endsWith('.local')
+      || hostname.endsWith('.internal')
+      || /^(0|10|127)\./.test(hostname)
+      || /^169\.254\./.test(hostname)
+      || /^192\.168\./.test(hostname)
+      || /^172\.(1[6-9]|2\d|3[01])\./.test(hostname);
+
+    return privateHost ? '' : parsed.href;
+  } catch (_error) {
+    return '';
+  }
+}
+
+function cleanLinkReaderLine(value) {
+  return String(value || '')
+    .replace(/!\[([^\]]*)\]\([^)]*\)/g, '$1')
+    .replace(/\[([^\]]+)\]\([^)]*\)/g, '$1')
+    .replace(/\*\*([^*]+)\*\*/g, '$1')
+    .replace(/__([^_]+)__/g, '$1')
+    .replace(/~~([^~]+)~~/g, '$1')
+    .replace(/`([^`]+)`/g, '$1')
+    .trim();
+}
+
+function linkReaderContentHtml(content) {
+  let inCodeBlock = false;
+  return String(content || '')
+    .replace(/\r/g, '')
+    .split('\n')
+    .map(rawLine => {
+      const line = rawLine.trim();
+      if (/^```/.test(line)) {
+        inCodeBlock = !inCodeBlock;
+        return '';
+      }
+      if (!line) return '';
+
+      const heading = line.match(/^(#{1,6})\s+(.+)$/);
+      if (heading) {
+        const level = Math.min(4, heading[1].length + 1);
+        return `<h${level}>${escapeHtml(cleanLinkReaderLine(heading[2]))}</h${level}>`;
+      }
+
+      if (inCodeBlock) {
+        return `<pre>${escapeHtml(rawLine)}</pre>`;
+      }
+      if (/^[-*+]\s+/.test(line)) {
+        return `<p class="reader-list-item">${escapeHtml(cleanLinkReaderLine(line.replace(/^[-*+]\s+/, '')))}</p>`;
+      }
+      if (/^\d+[.)]\s+/.test(line)) {
+        return `<p class="reader-number-item">${escapeHtml(cleanLinkReaderLine(line))}</p>`;
+      }
+      if (/^>\s*/.test(line)) {
+        return `<blockquote>${escapeHtml(cleanLinkReaderLine(line.replace(/^>\s*/, '')))}</blockquote>`;
+      }
+      return `<p>${escapeHtml(cleanLinkReaderLine(line))}</p>`;
+    })
+    .filter(Boolean)
+    .join('');
+}
+
+function renderLinkReader(note = getCurrentNote()) {
+  const panel = $('#linkReaderPanel');
+  if (
+    !panel
+    || !note
+    || note.template !== 'links'
+    || getCurrentNote()?.id !== note.id
+  ) {
+    return;
+  }
+
+  const data = ensureLinkData(note);
+  const reader = data.reader;
+  const request = linkReaderRequests.get(note.id);
+  const sourceUrl = normalizedLinkReaderUrl(
+    reader.sourceUrl
+  );
+  const hasContent = Boolean(
+    String(reader.content || '').trim()
+  );
+  const currentUrl = normalizedLinkReaderUrl(
+    $('#linkUrlInput').value || data.url
+  );
+  const status = $('#linkReaderStatus');
+  const importButton = $('#linkReaderImportBtn');
+
+  panel.hidden = !hasContent;
+  $('#linkReaderClearBtn').hidden = !hasContent;
+  importButton.disabled = request?.state === 'loading';
+  importButton.textContent = request?.state === 'loading'
+    ? '텍스트 가져오는 중…'
+    : hasContent
+      ? '텍스트 다시 가져오기'
+      : '텍스트로 가져오기';
+
+  status.className = request?.state || '';
+  if (request?.message) {
+    status.textContent = request.message;
+  } else if (hasContent && currentUrl === sourceUrl) {
+    status.textContent = reader.truncated
+      ? '본문이 길어 앞부분을 저장했어요.'
+      : '가져온 텍스트가 이 링크 자료에 저장되어 있어요.';
+  } else if (hasContent) {
+    status.textContent = '현재 URL과 다른 본문이 저장되어 있어요. 다시 가져오면 교체됩니다.';
+  } else {
+    status.textContent = '공개 링크는 외부 텍스트 변환 서비스를 거쳐 Archive에 저장돼요.';
+  }
+
+  if (!hasContent) return;
+  $('#linkReaderTitle').textContent =
+    reader.title || data.siteName || note.title || '저장된 페이지';
+  const source = $('#linkReaderSource');
+  source.href = sourceUrl || '#';
+  source.hidden = !sourceUrl;
+  $('#linkReaderContent').innerHTML =
+    linkReaderContentHtml(reader.content);
+}
+
+async function importLinkReaderContent(
+  note = getCurrentNote()
+) {
+  if (!note || note.template !== 'links') return;
+  const formChanged = persistLinkEditor(note);
+
+  const data = ensureLinkData(note);
+  const sourceUrl = normalizedLinkReaderUrl(
+    $('#linkUrlInput').value || data.url
+  );
+  if (!sourceUrl) {
+    linkReaderRequests.set(note.id, {
+      state: 'error',
+      message: '공개된 http 또는 https 주소를 입력해주세요.'
+    });
+    renderLinkReader(note);
+    return;
+  }
+
+  const previousUrl = data.url;
+  data.url = sourceUrl;
+  $('#linkUrlInput').value = sourceUrl;
+  if (formChanged || previousUrl !== sourceUrl) {
+    markNoteContentUpdated(note);
+  }
+  saveData();
+  updateEditorMeta(note);
+  updateLinkPreview();
+  linkReaderRequests.get(note.id)?.controller
+    ?.abort();
+  const requestId = ++linkReaderRequestId;
+  const controller = new AbortController();
+  linkReaderRequests.set(note.id, {
+    id: requestId,
+    sourceUrl,
+    state: 'loading',
+    message: '페이지에서 본문 텍스트를 가져오고 있어요…',
+    controller
+  });
+  renderLinkReader(note);
+
+  const timeout = setTimeout(
+    () => controller.abort(),
+    35000
+  );
+
+  try {
+    const response = await fetch(
+      `https://r.jina.ai/${sourceUrl}`,
+      {
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/json',
+          'X-Retain-Images': 'none',
+          'X-Md-Link-Style': 'discarded',
+          'X-No-Cache': 'true',
+          'X-Timeout': '20'
+        }
+      }
+    );
+    if (!response.ok) {
+      throw new Error(`Reader ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const result = payload?.data || payload;
+    const fullContent = String(
+      result?.content || ''
+    ).trim();
+    if (!fullContent) {
+      throw new Error('Reader returned empty content');
+    }
+
+    const activeRequest = linkReaderRequests.get(note.id);
+    if (activeRequest?.id !== requestId) return;
+
+    const title = String(result?.title || '').trim();
+    data.reader = {
+      sourceUrl,
+      title,
+      content: fullContent.slice(
+        0,
+        LINK_READER_CONTENT_LIMIT
+      ),
+      fetchedAt: Date.now(),
+      truncated:
+        fullContent.length
+          > LINK_READER_CONTENT_LIMIT
+    };
+
+    if (!data.siteName && title) {
+      data.siteName = title;
+      if (getCurrentNote()?.id === note.id) {
+        $('#linkSiteNameInput').value = title;
+      }
+    }
+    if (!note.title && title) {
+      note.title = title;
+      if (getCurrentNote()?.id === note.id) {
+        noteTitle.value = title;
+      }
+    }
+
+    markNoteContentUpdated(note);
+    saveData();
+    if (getCurrentNote()?.id === note.id) {
+      updateEditorMeta(note);
+    }
+    linkReaderRequests.set(note.id, {
+      id: requestId,
+      sourceUrl,
+      state: 'success',
+      message: data.reader.truncated
+        ? '본문이 길어 앞부분을 저장했어요.'
+        : '본문을 가져와 이 자료에 저장했어요.'
+    });
+    renderLinkReader(note);
+  } catch (error) {
+    if (
+      linkReaderRequests.get(note.id)?.id
+      !== requestId
+    ) {
+      return;
+    }
+    linkReaderRequests.set(note.id, {
+      id: requestId,
+      sourceUrl,
+      state: 'error',
+      message: error?.name === 'AbortError'
+        ? '가져오는 시간이 너무 길어 중단했어요. 다시 시도해주세요.'
+        : '이 페이지는 본문을 가져오지 못했어요. 로그인·유료·접근 제한 페이지인지 확인해주세요.'
+    });
+    renderLinkReader(note);
+  } finally {
+    clearTimeout(timeout);
+  }
 }
 
 function renderLinkEditor() {
@@ -48,6 +344,7 @@ function renderLinkEditor() {
   $('#linkDescriptionInput').value = data.description || '';
   $('#linkCategoryInput').value = data.category || '';
   updateLinkPreview();
+  renderLinkReader(note);
 }
 
 function persistLinkEditor(
@@ -111,6 +408,7 @@ function updateLinkPreview() {
   } else {
     favicon.hidden = true;
   }
+  renderLinkReader(note);
 }
 
 function updateLinkField(field, value) {
@@ -118,6 +416,20 @@ function updateLinkField(field, value) {
   if (!note) return;
   const data = ensureLinkData(note);
   data[field] = value;
+  if (field === 'url') {
+    const request = linkReaderRequests.get(note.id);
+    if (
+      request
+      && normalizedLinkReaderUrl(value)
+        !== normalizedLinkReaderUrl(
+          request.sourceUrl
+          || data.reader.sourceUrl
+        )
+    ) {
+      request.controller?.abort();
+      linkReaderRequests.delete(note.id);
+    }
+  }
   if (field === 'siteName' && (!note.title || note.title === data.previousSiteName)) {
     note.title = value;
     noteTitle.value = value;
@@ -196,7 +508,14 @@ function templateSearchText(note) {
   }
   if (note.template === 'links') {
     const data = ensureLinkData(note);
-    parts.push(data.url, data.siteName, data.description, data.category);
+    parts.push(
+      data.url,
+      data.siteName,
+      data.description,
+      data.category,
+      data.reader?.title,
+      data.reader?.content
+    );
   }
   if (note.template === 'collection') {
     const data = ensureCollectionData(note);
@@ -693,6 +1012,68 @@ function renderCollectionAlbum(notes) {
   };
   $(`#${id}`).addEventListener('input', event => updateLinkField(map[id], event.target.value.trimStart()));
 });
+
+$('#linkReaderImportBtn')
+  .addEventListener(
+    'click',
+    () => importLinkReaderContent()
+  );
+
+$('#linkReaderClearBtn')
+  .addEventListener(
+    'click',
+    () => {
+      const note = getCurrentNote();
+      if (!note || note.template !== 'links') return;
+      linkReaderRequests.get(note.id)?.controller
+        ?.abort();
+      linkReaderRequests.delete(note.id);
+      ensureLinkData(note).reader = {
+        sourceUrl: '',
+        title: '',
+        content: '',
+        fetchedAt: 0,
+        truncated: false
+      };
+      markNoteContentUpdated(note);
+      saveData();
+      updateEditorMeta(note);
+      renderLinkReader(note);
+    }
+  );
+
+$('#linkUrlInput')
+  .addEventListener(
+    'paste',
+    () => {
+      setTimeout(() => {
+        const note = getCurrentNote();
+        if (!note || note.template !== 'links') return;
+        const data = ensureLinkData(note);
+        const pastedUrl = normalizedLinkReaderUrl(
+          $('#linkUrlInput').value
+        );
+        if (
+          pastedUrl
+          && pastedUrl !== normalizedLinkReaderUrl(
+            data.reader.sourceUrl
+          )
+        ) {
+          importLinkReaderContent(note);
+        }
+      }, 0);
+    }
+  );
+
+$('#linkUrlInput')
+  .addEventListener(
+    'keydown',
+    event => {
+      if (event.key !== 'Enter') return;
+      event.preventDefault();
+      importLinkReaderContent();
+    }
+  );
 
 document.querySelectorAll('[data-collection-type]').forEach(button => {
   button.addEventListener('click', () => {

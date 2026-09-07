@@ -229,6 +229,31 @@ function renderLinkNoteView(content, note) {
     </a>
   `;
   content.appendChild(wrap);
+
+  if (data.reader?.content) {
+    const reader = document.createElement('section');
+    reader.className =
+      'link-reader-panel note-view-link-reader';
+    const sourceUrl = normalizedLinkReaderUrl(
+      data.reader.sourceUrl || data.url
+    );
+    reader.innerHTML = `
+      <header>
+        <span>
+          <small>ARCHIVE READER</small>
+          <strong>${escapeHtml(data.reader.title || data.siteName || note.title || '저장된 페이지')}</strong>
+        </span>
+        ${
+          sourceUrl
+            ? `<a href="${escapeHtml(sourceUrl)}" target="_blank" rel="noopener">원문 열기 ↗</a>`
+            : ''
+        }
+      </header>
+      <article>${linkReaderContentHtml(data.reader.content)}</article>
+      <p class="link-reader-note">가져온 텍스트가 이 링크 자료에 저장되어 있어요.</p>
+    `;
+    content.appendChild(reader);
+  }
 }
 
 function renderCollectionNoteView(content, note) {

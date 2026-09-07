@@ -295,6 +295,8 @@ List page should look like a clean notice-board/link directory: one row per link
 
 All link field changes must auto-save. This was previously a recurring data-loss bug and is explicitly wired through `scheduleTemplateDataSave`; `persistCurrentNote` also flushes the visible link form back into `linkData` before editor close, template navigation, page hide, or reload.
 
+Template 04 also includes an Archive Reader. Pasting a public `http(s)` URL into the URL field automatically requests clean text from Jina Reader (`https://r.jina.ai/`); the same action is available through `텍스트로 가져오기`, with refresh and intentional clear controls. Local/private hosts and credential-bearing URLs are rejected. The response title, source URL, fetch time, truncation flag, and up to 80,000 characters of text are stored inside `linkData.reader` through the normal Archive localStorage, IndexedDB, and Supabase paths, participate in search, and render inside both the editor and detail view while the browser remains on Archive. Requests opt out of cache, discard images/links, time out, and preserve an existing saved reader on failure. Login, paywalled, private, or access-blocked pages may not be extractable; the editor explicitly discloses that a third-party text conversion service processes public URLs.
+
 ### 05 — 컬렉션 (`template: "collection"`)
 
 Intended uses: books, films, music, restaurants, other collections.

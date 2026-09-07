@@ -353,7 +353,7 @@
   flex-direction: column;
   justify-content: flex-start !important;
   align-content: flex-start;
-  row-gap: 8px !important;
+  row-gap: 10px !important;
   overflow-y: auto;
   overscroll-behavior: contain;
 }
@@ -406,6 +406,11 @@
   line-height: 1.05;
   word-break: break-word;
   overflow-wrap: anywhere;
+}
+
+.message-row:not(.mine) .message-text,
+.message-row:not(.mine) .chat-image-caption {
+  color: #555;
 }
 
 .message-text {

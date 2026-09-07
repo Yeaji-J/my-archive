@@ -180,6 +180,7 @@
       !== currentUser?.id;
 
     if (changed) {
+      resetChatReadState();
       await switchArchiveIdentity(
         nextUser?.id || ''
       );

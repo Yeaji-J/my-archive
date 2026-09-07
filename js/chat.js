@@ -10,6 +10,8 @@ const CHAT_FONT_STORAGE_KEY =
   'archive.chat-font.v1';
 const CHAT_FONT_SIZE_STORAGE_KEY =
   'archive.chat-font-size.v1';
+const CHAT_PEER_READ_STORAGE_PREFIX =
+  'archive.chat-peer-read.v1.';
 const CHAT_FONT_STACKS = {
   'lee-seoyun':
     '"IsYun", "Pretendard", sans-serif',
@@ -147,6 +149,45 @@ function applyChatFontSize(value) {
 }
 
 applyChatFontSize(chatFontSize);
+
+function resetChatReadState() {
+  chatPeerReadAt.clear();
+  chatOwnReadAt.clear();
+}
+
+function cachedChatPeerReadAt(roomId) {
+  if (!currentUser?.id || !roomId) return '';
+  try {
+    const cache = JSON.parse(
+      localStorage.getItem(
+        `${CHAT_PEER_READ_STORAGE_PREFIX}${currentUser.id}`
+      ) || '{}'
+    );
+    return String(cache[roomId] || '');
+  } catch (_error) {
+    return '';
+  }
+}
+
+function cacheChatPeerReadAt(roomId, readAt) {
+  if (!currentUser?.id || !roomId || !readAt) return;
+  try {
+    const key = `${CHAT_PEER_READ_STORAGE_PREFIX}${currentUser.id}`;
+    const cache = JSON.parse(
+      localStorage.getItem(key) || '{}'
+    );
+    const previous = String(cache[roomId] || '');
+    if (
+      previous
+      && new Date(readAt).getTime()
+        <= new Date(previous).getTime()
+    ) return;
+    cache[roomId] = readAt;
+    localStorage.setItem(key, JSON.stringify(cache));
+  } catch (_error) {
+    /* 실시간 표시 자체는 계속 동작합니다. */
+  }
+}
 
 function parseChatReceipt(body) {
   const value = String(body || '').trim();
@@ -840,6 +881,10 @@ function showChatImageFailure(
       map.set(message.room_id, receipt.lastReadAt);
     }
     if (message.user_id !== currentUser?.id) {
+      cacheChatPeerReadAt(
+        message.room_id,
+        receipt.lastReadAt
+      );
       updateChatReadIndicators(message.room_id);
     }
     return true;
@@ -899,6 +944,7 @@ function showChatImageFailure(
         > new Date(previous).getTime()
     ) {
       chatPeerReadAt.set(roomId, payload.lastReadAt);
+      cacheChatPeerReadAt(roomId, payload.lastReadAt);
       updateChatReadIndicators(roomId);
     }
   }
@@ -1117,7 +1163,14 @@ function showChatImageFailure(
     const envelope = parseChatEnvelope(message.body);
     const media = parseChatMedia(envelope.content);
     const isMine = message.user_id === currentUser?.id;
-    const peerReadAt = chatPeerReadAt.get(message.room_id);
+    const cachedPeerReadAt = cachedChatPeerReadAt(
+      message.room_id
+    );
+    const peerReadAt = chatPeerReadAt.get(message.room_id)
+      || cachedPeerReadAt;
+    if (cachedPeerReadAt && !chatPeerReadAt.has(message.room_id)) {
+      chatPeerReadAt.set(message.room_id, cachedPeerReadAt);
+    }
     const isUnread = isMine && (
       !peerReadAt
       || new Date(message.created_at).getTime()

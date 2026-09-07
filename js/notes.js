@@ -1688,9 +1688,38 @@
     if (!viewport?.isConnected) return;
     const width = viewport.clientWidth;
     if (!width) return;
+    const height = viewport.clientHeight;
+    const contain =
+      viewport.dataset.snapshotFit
+        === 'contain';
+    const scale =
+      contain && height
+        ? Math.min(
+            width / FOLDER_SNAPSHOT_WIDTH,
+            height / 680
+          )
+        : width / FOLDER_SNAPSHOT_WIDTH;
     viewport.style.setProperty(
       '--folder-snapshot-scale',
-      width / FOLDER_SNAPSHOT_WIDTH
+      scale
+    );
+    viewport.style.setProperty(
+      '--folder-snapshot-offset-x',
+      contain
+        ? `${Math.max(
+            0,
+            (width - FOLDER_SNAPSHOT_WIDTH * scale) / 2
+          )}px`
+        : '0px'
+    );
+    viewport.style.setProperty(
+      '--folder-snapshot-offset-y',
+      contain
+        ? `${Math.max(
+            0,
+            (height - 680 * scale) / 2
+          )}px`
+        : '0px'
     );
   }
 
@@ -3192,16 +3221,34 @@
       ? persistLinkEditor(note)
       : false;
 
+    const postitProjectsChanged =
+      note.template === 'todo'
+      && typeof persistPostitTimeProjectInputs
+        === 'function'
+      ? persistPostitTimeProjectInputs(note)
+      : false;
+
     const changed =
       note.title !== noteTitle.value
       || previousMemoHtml !== (note.memoData?.html || '')
       || previousContent !== (note.content || '')
-      || linkChanged;
+      || linkChanged
+      || postitProjectsChanged;
 
     note.title = noteTitle.value;
 
     if (changed) {
       markNoteContentUpdated(note);
+      if (
+        postitProjectsChanged
+        && typeof persistPostitTimeSnapshot
+          === 'function'
+      ) {
+        persistPostitTimeSnapshot(
+          note,
+          ensurePostitData(note)
+        );
+      }
       updateEditorMeta(note);
     }
 

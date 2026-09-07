@@ -565,6 +565,7 @@ function schedulePostitSave() {
     return;
   }
 
+  persistPostitTimeProjectInputs(note);
   markNoteContentUpdated(note);
   updateEditorMeta(note);
   persistPostitTimeSnapshot(
@@ -1722,12 +1723,62 @@ function postitTimeProjectColors(data) {
   return [...colors].filter(Boolean);
 }
 
+function persistPostitTimeProjectInputs(
+  note = getCurrentNote()
+) {
+  const projects = $('#postitTimeProjectsPanel');
+  if (
+    !note
+    || note.template !== 'todo'
+    || projects?.dataset.noteId !== note.id
+  ) {
+    return false;
+  }
+
+  const data = ensurePostitData(note);
+  if (data.type !== 'time') return false;
+
+  let changed = false;
+  projects
+    .querySelectorAll(
+      '[data-time-project-color] input'
+    )
+    .forEach(input => {
+      const field = input.closest(
+        '[data-time-project-color]'
+      );
+      const color = normalizePostitColor(
+        field?.dataset.timeProjectColor,
+        ''
+      );
+      if (!color) return;
+
+      const value = input.value.slice(0, 24);
+      if (
+        String(data.timeProjects[color] || '')
+        === value
+      ) {
+        return;
+      }
+      data.timeProjects[color] = value;
+      changed = true;
+    });
+
+  if (changed) {
+    persistPostitTimeSnapshot(note, data);
+  }
+  return changed;
+}
+
 function renderPostitTimeProjects(
-  data
+  data,
+  note = getCurrentNote()
 ) {
   const projects =
     $('#postitTimeProjectsPanel');
   if (!projects) return;
+
+  projects.dataset.noteId = note?.id || '';
 
   projects.innerHTML = `
     <span class="postit-time-projects-label">
@@ -1763,26 +1814,36 @@ function renderPostitTimeProjects(
         >
       `;
 
-      field.querySelector('input')
-        .addEventListener(
-          'input',
-          event => {
-            data.timeProjects[color] =
-              event.target.value
-                .slice(0, 24);
-            const tracker =
-              document.querySelector(
-                '#postitEditorContent .postit-time'
-              );
-            if (tracker) {
-              renderPostitTimeSummary(
-                tracker,
-                data
-              );
-            }
-            schedulePostitSave();
-          }
-        );
+      const input = field.querySelector('input');
+      const saveProjectName = event => {
+        data.timeProjects[color] =
+          event.target.value.slice(0, 24);
+        event.target.value =
+          data.timeProjects[color];
+        const tracker =
+          document.querySelector(
+            '#postitEditorContent .postit-time'
+          );
+        if (tracker) {
+          renderPostitTimeSummary(
+            tracker,
+            data
+          );
+        }
+        schedulePostitSave();
+      };
+      input.addEventListener(
+        'input',
+        saveProjectName
+      );
+      input.addEventListener(
+        'change',
+        saveProjectName
+      );
+      input.addEventListener(
+        'compositionend',
+        saveProjectName
+      );
       fields.appendChild(field);
     });
 }
@@ -1958,6 +2019,14 @@ function renderPostitTime(
             event => {
               event.preventDefault();
               postitTimePainting = true;
+              const liveData =
+                ensurePostitData(
+                  getCurrentNote()
+                );
+              const selectedColor =
+                normalizePostitColor(
+                  liveData.accentColor
+                );
               const currentColor =
                 normalizePostitColor(
                   slot.blocks[
@@ -1967,8 +2036,9 @@ function renderPostitTime(
                 );
               postitTimePaintColor =
                 currentColor
+                  === selectedColor
                   ? ''
-                  : data.accentColor;
+                  : selectedColor;
               applyPostitTimeBlock(
                 slot,
                 blockIndex,
@@ -2004,9 +2074,18 @@ function renderPostitTime(
               applyPostitTimeBlock(
                 slot,
                 blockIndex,
-                slot.blocks[blockIndex]
+                normalizePostitTimeBlock(
+                  slot.blocks[blockIndex],
+                  ''
+                ) === normalizePostitColor(
+                  ensurePostitData(
+                    getCurrentNote()
+                  ).accentColor
+                )
                   ? ''
-                  : data.accentColor,
+                  : ensurePostitData(
+                    getCurrentNote()
+                  ).accentColor,
                 cell
               );
             }
@@ -2089,6 +2168,8 @@ function renderPostitEditor(
 ) {
   if (!note) return;
 
+  persistPostitTimeProjectInputs(note);
+
   const data =
     ensurePostitData(note);
   const paper =
@@ -2124,7 +2205,7 @@ function renderPostitEditor(
   $('#postitTimeProjectsPanel').hidden =
     data.type !== 'time';
   if (data.type === 'time') {
-    renderPostitTimeProjects(data);
+    renderPostitTimeProjects(data, note);
   }
   $('#postitCustomColor').value =
     data.accentColor;
@@ -2146,10 +2227,16 @@ function renderPostitEditor(
       '[data-postit-color]'
     )
     .forEach(button => {
+      const selected =
+        button.dataset.postitColor
+          === data.accentColor;
       button.classList.toggle(
         'active',
-        button.dataset.postitColor
-          === data.accentColor
+        selected
+      );
+      button.setAttribute(
+        'aria-pressed',
+        selected ? 'true' : 'false'
       );
     });
 
@@ -2187,6 +2274,8 @@ function setPostitType(type) {
   if (!note || !POSTIT_TYPES[type]) {
     return;
   }
+
+  persistPostitTimeProjectInputs(note);
 
   const data =
     ensurePostitData(note);
@@ -2581,6 +2670,7 @@ document
 function setPostitAccentColor(value) {
   const note = getCurrentNote();
   if (!note) return;
+  persistPostitTimeProjectInputs(note);
   const data =
     ensurePostitData(note);
   data.accentColor =
@@ -2604,10 +2694,17 @@ function setPostitAccentColor(value) {
         button.dataset.postitColor
           === data.accentColor
       );
+      button.setAttribute(
+        'aria-pressed',
+        button.dataset.postitColor
+          === data.accentColor
+          ? 'true'
+          : 'false'
+      );
     });
 
   if (data.type === 'time') {
-    renderPostitTimeProjects(data);
+    renderPostitTimeProjects(data, note);
   }
 
   schedulePostitSave();
@@ -2652,6 +2749,7 @@ function finishPostitTimePainting() {
     return;
   }
 
+  persistPostitTimeProjectInputs(note);
   const data = ensurePostitData(note);
   if (data.type !== 'time') return;
 

@@ -621,8 +621,8 @@
 
 .folder-snapshot-page {
   position: absolute;
-  top: 0;
-  left: 0;
+  top: var(--folder-snapshot-offset-y, 0);
+  left: var(--folder-snapshot-offset-x, 0);
   display: block;
   width: 720px;
   height: 680px;
@@ -3731,7 +3731,11 @@ input:disabled {
   border-bottom: 1px solid rgba(92, 54, 33, .1);
 }
 
-.memo-album-preview img {
+.memo-album-full-snapshot {
+  padding: 0;
+}
+
+.memo-album-preview > img {
   position: absolute;
   inset: 0;
   width: 100%;
@@ -3741,7 +3745,7 @@ input:disabled {
   border-radius: 0;
 }
 
-.memo-album-preview p {
+.memo-album-preview:not(.memo-album-full-snapshot) p {
   margin: 0 0 10px;
   color: rgba(92, 54, 33, .72);
   font-size: 12px;

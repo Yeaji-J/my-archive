@@ -1744,9 +1744,11 @@ function renderMemoAlbum(notes) {
             : ''
         }
         <button class="memo-album-open" type="button">
-          <span class="memo-album-preview">
-            ${memoPreviewHtml(note)}
-          </span>
+          <span
+            class="memo-album-preview folder-preview-snapshot memo-album-full-snapshot"
+            data-folder-snapshot
+            data-snapshot-fit="contain"
+          ></span>
           <span class="memo-album-copy">
             <strong>${escapeHtml(note.title || '제목 없음')}</strong>
             ${
@@ -1768,6 +1770,12 @@ function renderMemoAlbum(notes) {
           </svg>
         </button>
       `;
+      renderFolderTemplateSnapshot(
+        card.querySelector(
+          '[data-folder-snapshot]'
+        ),
+        note
+      );
       card
         .querySelector('.memo-album-open')
         .addEventListener(

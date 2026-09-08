@@ -1665,7 +1665,8 @@ function applyPostitTimeBlock(
   slot,
   blockIndex,
   color,
-  cell
+  cell,
+  data
 ) {
   const normalizedColor =
     normalizePostitTimeBlock(color);
@@ -1677,6 +1678,8 @@ function applyPostitTimeBlock(
   );
   cell.style.backgroundColor =
     normalizedColor;
+  cell.dataset.timeColor =
+    normalizedColor;
   cell.setAttribute(
     'aria-pressed',
     normalizedColor ? 'true' : 'false'
@@ -1685,10 +1688,7 @@ function applyPostitTimeBlock(
   const tracker = cell.closest(
     '.postit-time'
   );
-  const currentNote = getCurrentNote();
-  if (tracker && currentNote) {
-    const data =
-      ensurePostitData(currentNote);
+  if (tracker && data) {
     renderPostitTimeSummary(
       tracker,
       data
@@ -1848,21 +1848,35 @@ function renderPostitTimeProjects(
     });
 }
 
-function postitTimeTotals(data) {
+function postitTimeTotals(
+  data,
+  tracker = null
+) {
   const colorCounts = new Map();
 
-  data.timeSlots.forEach(slot => {
-    slot.blocks.forEach(blockColor => {
-      const color = normalizePostitColor(
-        blockColor,
-        ''
+  const renderedCells = tracker
+    ? [...tracker.querySelectorAll(
+        '.postit-time-cell'
+      )]
+    : [];
+  const blockColors = renderedCells.length
+    ? renderedCells.map(
+        cell => cell.dataset.timeColor
+      )
+    : data.timeSlots.flatMap(
+        slot => slot.blocks
       );
-      if (!color) return;
-      colorCounts.set(
-        color,
-        (colorCounts.get(color) || 0) + 1
-      );
-    });
+
+  blockColors.forEach(blockColor => {
+    const color = normalizePostitColor(
+      blockColor,
+      ''
+    );
+    if (!color) return;
+    colorCounts.set(
+      color,
+      (colorCounts.get(color) || 0) + 1
+    );
   });
 
   const colors = [...colorCounts]
@@ -1906,7 +1920,10 @@ function renderPostitTimeSummary(
     tracker.appendChild(summary);
   }
 
-  const totals = postitTimeTotals(data);
+  const totals = postitTimeTotals(
+    data,
+    tracker
+  );
   summary.innerHTML = `
     <span class="postit-time-summary-label">
       COLOR TOTAL
@@ -2000,6 +2017,7 @@ function renderPostitTime(
           );
         cell.style.backgroundColor =
           color;
+        cell.dataset.timeColor = color;
 
         if (!readOnly) {
           cell.type = 'button';
@@ -2019,13 +2037,9 @@ function renderPostitTime(
             event => {
               event.preventDefault();
               postitTimePainting = true;
-              const liveData =
-                ensurePostitData(
-                  getCurrentNote()
-                );
               const selectedColor =
                 normalizePostitColor(
-                  liveData.accentColor
+                  data.accentColor
                 );
               const currentColor =
                 normalizePostitColor(
@@ -2043,7 +2057,8 @@ function renderPostitTime(
                 slot,
                 blockIndex,
                 postitTimePaintColor,
-                cell
+                cell,
+                data
               );
             }
           );
@@ -2057,7 +2072,8 @@ function renderPostitTime(
                 slot,
                 blockIndex,
                 postitTimePaintColor,
-                cell
+                cell,
+                data
               );
             }
           );
@@ -2078,15 +2094,12 @@ function renderPostitTime(
                   slot.blocks[blockIndex],
                   ''
                 ) === normalizePostitColor(
-                  ensurePostitData(
-                    getCurrentNote()
-                  ).accentColor
+                  data.accentColor
                 )
                   ? ''
-                  : ensurePostitData(
-                    getCurrentNote()
-                  ).accentColor,
-                cell
+                  : data.accentColor,
+                cell,
+                data
               );
             }
           );

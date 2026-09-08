@@ -1697,6 +1697,23 @@ function applyPostitTimeBlock(
   schedulePostitSave();
 }
 
+function livePostitTimeContext(
+  note,
+  renderedSlot
+) {
+  const liveNote = state.notes.find(
+    item => item.id === note.id
+  ) || note;
+  const data = ensurePostitData(liveNote);
+  const slot = data.timeSlots.find(
+    item => item.id === renderedSlot.id
+  ) || data.timeSlots.find(
+    item => item.hour === renderedSlot.hour
+  ) || renderedSlot;
+
+  return { data, slot };
+}
+
 function postitTimeProjectColors(data) {
   const colors = new Set(
     POSTIT_TRACKER_COLORS
@@ -2037,13 +2054,18 @@ function renderPostitTime(
             event => {
               event.preventDefault();
               postitTimePainting = true;
+              const live =
+                livePostitTimeContext(
+                  note,
+                  slot
+                );
               const selectedColor =
                 normalizePostitColor(
-                  data.accentColor
+                  live.data.accentColor
                 );
               const currentColor =
                 normalizePostitColor(
-                  slot.blocks[
+                  live.slot.blocks[
                     blockIndex
                   ],
                   ''
@@ -2054,11 +2076,11 @@ function renderPostitTime(
                   ? ''
                   : selectedColor;
               applyPostitTimeBlock(
-                slot,
+                live.slot,
                 blockIndex,
                 postitTimePaintColor,
                 cell,
-                data
+                live.data
               );
             }
           );
@@ -2068,12 +2090,17 @@ function renderPostitTime(
               if (!postitTimePainting) {
                 return;
               }
+              const live =
+                livePostitTimeContext(
+                  note,
+                  slot
+                );
               applyPostitTimeBlock(
-                slot,
+                live.slot,
                 blockIndex,
                 postitTimePaintColor,
                 cell,
-                data
+                live.data
               );
             }
           );
@@ -2087,19 +2114,24 @@ function renderPostitTime(
                 return;
               }
               event.preventDefault();
+              const live =
+                livePostitTimeContext(
+                  note,
+                  slot
+                );
               applyPostitTimeBlock(
-                slot,
+                live.slot,
                 blockIndex,
                 normalizePostitTimeBlock(
-                  slot.blocks[blockIndex],
+                  live.slot.blocks[blockIndex],
                   ''
                 ) === normalizePostitColor(
-                  data.accentColor
+                  live.data.accentColor
                 )
                   ? ''
-                  : data.accentColor,
+                  : live.data.accentColor,
                 cell,
-                data
+                live.data
               );
             }
           );

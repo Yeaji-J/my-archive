@@ -178,7 +178,7 @@ Writing/editor requirements already represented in the UI:
 - numeric token behavior: number followed by Space can become a subtle rounded/gray number marker
 - Notion-style block handles: drag vertically to reorder, or to the left/right edge of another block to create any number of columns
 - when a non-collapsed selection intersects multiple blocks, dragging the handle of one selected block moves the selected block group together
-- the former global 1-column / 2-column toolbar is intentionally removed; saved `.memo-block-row` / `.memo-block-column` structure is the layout source of truth
+- the former global 1-column / 2-column toggle is intentionally removed; saved `.memo-block-row` / `.memo-block-column` structure is the layout source of truth. The memo toolbar instead has an additive `+ 칼럼` action: it creates a blank sibling beside the caret's current block/column (or the last block when no caret is active), allowing repeated column creation without dragging existing blocks one by one
 - memo body line-height is intentionally tightened to about two-thirds of the earlier value
 - four paper skins: pink micro-grid, yellow line, blue dot, purple grid
 - image insertion

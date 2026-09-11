@@ -1434,6 +1434,75 @@ function moveMemoBlocks(
   scheduleMemoSave();
 }
 
+function addMemoColumn() {
+  const restoredSelection =
+    restoreMemoSelection();
+
+  const range = restoredSelection
+    ? memoSelectionRange()
+    : null;
+  const blocks = memoEditableBlocks();
+  let block = memoBlocksForRange(range)[0]
+    || blocks[blocks.length - 1];
+
+  if (!block) {
+    block = document.createElement('p');
+    block.appendChild(
+      document.createElement('br')
+    );
+    noteContent.appendChild(block);
+    decorateMemoBlocks();
+  }
+
+  const newColumn = document.createElement(
+    'div'
+  );
+  newColumn.className = 'memo-block-column';
+
+  const newBlock = document.createElement('p');
+  newBlock.appendChild(
+    document.createElement('br')
+  );
+  newColumn.appendChild(newBlock);
+
+  const currentColumn = block.closest(
+    '.memo-block-column'
+  );
+
+  if (currentColumn) {
+    currentColumn.parentNode.insertBefore(
+      newColumn,
+      currentColumn.nextSibling
+    );
+  } else {
+    const row = document.createElement('div');
+    const originalColumn =
+      document.createElement('div');
+    row.className = 'memo-block-row';
+    originalColumn.className =
+      'memo-block-column';
+
+    block.replaceWith(row);
+    originalColumn.appendChild(block);
+    row.append(originalColumn, newColumn);
+  }
+
+  decorateMemoBlocks();
+
+  noteContent.focus();
+  const selection = window.getSelection();
+  const nextRange = document.createRange();
+  nextRange.selectNodeContents(newBlock);
+  nextRange.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(nextRange);
+  memoSavedRange = nextRange.cloneRange();
+
+  persistMemoEditor();
+  scheduleMemoSave();
+  scheduleMemoToolbarUpdate(newBlock);
+}
+
 function handleMemoShortcuts(event) {
   if (event.isComposing || memoIsComposing) {
     return false;
@@ -1857,6 +1926,21 @@ document
       () => runMemoCommand(button.dataset.memoCommand)
     );
   });
+
+$('#memoAddColumnBtn')
+  ?.addEventListener(
+    'mousedown',
+    event => {
+      saveMemoSelection();
+      event.preventDefault();
+    }
+  );
+
+$('#memoAddColumnBtn')
+  ?.addEventListener(
+    'click',
+    addMemoColumn
+  );
 
 document
   .querySelectorAll('[data-memo-skin]')

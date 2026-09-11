@@ -1441,6 +1441,8 @@ function addMemoColumn() {
   const range = restoredSelection
     ? memoSelectionRange()
     : null;
+  const returnRange = range?.cloneRange()
+    || null;
   const blocks = memoEditableBlocks();
   let block = memoBlocksForRange(range)[0]
     || blocks[blocks.length - 1];
@@ -1470,9 +1472,8 @@ function addMemoColumn() {
   );
 
   if (currentColumn) {
-    currentColumn.parentNode.insertBefore(
-      newColumn,
-      currentColumn.nextSibling
+    currentColumn.parentNode.appendChild(
+      newColumn
     );
   } else {
     const row = document.createElement('div');
@@ -1492,8 +1493,23 @@ function addMemoColumn() {
   noteContent.focus();
   const selection = window.getSelection();
   const nextRange = document.createRange();
-  nextRange.selectNodeContents(newBlock);
-  nextRange.collapse(true);
+  if (
+    returnRange
+    && returnRange.startContainer.isConnected
+    && returnRange.endContainer.isConnected
+  ) {
+    nextRange.setStart(
+      returnRange.startContainer,
+      returnRange.startOffset
+    );
+    nextRange.setEnd(
+      returnRange.endContainer,
+      returnRange.endOffset
+    );
+  } else {
+    nextRange.selectNodeContents(block);
+    nextRange.collapse(true);
+  }
   selection.removeAllRanges();
   selection.addRange(nextRange);
   memoSavedRange = nextRange.cloneRange();

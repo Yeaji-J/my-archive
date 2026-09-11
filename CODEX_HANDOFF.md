@@ -179,6 +179,8 @@ Writing/editor requirements already represented in the UI:
 - Notion-style block handles: drag vertically to reorder, or to the left/right edge of another block to create any number of columns
 - when a non-collapsed selection intersects multiple blocks, dragging the handle of one selected block moves the selected block group together
 - the former global 1-column / 2-column toggle is intentionally removed; saved `.memo-block-row` / `.memo-block-column` structure is the layout source of truth. The memo toolbar instead has an additive `+ 칼럼` action: it keeps the caret in the current left-side block and appends one blank column at the row's right edge, so repeated clicks grow the layout naturally from 1 to 2, 3, 4 columns without dragging existing blocks one by one
+- a memo whose body has no text or image always opens as one explicit left-aligned paragraph. Empty column wrappers left by an earlier edit are collapsed only for that content-free body, preventing the initial caret from starting in a middle column; any memo containing user text or images keeps its saved alignment and column structure unchanged
+- the memo paper keeps generous vertical breathing room but uses a compact roughly `14–20px` horizontal inset, so the first left-aligned caret begins close to the paper's left edge rather than near the canvas center
 - memo body line-height is intentionally tightened to about two-thirds of the earlier value
 - four paper skins: pink micro-grid, yellow line, blue dot, purple grid
 - image insertion

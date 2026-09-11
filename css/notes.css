@@ -3188,7 +3188,9 @@ input:disabled {
 
 .memo-editor-skin {
   min-height: 500px;
-  padding: clamp(28px, 4vw, 54px);
+  padding:
+    clamp(28px, 4vw, 54px)
+    clamp(14px, 1.2vw, 20px);
   overflow: visible;
   border: 1px solid rgba(92, 54, 33, .09);
   border-radius: 14px;

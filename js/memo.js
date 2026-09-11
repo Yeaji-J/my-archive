@@ -548,9 +548,25 @@ function sanitizeMemoHtml(html) {
 function renderMemoEditor(note = getCurrentNote()) {
   if (!note) return;
   const memo = ensureMemoData(note);
-  noteContent.innerHTML =
-    sanitizeMemoHtml(memo.html)
-    || '<p><br></p>';
+  const cleanHtml = sanitizeMemoHtml(
+    memo.html
+  );
+  const cleanTemplate =
+    document.createElement('template');
+  cleanTemplate.innerHTML = cleanHtml;
+  const hasBodyContent = Boolean(
+    cleanTemplate.content.textContent
+      ?.replace(/\u00a0/g, ' ')
+      .trim()
+    || cleanTemplate.content.querySelector(
+      'img'
+    )
+  );
+
+  noteContent.innerHTML = hasBodyContent
+    ? cleanHtml
+    : '<p style="text-align:left"><br></p>';
+  memoSavedRange = null;
 
   const skin = $('#memoEditorSkin');
   skin.className =

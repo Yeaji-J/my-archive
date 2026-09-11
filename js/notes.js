@@ -18,6 +18,80 @@
       });
   }
 
+  function beginSidebarFolderRename(
+    item,
+    folder
+  ) {
+    const nameElement = item.querySelector(
+      '.folder-item-name'
+    );
+    if (!nameElement) return;
+
+    item.classList.add('renaming');
+    item.draggable = false;
+
+    const input = document.createElement(
+      'input'
+    );
+    input.className = 'folder-name-edit';
+    input.type = 'text';
+    input.maxLength = 30;
+    input.value = folder.name;
+    input.setAttribute(
+      'aria-label',
+      `${folder.name} 폴더명 수정`
+    );
+    nameElement.replaceWith(input);
+
+    let finished = false;
+    let cancelled = false;
+    const finish = () => {
+      if (finished) return;
+      finished = true;
+
+      if (
+        cancelled
+        || !renameFolder(
+          folder.id,
+          input.value
+        )
+      ) {
+        renderSidebarFolders();
+      }
+    };
+
+    input.addEventListener(
+      'pointerdown',
+      event => event.stopPropagation()
+    );
+    input.addEventListener(
+      'click',
+      event => event.stopPropagation()
+    );
+    input.addEventListener(
+      'keydown',
+      event => {
+        if (
+          event.key === 'Enter'
+          && !event.isComposing
+        ) {
+          event.preventDefault();
+          input.blur();
+        } else if (event.key === 'Escape') {
+          event.preventDefault();
+          cancelled = true;
+          input.blur();
+        }
+      }
+    );
+    input.addEventListener('blur', finish);
+
+    requestAnimationFrame(() => {
+      input.focus();
+      input.select();
+    });
+  }
+
   function reorderSidebarFolder(
     draggedId,
     targetId,
@@ -292,6 +366,23 @@
         >+</button>
 
         <button
+          class="folder-edit"
+          aria-label="${escapeHtml(folder.name)} 폴더명 수정"
+          title="폴더명 수정"
+          type="button"
+        >
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path
+              d="M4 20h4l10.8-10.8a2.1 2.1 0 0 0-3-3L5 17v3Z"
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="1.8"
+            />
+            <path d="m14.5 7.5 3 3" stroke-width="1.8" />
+          </svg>
+        </button>
+
+        <button
           class="folder-del"
           aria-label="폴더 삭제"
           title="폴더 삭제"
@@ -317,7 +408,7 @@
 
           if (
             event.target.closest(
-              '.folder-del, .folder-add-child, .folder-toggle'
+              '.folder-del, .folder-edit, .folder-add-child, .folder-toggle, .folder-name-edit'
             )
           ) {
             return;
@@ -461,6 +552,19 @@
           event => {
             event.stopPropagation();
             openFolderModal(folder.id);
+          }
+        );
+
+      item
+        .querySelector('.folder-edit')
+        .addEventListener(
+          'click',
+          event => {
+            event.stopPropagation();
+            beginSidebarFolderRename(
+              item,
+              folder
+            );
           }
         );
 
@@ -2358,8 +2462,12 @@
         selectedCount > 0
       );
 
-      $('#folderContextName').textContent =
+      const contextName =
+        $('#folderContextName');
+      contextName.value =
         selectedFolder.name;
+      contextName.dataset.folderId =
+        selectedFolder.id;
 
       $('#folderContextCount').textContent =
         `${selectedCount}개 자료`;

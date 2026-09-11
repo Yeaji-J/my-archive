@@ -342,11 +342,13 @@ svg {
 
 .sidebar .icon-btn,
 .sidebar .search-icon,
+.sidebar .folder-edit,
 .sidebar .folder-del {
   color: #B8C39E;
 }
 
 .sidebar .icon-btn:hover,
+.sidebar .folder-edit:hover,
 .sidebar .folder-del:hover {
   color: #9CA078;
 }
@@ -693,6 +695,30 @@ svg {
   white-space: nowrap;
 }
 
+.folder-name-edit {
+  min-width: 0;
+  padding: 1px 3px 2px;
+  flex: 1;
+  border: 0;
+  border-bottom: 1px solid #9eb397;
+  outline: 0;
+  background: rgba(255, 255, 255, .72);
+  color: var(--text);
+  font-size: inherit;
+  font-weight: inherit;
+}
+
+.folder-item.renaming {
+  cursor: text;
+}
+
+.folder-item.renaming .folder-item-count,
+.folder-item.renaming .folder-add-child,
+.folder-item.renaming .folder-edit,
+.folder-item.renaming .folder-del {
+  display: none;
+}
+
 .folder-item-count {
   color: var(--text-tertiary);
   font-size: 11.5px;
@@ -702,6 +728,7 @@ svg {
   color: var(--accent);
 }
 
+.folder-edit,
 .folder-del {
   width: 18px;
   height: 18px;
@@ -716,13 +743,20 @@ svg {
   cursor: pointer;
 }
 
+.folder-edit svg,
 .folder-del svg {
   width: 12px;
   height: 12px;
 }
 
+.folder-item:hover .folder-edit,
 .folder-item:hover .folder-del {
   display: flex;
+}
+
+.folder-edit:hover {
+  background: rgba(156, 160, 120, .15);
+  color: var(--archive-brown, #5c3621);
 }
 
 .folder-del:hover {

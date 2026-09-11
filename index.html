@@ -23,8 +23,8 @@
   </script>
   <link rel="icon" type="image/png" href="assets/favicon.png">
   <link rel="stylesheet" href="css/fonts.css?v=20260730-font-system1">
-  <link rel="stylesheet" href="css/base.css?v=20260904-folder-sort1">
-  <link rel="stylesheet" href="css/notes.css?v=20260907-link-reader1">
+  <link rel="stylesheet" href="css/base.css?v=20260911-folder-rename1">
+  <link rel="stylesheet" href="css/notes.css?v=20260911-folder-rename1">
   <link rel="stylesheet" href="css/chat.css?v=20260907-chat-spacing-read1">
   <link rel="stylesheet" href="css/todo.css?v=20260904-item-sort1">
   <link rel="stylesheet" href="css/calendar.css?v=20260903-schedule-align3">
@@ -392,7 +392,15 @@
               <i class="folder-front"></i>
             </span>
             <span>
-              <strong id="folderContextName"></strong>
+              <input
+                class="folder-context-name-input"
+                id="folderContextName"
+                type="text"
+                maxlength="30"
+                aria-label="현재 폴더명 수정"
+                autocomplete="off"
+                spellcheck="false"
+              >
               <small id="folderContextCount"></small>
             </span>
           </div>
@@ -1729,9 +1737,9 @@
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/core.js?v=20260907-stable-note-date1"></script>
-  <script src="js/notes.js?v=20260907-time-memo-save1"></script>
+  <script src="js/notes.js?v=20260911-folder-rename1"></script>
   <script src="js/todo.js?v=20260908-time-summary2"></script>
-  <script src="js/folders.js?v=20260828-storage-guard1"></script>
+  <script src="js/folders.js?v=20260911-folder-rename1"></script>
   <script src="js/auth.js?v=20260907-chat-spacing-read1"></script>
   <script src="js/chat.js?v=20260907-chat-spacing-read1"></script>
   <script src="js/calendar.js?v=20260903-schedule-align3"></script>
@@ -1742,7 +1750,7 @@
   <script src="js/note-view.js?v=20260907-link-reader1"></script>
   <script src="js/font-system.js?v=20260907-stable-note-date1"></script>
   <script src="js/router.js?v=20260828-storage-guard1"></script>
-  <script src="js/events.js?v=20260904-chat-hotfix1"></script>
+  <script src="js/events.js?v=20260911-folder-rename1"></script>
   <script src="js/theme.js?v=20260724-skin-switch1"></script>
   <script src="js/template-overview-drag.js?v=20260730-free-board7"></script>
 </body>

@@ -284,6 +284,54 @@
     }
   );
 
+  const folderContextName =
+    $('#folderContextName');
+
+  folderContextName.addEventListener(
+    'keydown',
+    event => {
+      if (
+        event.key === 'Enter'
+        && !event.isComposing
+      ) {
+        event.preventDefault();
+        folderContextName.blur();
+      } else if (event.key === 'Escape') {
+        event.preventDefault();
+        folderContextName.dataset.cancelEdit =
+          'true';
+        folderContextName.blur();
+      }
+    }
+  );
+
+  folderContextName.addEventListener(
+    'blur',
+    () => {
+      const folderId =
+        folderContextName.dataset.folderId;
+      const folder = state.folders.find(
+        item => item.id === folderId
+      );
+      const cancelled =
+        folderContextName.dataset.cancelEdit
+          === 'true';
+
+      delete folderContextName.dataset.cancelEdit;
+
+      if (!folder) return;
+      if (
+        cancelled
+        || !renameFolder(
+          folderId,
+          folderContextName.value
+        )
+      ) {
+        folderContextName.value = folder.name;
+      }
+    }
+  );
+
   scrim.addEventListener(
     'click',
     () => {

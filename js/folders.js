@@ -2,6 +2,32 @@
 
 /* ---------------- Folders ---------------- */
 
+  function renameFolder(
+    folderId,
+    nextName
+  ) {
+    const folder = state.folders.find(
+      item => item.id === folderId
+    );
+    const name = String(nextName || '')
+      .trim()
+      .slice(0, 30);
+
+    if (
+      !folder
+      || !name
+      || name === folder.name
+    ) {
+      return false;
+    }
+
+    folder.name = name;
+    folder.updatedAt = Date.now();
+    saveData();
+    render();
+    return true;
+  }
+
   async function deleteFolder(
     folderId
   ) {

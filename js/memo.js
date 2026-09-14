@@ -47,6 +47,7 @@ let memoDropZone = '';
 let memoPointerId = null;
 let memoToolbarUpdateFrame = null;
 let memoToolbarTargetElement = null;
+let memoActiveColumn = null;
 
 function escapeMemoText(value) {
   return escapeHtml(String(value || ''))
@@ -572,6 +573,7 @@ function renderMemoEditor(note = getCurrentNote()) {
     ? cleanHtml
     : '<p style="text-align:left"><br></p>';
   memoSavedRange = null;
+  setMemoActiveColumn(null);
 
   const skin = $('#memoEditorSkin');
   skin.className =
@@ -735,14 +737,10 @@ function updateMemoToolbarState() {
   const block = element.closest(
     '.memo-editor-block'
   );
-  const removeColumnButton =
-    $('#memoRemoveColumnBtn');
-  if (removeColumnButton) {
-    removeColumnButton.disabled =
-      !block?.closest(
-        '.memo-block-column'
-      );
-  }
+  setMemoActiveColumn(
+    block?.closest('.memo-block-column')
+      || element.closest('.memo-block-column')
+  );
   const tagName = block?.tagName || '';
   const alignment = block
     ? getComputedStyle(block).textAlign
@@ -1463,6 +1461,26 @@ function moveMemoBlocks(
   scheduleMemoSave();
 }
 
+function setMemoActiveColumn(column) {
+  const nextColumn =
+    column instanceof Element
+    && column.classList.contains(
+      'memo-block-column'
+    )
+    && column.isConnected
+    && noteContent.contains(column)
+      ? column
+      : null;
+
+  memoActiveColumn = nextColumn;
+  const removeColumnButton =
+    $('#memoRemoveColumnBtn');
+  if (removeColumnButton) {
+    removeColumnButton.disabled =
+      !memoActiveColumn;
+  }
+}
+
 function addMemoColumn() {
   const restoredSelection =
     restoreMemoSelection();
@@ -1542,6 +1560,9 @@ function addMemoColumn() {
   selection.removeAllRanges();
   selection.addRange(nextRange);
   memoSavedRange = nextRange.cloneRange();
+  setMemoActiveColumn(
+    block.closest('.memo-block-column')
+  );
 
   persistMemoEditor();
   scheduleMemoSave();
@@ -1549,13 +1570,18 @@ function addMemoColumn() {
 }
 
 function removeMemoColumn() {
-  if (!restoreMemoSelection()) return;
-
-  const range = memoSelectionRange();
+  const restoredSelection =
+    restoreMemoSelection();
+  const range = restoredSelection
+    ? memoSelectionRange()
+    : null;
   const block = memoBlocksForRange(range)[0];
-  const column = block?.closest(
-    '.memo-block-column'
-  );
+  const column =
+    memoActiveColumn?.isConnected
+      ? memoActiveColumn
+      : block?.closest(
+          '.memo-block-column'
+        );
   const row = column?.closest(
     '.memo-block-row'
   );
@@ -1572,6 +1598,7 @@ function removeMemoColumn() {
     : null;
 
   column.remove();
+  memoActiveColumn = null;
   cleanupMemoBlockRow(row);
   decorateMemoBlocks();
 
@@ -1595,6 +1622,9 @@ function removeMemoColumn() {
   selection.removeAllRanges();
   selection.addRange(nextRange);
   memoSavedRange = nextRange.cloneRange();
+  setMemoActiveColumn(
+    focusBlock.closest('.memo-block-column')
+  );
 
   persistMemoEditor();
   scheduleMemoSave();
@@ -2151,6 +2181,9 @@ noteContent.addEventListener('mouseup', event => {
 });
 noteContent.addEventListener('click', event => {
   if (!(event.target instanceof Element)) return;
+  setMemoActiveColumn(
+    event.target.closest('.memo-block-column')
+  );
   memoToolbarTargetElement = event.target;
   if (memoToolbarUpdateFrame !== null) {
     cancelAnimationFrame(memoToolbarUpdateFrame);
@@ -2219,6 +2252,13 @@ noteContent.addEventListener('paste', event => {
 noteContent.addEventListener(
   'pointerdown',
   event => {
+    if (event.target instanceof Element) {
+      setMemoActiveColumn(
+        event.target.closest(
+          '.memo-block-column'
+        )
+      );
+    }
     const block = memoBlockFromTarget(
       event.target
     );

@@ -556,13 +556,18 @@ function renderMemoEditor(note = getCurrentNote()) {
   cleanTemplate.innerHTML = cleanHtml;
   const hasBodyContent = Boolean(
     cleanTemplate.content.textContent
-      ?.replace(/\u00a0/g, ' ')
+      ?.replace(
+        /[\s\u00a0\u200b-\u200d\ufeff]/g,
+        ''
+      )
       .trim()
     || cleanTemplate.content.querySelector(
       'img'
     )
   );
 
+  noteContent.style.textAlign = 'left';
+  noteContent.removeAttribute('align');
   noteContent.innerHTML = hasBodyContent
     ? cleanHtml
     : '<p style="text-align:left"><br></p>';

@@ -3236,6 +3236,8 @@ input:disabled {
   color: var(--archive-brown);
   font-size: 15px;
   line-height: 1.23;
+  direction: ltr;
+  text-align: left;
   white-space: normal;
   word-break: break-word;
 }
@@ -3264,9 +3266,11 @@ input:disabled {
 }
 
 .memo-block-row {
+  width: 100%;
   display: grid;
   grid-auto-columns: minmax(0, 1fr);
   grid-auto-flow: column;
+  direction: ltr;
   gap: clamp(14px, 2.4vw, 30px);
   margin: 0 0 8px !important;
   align-items: start;
@@ -3275,6 +3279,7 @@ input:disabled {
 .memo-block-column {
   min-width: 0;
   margin: 0 !important;
+  text-align: left;
 }
 
 .memo-editor-block {

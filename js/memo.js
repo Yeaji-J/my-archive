@@ -735,6 +735,14 @@ function updateMemoToolbarState() {
   const block = element.closest(
     '.memo-editor-block'
   );
+  const removeColumnButton =
+    $('#memoRemoveColumnBtn');
+  if (removeColumnButton) {
+    removeColumnButton.disabled =
+      !block?.closest(
+        '.memo-block-column'
+      );
+  }
   const tagName = block?.tagName || '';
   const alignment = block
     ? getComputedStyle(block).textAlign
@@ -1537,7 +1545,60 @@ function addMemoColumn() {
 
   persistMemoEditor();
   scheduleMemoSave();
-  scheduleMemoToolbarUpdate(newBlock);
+  scheduleMemoToolbarUpdate(block);
+}
+
+function removeMemoColumn() {
+  if (!restoreMemoSelection()) return;
+
+  const range = memoSelectionRange();
+  const block = memoBlocksForRange(range)[0];
+  const column = block?.closest(
+    '.memo-block-column'
+  );
+  const row = column?.closest(
+    '.memo-block-row'
+  );
+
+  if (!column || !row) return;
+
+  const siblingColumn =
+    column.nextElementSibling
+    || column.previousElementSibling;
+  let focusBlock = siblingColumn
+    ? memoEditableBlocksInColumn(
+        siblingColumn
+      )[0]
+    : null;
+
+  column.remove();
+  cleanupMemoBlockRow(row);
+  decorateMemoBlocks();
+
+  if (!focusBlock?.isConnected) {
+    focusBlock = memoEditableBlocks()[0];
+  }
+  if (!focusBlock) {
+    focusBlock = document.createElement('p');
+    focusBlock.appendChild(
+      document.createElement('br')
+    );
+    noteContent.appendChild(focusBlock);
+    decorateMemoBlocks();
+  }
+
+  noteContent.focus();
+  const selection = window.getSelection();
+  const nextRange = document.createRange();
+  nextRange.selectNodeContents(focusBlock);
+  nextRange.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(nextRange);
+  memoSavedRange = nextRange.cloneRange();
+
+  persistMemoEditor();
+  scheduleMemoSave();
+  scheduleMemoToolbarUpdate(focusBlock);
 }
 
 function handleMemoShortcuts(event) {
@@ -1977,6 +2038,21 @@ $('#memoAddColumnBtn')
   ?.addEventListener(
     'click',
     addMemoColumn
+  );
+
+$('#memoRemoveColumnBtn')
+  ?.addEventListener(
+    'mousedown',
+    event => {
+      saveMemoSelection();
+      event.preventDefault();
+    }
+  );
+
+$('#memoRemoveColumnBtn')
+  ?.addEventListener(
+    'click',
+    removeMemoColumn
   );
 
 document

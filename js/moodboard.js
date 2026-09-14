@@ -270,6 +270,8 @@ function setEditorTemplate(template, updateNote = true) {
   if (updateNote) {
     if (note.template !== template) {
       if (
+        note.template
+        &&
         typeof persistCurrentNote
         === 'function'
       ) {

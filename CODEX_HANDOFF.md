@@ -165,6 +165,7 @@ Template-specific list pages retain their own designed list style rather than in
 
 Writing/editor requirements already represented in the UI:
 
+- starting a new item from a specific template overview opens that same template immediately. A newly created, still-unselected item never persists the previous memo DOM, and delayed memo auto-save is bound to the note that scheduled it so content cannot leak into the next new item; all normal local, durable, and cloud save paths remain unchanged
 - contenteditable rich memo
 - paragraph/body vs subtitle styles; a selected existing range should be convertible in both directions
 - left / center alignment

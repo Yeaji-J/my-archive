@@ -1750,9 +1750,21 @@ function finishMemoAltCode(event) {
 
 function scheduleMemoSave() {
   clearTimeout(memoDataSaveTimer);
+  const scheduledNoteId = currentNoteId;
+  if (!scheduledNoteId) return;
+
   memoDataSaveTimer = setTimeout(() => {
-    const note = getCurrentNote();
-    if (!note || (note.template || 'memo') !== 'memo') return;
+    memoDataSaveTimer = null;
+    if (currentNoteId !== scheduledNoteId) {
+      return;
+    }
+
+    const note = state.notes.find(
+      item => item.id === scheduledNoteId
+    );
+    if (!note || note.template !== 'memo') {
+      return;
+    }
     persistMemoEditor(note);
     markNoteContentUpdated(note);
     updateEditorMeta(note);

@@ -3318,7 +3318,7 @@
     const previousContent =
       note.content || '';
 
-    if ((note.template || 'memo') === 'memo') {
+    if (note.template === 'memo') {
       persistMemoEditor(note);
     }
 
@@ -3364,6 +3364,23 @@
   }
 
   function createNote(template = '') {
+    if (currentNoteId) {
+      persistCurrentNote();
+    }
+
+    const requestedTemplate =
+      EDITOR_TEMPLATE_KEYS.includes(template)
+        ? template
+        : (
+          currentView === 'all'
+          && browseMode === 'template'
+          && EDITOR_TEMPLATE_KEYS.includes(
+            browseTemplate
+          )
+            ? browseTemplate
+            : ''
+        );
+
     if (
       currentView === 'home'
       || currentView === 'chat'
@@ -3391,7 +3408,7 @@
       id: uid(),
       title: '',
       content: '',
-      template,
+      template: requestedTemplate,
       folderId,
       starred: false,
       createdAt: Date.now(),
@@ -3399,10 +3416,10 @@
       contentUpdatedAt: Date.now()
     };
 
-    if (template) {
+    if (requestedTemplate) {
       resetNoteForTemplate(
         note,
-        template
+        requestedTemplate
       );
     }
 

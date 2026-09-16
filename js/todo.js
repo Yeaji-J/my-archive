@@ -5,7 +5,10 @@
 const POSTIT_PAGE_SIZE = 15;
 const POSTIT_TIME_SNAPSHOT_PREFIX =
   'archive.postit-time.v1.';
+const POSTIT_NOTE_SNAPSHOT_PREFIX =
+  'archive.postit-note.v1.';
 const restoredPostitTimeData = new WeakSet();
+const restoredPostitNoteData = new WeakSet();
 const POSTIT_TYPES = {
   habit: {
     label: '해빗 트래커',
@@ -217,6 +220,107 @@ function serializePostitTimeSlots(
   }));
 }
 
+function postitNoteSnapshotKey(noteId) {
+  const identity =
+    typeof activeArchiveIdentity === 'string'
+      ? activeArchiveIdentity
+      : 'guest';
+
+  return POSTIT_NOTE_SNAPSHOT_PREFIX
+    + identity
+    + '.'
+    + String(noteId || '');
+}
+
+function persistPostitNoteSnapshot(
+  note,
+  data = note?.postitData
+) {
+  if (
+    !note?.id
+    || !data
+    || typeof data !== 'object'
+  ) {
+    return;
+  }
+
+  try {
+    localStorage.setItem(
+      postitNoteSnapshotKey(note.id),
+      JSON.stringify({
+        savedAt:
+          Number(note.contentUpdatedAt)
+          || Number(note.updatedAt)
+          || Date.now(),
+        postitData: data
+      })
+    );
+  } catch (error) {
+    console.warn(
+      'Could not save post-it recovery snapshot',
+      error
+    );
+  }
+}
+
+function restorePostitNoteSnapshot(note) {
+  if (
+    !note?.id
+    || restoredPostitNoteData.has(note)
+  ) {
+    return false;
+  }
+
+  restoredPostitNoteData.add(note);
+
+  try {
+    const snapshot = JSON.parse(
+      localStorage.getItem(
+        postitNoteSnapshotKey(note.id)
+      ) || 'null'
+    );
+    const snapshotSavedAt =
+      Number(snapshot?.savedAt) || 0;
+    const noteSavedAt =
+      Number(note.contentUpdatedAt)
+      || Number(note.updatedAt)
+      || Number(note.createdAt)
+      || 0;
+
+    if (
+      !snapshot?.postitData
+      || typeof snapshot.postitData
+        !== 'object'
+      || Array.isArray(snapshot.postitData)
+      || snapshotSavedAt <= noteSavedAt
+    ) {
+      return false;
+    }
+
+    note.postitData = snapshot.postitData;
+    note.contentUpdatedAt = snapshotSavedAt;
+    note.updatedAt = snapshotSavedAt;
+
+    setTimeout(() => {
+      if (
+        typeof saveData === 'function'
+        && state.notes?.some(
+          item => item.id === note.id
+        )
+      ) {
+        saveData();
+      }
+    }, 0);
+    return true;
+  } catch (error) {
+    console.warn(
+      'Could not restore post-it recovery snapshot',
+      error
+    );
+    return false;
+  }
+}
+
 function normalizePostitTimeProjects(
   value
 ) {
@@ -340,6 +444,8 @@ function restorePostitTimeSnapshot(
 }
 
 function ensurePostitData(note) {
+  restorePostitNoteSnapshot(note);
+
   if (
     !note.postitData
     || typeof note.postitData !== 'object'
@@ -552,11 +658,14 @@ function postitDaysInMonth(value) {
   ).getDate();
 }
 
-function schedulePostitSave() {
-  const note =
+function schedulePostitSave(
+  targetNote = (
     typeof getCurrentNote === 'function'
       ? getCurrentNote()
-      : null;
+      : null
+  )
+) {
+  const note = targetNote;
 
   if (
     !note
@@ -565,18 +674,24 @@ function schedulePostitSave() {
     return;
   }
 
-  persistPostitTimeProjectInputs(note);
+  persistPostitEditorInputs(note);
   markNoteContentUpdated(note);
   updateEditorMeta(note);
   persistPostitTimeSnapshot(
     note,
     ensurePostitData(note)
   );
+  persistPostitNoteSnapshot(
+    note,
+    note.postitData
+  );
   saveData();
 
   clearTimeout(postitSaveTimer);
   postitSaveTimer = setTimeout(() => {
     if (
+      getCurrentNote()?.id === note.id
+      &&
       typeof renderTemplateLibraryBar
       === 'function'
     ) {
@@ -592,6 +707,95 @@ function postitPaperClass(data) {
     `postit-skin-${data.skin}`,
     `postit-font-${data.font}`
   ].join(' ');
+}
+
+function persistPostitEditorInputs(
+  note = getCurrentNote()
+) {
+  const content = $('#postitEditorContent');
+  if (
+    !note
+    || note.template !== 'todo'
+    || content?.dataset.noteId !== note.id
+  ) {
+    return false;
+  }
+
+  const data = ensurePostitData(note);
+  let changed = false;
+
+  content
+    .querySelectorAll(
+      '.postit-list-row[data-postit-item-id]'
+    )
+    .forEach(row => {
+      const item = data.items.find(
+        current =>
+          current.id
+          === row.dataset.postitItemId
+      );
+      if (!item) return;
+
+      const title = row.querySelector(
+        '.postit-item-title'
+      );
+      const memo = row.querySelector(
+        '.postit-item-memo-input'
+      );
+      const nextText = title?.value;
+      const nextMemo = memo?.value;
+
+      if (
+        typeof nextText === 'string'
+        && item.text !== nextText
+      ) {
+        item.text = nextText;
+        changed = true;
+      }
+      if (
+        typeof nextMemo === 'string'
+        && item.memo !== nextMemo
+      ) {
+        item.memo = nextMemo;
+        changed = true;
+      }
+    });
+
+  content
+    .querySelectorAll(
+      '.postit-weekly-row textarea'
+    )
+    .forEach((field, index) => {
+      if (
+        data.weekly[index]
+        && data.weekly[index].text
+          !== field.value
+      ) {
+        data.weekly[index].text =
+          field.value;
+        changed = true;
+      }
+    });
+
+  content
+    .querySelectorAll(
+      '.postit-habit-name input'
+    )
+    .forEach((field, index) => {
+      if (
+        data.habits[index]
+        && data.habits[index].text
+          !== field.value
+      ) {
+        data.habits[index].text =
+          field.value;
+        changed = true;
+      }
+    });
+
+  const projectChanged =
+    persistPostitTimeProjectInputs(note);
+  return changed || projectChanged;
 }
 
 function postitTagsHtml(tags) {
@@ -820,7 +1024,7 @@ function renderPostitNoteLinkResults(
         targetItem.linkedNoteId = '';
         targetItem.linkedFolderId =
           folder.id;
-        schedulePostitSave();
+        schedulePostitSave(targetNote);
         closePostitNoteLinkModal();
         renderPostitEditor(targetNote);
         focusPostitItemMemo(targetItem.id);
@@ -862,7 +1066,7 @@ function renderPostitNoteLinkResults(
         if (!targetItem) return;
         targetItem.linkedNoteId = note.id;
         targetItem.linkedFolderId = '';
-        schedulePostitSave();
+        schedulePostitSave(targetNote);
         closePostitNoteLinkModal();
         renderPostitEditor(targetNote);
         focusPostitItemMemo(targetItem.id);
@@ -2217,6 +2421,9 @@ function renderPostitEditor(
 
   const data =
     ensurePostitData(note);
+  const content =
+    $('#postitEditorContent');
+  content.dataset.noteId = note.id;
   const paper =
     $('#postitEditorPaper');
 
@@ -2309,7 +2516,7 @@ function renderPostitEditor(
     data.type === 'weekly';
 
   renderPostitBody(
-    $('#postitEditorContent'),
+    content,
     note
   );
 }

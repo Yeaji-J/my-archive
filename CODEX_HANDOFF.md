@@ -206,6 +206,8 @@ Memo list page:
 
 ### 02 — 포스트잇 (`template: "todo"`)
 
+- every post-it note now writes an identity-scoped, per-note recovery snapshot on each edit in addition to the existing full-state localStorage, IndexedDB, and cloud paths. Opening a note restores that snapshot only when it is newer than the note content timestamp, so stale cloud/local state can recover lost list rows without overriding a newer intentional clear. Editor flushes also reread the live to-do/wish/shopping, weekly, habit, and time-project fields before saving
+
 This replaced the old standalone “할 일” concept.
 
 Types currently exposed:

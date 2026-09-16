@@ -3329,11 +3329,11 @@
       ? persistLinkEditor(note)
       : false;
 
-    const postitProjectsChanged =
+    const postitEditorChanged =
       note.template === 'todo'
-      && typeof persistPostitTimeProjectInputs
+      && typeof persistPostitEditorInputs
         === 'function'
-      ? persistPostitTimeProjectInputs(note)
+      ? persistPostitEditorInputs(note)
       : false;
 
     const changed =
@@ -3341,14 +3341,14 @@
       || previousMemoHtml !== (note.memoData?.html || '')
       || previousContent !== (note.content || '')
       || linkChanged
-      || postitProjectsChanged;
+      || postitEditorChanged;
 
     note.title = noteTitle.value;
 
     if (changed) {
       markNoteContentUpdated(note);
       if (
-        postitProjectsChanged
+        note.template === 'todo'
         && typeof persistPostitTimeSnapshot
           === 'function'
       ) {
@@ -3358,6 +3358,17 @@
         );
       }
       updateEditorMeta(note);
+    }
+
+    if (
+      note.template === 'todo'
+      && typeof persistPostitNoteSnapshot
+        === 'function'
+    ) {
+      persistPostitNoteSnapshot(
+        note,
+        ensurePostitData(note)
+      );
     }
 
     saveData();

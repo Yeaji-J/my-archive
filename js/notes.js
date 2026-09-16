@@ -3105,7 +3105,6 @@
     currentNoteViewId = null;
     editorReturnsToView = returnToView;
 
-    noteTitle.value = note.title || '';
     note.template =
       typeof note.template === 'string'
         ? note.template
@@ -3116,6 +3115,17 @@
           )
           ? ''
           : 'memo';
+    if (
+      typeof ensureTemplateTitles
+      === 'function'
+    ) {
+      ensureTemplateTitles(note);
+      note.title = templateTitleFor(
+        note,
+        note.template
+      );
+    }
+    noteTitle.value = note.title || '';
 
     updateEditorMeta(note);
     populateFolderSelect(note.folderId);
@@ -3344,9 +3354,23 @@
       || postitEditorChanged;
 
     note.title = noteTitle.value;
+    if (
+      typeof persistTemplateTitle
+      === 'function'
+    ) {
+      persistTemplateTitle(
+        note,
+        note.template,
+        note.title
+      );
+    }
 
     if (changed) {
-      markNoteContentUpdated(note);
+      const changedAt =
+        markNoteContentUpdated(note);
+      if (note.template === 'todo') {
+        note.postitUpdatedAt = changedAt;
+      }
       if (
         note.template === 'todo'
         && typeof persistPostitTimeSnapshot
@@ -3365,6 +3389,12 @@
       && typeof persistPostitNoteSnapshot
         === 'function'
     ) {
+      if (!Number(note.postitUpdatedAt)) {
+        note.postitUpdatedAt =
+          Number(note.contentUpdatedAt)
+          || Number(note.updatedAt)
+          || Date.now();
+      }
       persistPostitNoteSnapshot(
         note,
         ensurePostitData(note)

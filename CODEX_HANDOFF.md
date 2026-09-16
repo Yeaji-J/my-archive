@@ -166,6 +166,7 @@ Template-specific list pages retain their own designed list style rather than in
 Writing/editor requirements already represented in the UI:
 
 - starting a new item from a specific template overview opens that same template immediately. A newly created, still-unselected item never persists the previous memo DOM, and delayed memo auto-save is bound to the note that scheduled it so content cannot leak into the next new item; all normal local, durable, and cloud save paths remain unchanged
+- each note stores a separate title for every template in `note.templateTitles`. Switching templates flushes the current template first, loads only the destination template's title and payload, and does not count the tab switch itself as a content edit. Returning to post-it forces a timestamp/semantic-content comparison against its per-note recovery snapshot, so a memo round-trip cannot replace a newer to-do draft with a blank payload
 - contenteditable rich memo
 - paragraph/body vs subtitle styles; a selected existing range should be convertible in both directions
 - left / center alignment

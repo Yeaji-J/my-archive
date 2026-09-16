@@ -232,6 +232,51 @@ function postitNoteSnapshotKey(noteId) {
     + String(noteId || '');
 }
 
+function postitDataContentScore(data) {
+  if (!data || typeof data !== 'object') {
+    return 0;
+  }
+
+  const textScore = value =>
+    String(value || '').trim().length;
+  let score = 0;
+
+  (data.tags || []).forEach(tag => {
+    score += textScore(tag);
+  });
+  (data.items || []).forEach(item => {
+    score += textScore(item.text);
+    score += textScore(item.memo);
+    score += (
+      item.linkedNoteId
+      || item.linkedFolderId
+        ? 2
+        : 0
+    );
+    score += item.done ? 1 : 0;
+  });
+  (data.weekly || []).forEach(item => {
+    score += textScore(item.text);
+  });
+  (data.habits || []).forEach(item => {
+    score += textScore(item.text);
+    score += Array.isArray(item.checked)
+      ? item.checked.length
+      : 0;
+  });
+  (data.timeSlots || []).forEach(slot => {
+    score += textScore(slot.label);
+    score += (slot.blocks || [])
+      .filter(Boolean).length;
+  });
+  Object.values(data.timeProjects || {})
+    .forEach(value => {
+      score += textScore(value);
+    });
+
+  return score;
+}
+
 function persistPostitNoteSnapshot(
   note,
   data = note?.postitData
@@ -249,7 +294,8 @@ function persistPostitNoteSnapshot(
       postitNoteSnapshotKey(note.id),
       JSON.stringify({
         savedAt:
-          Number(note.contentUpdatedAt)
+          Number(note.postitUpdatedAt)
+          || Number(note.contentUpdatedAt)
           || Number(note.updatedAt)
           || Date.now(),
         postitData: data
@@ -263,10 +309,16 @@ function persistPostitNoteSnapshot(
   }
 }
 
-function restorePostitNoteSnapshot(note) {
+function restorePostitNoteSnapshot(
+  note,
+  force = false
+) {
   if (
     !note?.id
-    || restoredPostitNoteData.has(note)
+    || (
+      restoredPostitNoteData.has(note)
+      && !force
+    )
   ) {
     return false;
   }
@@ -281,25 +333,47 @@ function restorePostitNoteSnapshot(note) {
     );
     const snapshotSavedAt =
       Number(snapshot?.savedAt) || 0;
+    const currentScore =
+      postitDataContentScore(
+        note.postitData
+      );
+    const snapshotScore =
+      postitDataContentScore(
+        snapshot?.postitData
+      );
     const noteSavedAt =
-      Number(note.contentUpdatedAt)
-      || Number(note.updatedAt)
-      || Number(note.createdAt)
-      || 0;
+      Number(note.postitUpdatedAt) || 0;
 
     if (
       !snapshot?.postitData
       || typeof snapshot.postitData
         !== 'object'
       || Array.isArray(snapshot.postitData)
-      || snapshotSavedAt <= noteSavedAt
+      || (
+        noteSavedAt
+          ? snapshotSavedAt < noteSavedAt
+            || (
+              snapshotSavedAt === noteSavedAt
+              && snapshotScore <= currentScore
+            )
+          : snapshotScore <= currentScore
+      )
     ) {
       return false;
     }
 
     note.postitData = snapshot.postitData;
-    note.contentUpdatedAt = snapshotSavedAt;
-    note.updatedAt = snapshotSavedAt;
+    note.postitUpdatedAt = snapshotSavedAt;
+    if (note.template === 'todo') {
+      note.contentUpdatedAt = Math.max(
+        Number(note.contentUpdatedAt) || 0,
+        snapshotSavedAt
+      );
+      note.updatedAt = Math.max(
+        Number(note.updatedAt) || 0,
+        snapshotSavedAt
+      );
+    }
 
     setTimeout(() => {
       if (
@@ -675,7 +749,9 @@ function schedulePostitSave(
   }
 
   persistPostitEditorInputs(note);
-  markNoteContentUpdated(note);
+  const changedAt =
+    markNoteContentUpdated(note);
+  note.postitUpdatedAt = changedAt;
   updateEditorMeta(note);
   persistPostitTimeSnapshot(
     note,

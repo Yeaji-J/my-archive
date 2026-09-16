@@ -162,6 +162,67 @@ const EDITOR_TEMPLATE_KEYS = [
   'collection'
 ];
 
+function ensureTemplateTitles(note) {
+  if (
+    !note.templateTitles
+    || typeof note.templateTitles !== 'object'
+    || Array.isArray(note.templateTitles)
+  ) {
+    note.templateTitles = {};
+  }
+
+  if (
+    EDITOR_TEMPLATE_KEYS.includes(
+      note.template
+    )
+    && !Object.prototype.hasOwnProperty.call(
+      note.templateTitles,
+      note.template
+    )
+  ) {
+    note.templateTitles[note.template] =
+      String(note.title || '');
+  }
+
+  return note.templateTitles;
+}
+
+function templateTitleFor(note, template) {
+  if (!EDITOR_TEMPLATE_KEYS.includes(template)) {
+    return String(note?.title || '');
+  }
+
+  const titles =
+    note?.templateTitles
+    && typeof note.templateTitles === 'object'
+    && !Array.isArray(note.templateTitles)
+      ? note.templateTitles
+      : {};
+
+  return Object.prototype.hasOwnProperty.call(
+    titles,
+    template
+  )
+    ? String(titles[template] || '')
+    : '';
+}
+
+function persistTemplateTitle(
+  note,
+  template,
+  value
+) {
+  if (
+    !note
+    || !EDITOR_TEMPLATE_KEYS.includes(template)
+  ) {
+    return;
+  }
+
+  ensureTemplateTitles(note)[template] =
+    String(value || '');
+}
+
 function resetNoteForTemplate(
   note,
   template
@@ -177,6 +238,9 @@ function resetNoteForTemplate(
   note.title = '';
   note.content = '';
   note.template = template;
+  note.templateTitles = {
+    [template]: ''
+  };
 
   delete note.memoData;
   delete note.postitData;
@@ -269,6 +333,7 @@ function setEditorTemplate(template, updateNote = true) {
 
   if (updateNote) {
     if (note.template !== template) {
+      ensureTemplateTitles(note);
       if (
         note.template
         &&
@@ -279,15 +344,27 @@ function setEditorTemplate(template, updateNote = true) {
       }
 
       note.template = template;
-      noteTitle.value =
-        note.title || '';
+      note.title = templateTitleFor(
+        note,
+        template
+      );
+      noteTitle.value = note.title;
+      note.updatedAt = Date.now();
     }
-    markNoteContentUpdated(note);
     saveData();
     updateEditorMeta(note);
   }
 
   if (template === 'todo') {
+    if (
+      typeof restorePostitNoteSnapshot
+      === 'function'
+    ) {
+      restorePostitNoteSnapshot(
+        note,
+        true
+      );
+    }
     renderPostitEditor(note);
   }
 

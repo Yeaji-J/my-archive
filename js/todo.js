@@ -98,6 +98,7 @@ let postitTimePaintColor = '';
 let postitLinkTargetNoteId = null;
 let postitLinkTargetItemId = null;
 let draggedPostitItemId = null;
+const postitProjectRecoveryPending = new Set();
 
 function postitMonthValue() {
   const date = new Date();
@@ -444,7 +445,10 @@ function persistPostitTimeSnapshot(
         timeProjects:
           normalizePostitTimeProjects(
             data.timeProjects
-          )
+          ),
+        timeProjectsClearedAt:
+          Number(data.timeProjectsClearedAt)
+          || 0
       })
     );
   } catch (error) {
@@ -480,7 +484,10 @@ function restorePostitTimeSnapshot(
     if (
       !Array.isArray(snapshot?.timeSlots)
       || snapshotSavedAt
-        < (Number(note.updatedAt) || 0)
+        < (
+          Number(note.postitUpdatedAt)
+          || 0
+        )
     ) {
       return;
     }
@@ -494,10 +501,23 @@ function restorePostitTimeSnapshot(
       data.timeProjects =
         snapshot.timeProjects;
     }
-    note.updatedAt = Math.max(
-      Number(note.updatedAt) || 0,
+    data.timeProjectsClearedAt =
+      Number(snapshot.timeProjectsClearedAt)
+      || 0;
+    note.postitUpdatedAt = Math.max(
+      Number(note.postitUpdatedAt) || 0,
       snapshotSavedAt
     );
+    if (note.template === 'todo') {
+      note.contentUpdatedAt = Math.max(
+        Number(note.contentUpdatedAt) || 0,
+        snapshotSavedAt
+      );
+      note.updatedAt = Math.max(
+        Number(note.updatedAt) || 0,
+        snapshotSavedAt
+      );
+    }
 
     setTimeout(() => {
       if (
@@ -2051,10 +2071,16 @@ function persistPostitTimeProjectInputs(
       if (!color) return;
 
       const value = input.value.slice(0, 24);
+      const previousValue = String(
+        data.timeProjects[color] || ''
+      );
       if (
-        String(data.timeProjects[color] || '')
-        === value
+        previousValue === value
       ) {
+        return;
+      }
+
+      if (!value && previousValue) {
         return;
       }
       data.timeProjects[color] = value;
@@ -2065,6 +2091,169 @@ function persistPostitTimeProjectInputs(
     persistPostitTimeSnapshot(note, data);
   }
   return changed;
+}
+
+function postitHasProjectNames(projects) {
+  return Object.values(
+    normalizePostitTimeProjects(projects)
+  ).some(value => String(value).trim());
+}
+
+async function recoverPostitTimeProjects(
+  note,
+  data
+) {
+  if (
+    !note?.id
+    || data?.type !== 'time'
+    || postitHasProjectNames(
+      data.timeProjects
+    )
+    || Number(data.timeProjectsClearedAt)
+    || postitProjectRecoveryPending.has(
+      note.id
+    )
+  ) {
+    return false;
+  }
+
+  postitProjectRecoveryPending.add(note.id);
+
+  try {
+    const candidates = [];
+    const addCandidate = (
+      projects,
+      savedAt = 0
+    ) => {
+      const normalized =
+        normalizePostitTimeProjects(projects);
+      if (!postitHasProjectNames(normalized)) {
+        return;
+      }
+      candidates.push({
+        projects: normalized,
+        savedAt: Number(savedAt) || 0
+      });
+    };
+
+    try {
+      const timeSnapshot = JSON.parse(
+        localStorage.getItem(
+          postitTimeSnapshotKey(note.id)
+        ) || 'null'
+      );
+      addCandidate(
+        timeSnapshot?.timeProjects,
+        timeSnapshot?.savedAt
+      );
+
+      const noteSnapshot = JSON.parse(
+        localStorage.getItem(
+          postitNoteSnapshotKey(note.id)
+        ) || 'null'
+      );
+      addCandidate(
+        noteSnapshot?.postitData
+          ?.timeProjects,
+        noteSnapshot?.savedAt
+      );
+    } catch (_error) {
+      /* Durable backups below may still recover the names. */
+    }
+
+    if (
+      typeof readDurableBackups
+      === 'function'
+    ) {
+      const backups =
+        await readDurableBackups();
+      backups.forEach(backup => {
+        const backupNote =
+          backup.state?.notes?.find(
+            item => item.id === note.id
+          );
+        addCandidate(
+          backupNote?.postitData
+            ?.timeProjects,
+          backupNote?.postitUpdatedAt
+            || backupNote?.contentUpdatedAt
+            || backup.savedAt
+        );
+      });
+    }
+
+    candidates.sort(
+      (first, second) =>
+        second.savedAt - first.savedAt
+    );
+    const recovered = candidates[0];
+    const liveNote = state.notes.find(
+      item => item.id === note.id
+    );
+    if (
+      !recovered
+      || !liveNote
+      || liveNote.template !== 'todo'
+    ) {
+      return false;
+    }
+
+    const liveData =
+      ensurePostitData(liveNote);
+    if (
+      postitHasProjectNames(
+        liveData.timeProjects
+      )
+      || Number(
+        liveData.timeProjectsClearedAt
+      )
+    ) {
+      return false;
+    }
+
+    liveData.timeProjects =
+      recovered.projects;
+    liveData.timeProjectsClearedAt = 0;
+    const changedAt =
+      markNoteContentUpdated(liveNote);
+    liveNote.postitUpdatedAt = changedAt;
+    persistPostitTimeSnapshot(
+      liveNote,
+      liveData
+    );
+    persistPostitNoteSnapshot(
+      liveNote,
+      liveData
+    );
+    saveData();
+
+    if (getCurrentNote()?.id === liveNote.id) {
+      renderPostitTimeProjects(
+        liveData,
+        liveNote
+      );
+      const tracker = document.querySelector(
+        '#postitEditorContent .postit-time'
+      );
+      if (tracker) {
+        renderPostitTimeSummary(
+          tracker,
+          liveData
+        );
+      }
+    }
+    return true;
+  } catch (error) {
+    console.warn(
+      'Could not recover time tracker project names',
+      error
+    );
+    return false;
+  } finally {
+    postitProjectRecoveryPending.delete(
+      note.id
+    );
+  }
 }
 
 function renderPostitTimeProjects(
@@ -2115,6 +2304,12 @@ function renderPostitTimeProjects(
       const saveProjectName = event => {
         data.timeProjects[color] =
           event.target.value.slice(0, 24);
+        data.timeProjectsClearedAt =
+          postitHasProjectNames(
+            data.timeProjects
+          )
+            ? 0
+            : Date.now();
         event.target.value =
           data.timeProjects[color];
         const tracker =
@@ -2534,6 +2729,10 @@ function renderPostitEditor(
     data.type !== 'time';
   if (data.type === 'time') {
     renderPostitTimeProjects(data, note);
+    recoverPostitTimeProjects(
+      note,
+      data
+    );
   }
   $('#postitCustomColor').value =
     data.accentColor;

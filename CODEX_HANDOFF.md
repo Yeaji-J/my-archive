@@ -208,6 +208,7 @@ Memo list page:
 ### 02 — 포스트잇 (`template: "todo"`)
 
 - every post-it note now writes an identity-scoped, per-note recovery snapshot on each edit in addition to the existing full-state localStorage, IndexedDB, and cloud paths. Opening a note restores that snapshot only when it is newer than the note content timestamp, so stale cloud/local state can recover lost list rows without overriding a newer intentional clear. Editor flushes also reread the live to-do/wish/shopping, weekly, habit, and time-project fields before saving
+- time-tracker project names must never be passively cleared from an empty or stale hidden DOM panel; only the explicit project-name input handler may clear a saved value. Time snapshots compare against `postitUpdatedAt` rather than the note's active-template timestamp, and an all-empty, unmarked project-name set attempts a focused recovery from the identity-scoped time snapshot, post-it snapshot, and newest IndexedDB backups without replacing the time blocks or other note data
 
 This replaced the old standalone “할 일” concept.
 

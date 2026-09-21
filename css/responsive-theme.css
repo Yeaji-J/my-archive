@@ -557,3 +557,668 @@ body {
     overflow-wrap: anywhere;
   }
 }
+
+/* ========================================
+   Mobile layout guardrails
+   Layout-only rules: do not alter editor state or save events.
+======================================== */
+
+html,
+body,
+.app,
+.main {
+  max-width: 100%;
+}
+
+html,
+body {
+  overflow-x: hidden;
+  overflow-x: clip;
+}
+
+.app {
+  width: 100%;
+}
+
+.view,
+.editor-folder-shell,
+.editor-paper,
+.home-board,
+.calendar-page,
+.chat-shell {
+  min-width: 0;
+  max-width: 100%;
+}
+
+img,
+video {
+  max-width: 100%;
+}
+
+@media (max-width: 860px) {
+  .view:not(.view--calendar):not(.view--chat):not(.view--editor) {
+    padding-right: 14px;
+    padding-left: 14px;
+  }
+
+  .archive-browser-head {
+    align-items: center;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .archive-view-switch,
+  .archive-template-filters,
+  .archive-secondary-filters {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .archive-template-filters,
+  .archive-secondary-filters {
+    padding-left: 0;
+    border-left: 0;
+  }
+
+  .archive-top-actions {
+    flex: 1 1 auto;
+    flex-wrap: wrap;
+  }
+
+  .archive-top-actions .archive-bulk-bar,
+  .folder-list-actions .archive-bulk-bar,
+  .archive-bulk-commands {
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .folder-context {
+    flex-wrap: wrap;
+  }
+
+  .editor-folder-shell {
+    width: 100%;
+    margin: 10px 0 22px;
+    padding-right: 0;
+  }
+
+  .editor-template-tabs {
+    right: 0;
+    left: 0;
+  }
+
+  .editor-paper {
+    border-right: 0;
+    border-left: 0;
+    border-radius: 14px;
+  }
+
+  .moodboard-toolbar {
+    max-height: none;
+    padding: 8px;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overflow: visible;
+  }
+
+  .moodboard-tool-section {
+    min-width: 0;
+    padding: 8px;
+    border-right: 0;
+    border-bottom: 1px solid rgba(92, 54, 33, .07);
+  }
+
+  .moodboard-tool-actions {
+    margin-top: 0;
+  }
+
+  .view--editor.moodboard-editor-active {
+    overflow-y: auto;
+  }
+
+  .moodboard-editor-active .editor-folder-shell {
+    height: auto;
+    min-height: calc(100% - 20px);
+  }
+
+  .moodboard-editor-active .editor-paper {
+    min-height: calc(100dvh - 88px);
+    overflow: visible;
+  }
+
+  .moodboard-editor-active .moodboard-panel {
+    height: auto;
+    flex: 0 0 auto;
+    grid-template-rows: auto minmax(460px, 65dvh);
+  }
+
+  .moodboard-canvas-wrap {
+    min-height: 460px;
+  }
+}
+
+@media (max-width: 560px) {
+  .topbar {
+    min-height: 54px;
+    padding:
+      max(9px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      9px
+      max(10px, env(safe-area-inset-left));
+    gap: 6px;
+  }
+
+  .breadcrumb {
+    font-size: 16px;
+  }
+
+  .topbar-actions {
+    flex: 0 0 auto;
+    gap: 5px;
+  }
+
+  .account-btn.logged-in {
+    width: 34px;
+    min-width: 34px;
+    padding: 0;
+    justify-content: center;
+  }
+
+  .account-btn.logged-in .account-name {
+    display: none;
+  }
+
+  .account-btn:not(.logged-in) {
+    max-width: 58px;
+    padding: 0 8px;
+  }
+
+  .topbar .primary-btn {
+    width: 34px;
+    min-width: 34px;
+    height: 34px;
+    padding: 0;
+    font-size: 0;
+  }
+
+  .topbar .primary-btn::before {
+    content: "+";
+    font-size: 19px;
+    line-height: 1;
+  }
+
+  .view:not(.view--calendar):not(.view--chat):not(.view--editor) {
+    padding: 14px 10px calc(54px + env(safe-area-inset-bottom));
+  }
+
+  .home-intro h1 {
+    font-size: clamp(24px, 8vw, 32px);
+  }
+
+  .home-calendar-card {
+    overflow: hidden;
+  }
+
+  .mini-calendar-weekdays,
+  .mini-calendar-grid {
+    min-width: 0;
+  }
+
+  .mini-calendar-day {
+    min-height: 46px;
+    padding: 6px 2px;
+  }
+
+  .folder-grid {
+    padding: 6px 0 16px;
+    grid-auto-flow: row;
+    grid-auto-columns: unset;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 10px;
+    overflow: visible;
+  }
+
+  .folder-card {
+    width: 100%;
+    min-width: 0;
+    padding-inline: 2px;
+  }
+
+  .folder-icon {
+    width: min(112px, 100%);
+    height: 95px;
+  }
+
+  .archive-browser-head {
+    gap: 8px;
+    margin-bottom: 16px;
+  }
+
+  .archive-view-switch {
+    width: 100%;
+  }
+
+  .archive-view-switch button {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .archive-template-filters,
+  .archive-secondary-filters {
+    width: 100%;
+    gap: 3px;
+  }
+
+  .archive-template-filters button,
+  .archive-secondary-filters button {
+    padding: 7px 9px;
+  }
+
+  .archive-top-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .archive-top-actions .archive-bulk-bar {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .archive-bulk-commands {
+    width: 100%;
+  }
+
+  #archiveBulkFolderSelect {
+    min-width: 0;
+    flex: 1;
+  }
+
+  .editor-folder-shell {
+    margin-top: 8px;
+    padding-top: 46px;
+  }
+
+  .editor-template-tab {
+    min-width: 0;
+    padding-right: 2px;
+    padding-left: 2px;
+  }
+
+  .editor-paper,
+  .moodboard-editor-active .editor-paper {
+    padding: 14px 10px 32px;
+    border-radius: 12px 12px 0 0;
+  }
+
+  .editor-toolbar {
+    position: relative;
+    inset: auto;
+    margin-bottom: 18px;
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+    pointer-events: auto;
+  }
+
+  .editor-toolbar > .text-btn {
+    align-self: flex-start;
+  }
+
+  .editor-toolbar-right {
+    width: 100%;
+    min-width: 0;
+    align-items: center;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .editor-font-control {
+    min-width: 0;
+    flex: 1 1 125px;
+  }
+
+  .editor-font-control select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .editor-folder-controls {
+    flex: 1 1 150px;
+  }
+
+  .editor-folder-controls .folder-select {
+    max-width: none;
+    flex: 1;
+  }
+
+  .note-title-input {
+    font-size: clamp(25px, 9vw, 34px);
+  }
+
+  .memo-format-toolbar {
+    top: 0;
+    gap: 6px;
+    padding: 7px;
+  }
+
+  .memo-tool-group {
+    max-width: 100%;
+    flex-wrap: wrap;
+    overflow: visible;
+  }
+
+  .memo-tool-group button,
+  .memo-image-tool {
+    padding: 0 8px;
+    font-size: 10.5px;
+  }
+
+  .memo-inline-control {
+    min-width: 0;
+    flex: 1 1 124px;
+  }
+
+  .memo-inline-control select {
+    width: 100%;
+    max-width: none;
+  }
+
+  .memo-size-control,
+  .memo-color-control {
+    flex: 0 1 auto;
+  }
+
+  .memo-skin-picker {
+    width: 100%;
+    margin-left: 0;
+    justify-content: flex-start;
+  }
+
+  .memo-tags-editor {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .memo-tags-editor input {
+    width: auto;
+    min-width: 0;
+    flex: 1 1 calc(100% - 48px);
+  }
+
+  .memo-tag-preview {
+    width: 100%;
+    margin-left: 0;
+    flex-wrap: wrap;
+    justify-content: flex-start;
+    overflow: visible;
+  }
+
+  .memo-editor-skin {
+    padding: 26px 12px;
+  }
+
+  .memo-editor-block::before {
+    left: -12px;
+    width: 11px;
+    letter-spacing: -5px;
+  }
+
+  .postit-editor-layout {
+    width: 100%;
+    padding-inline: 0;
+  }
+
+  .postit-paper-stage {
+    width: 100%;
+    min-width: 0;
+    overflow: visible;
+  }
+
+  .postit-paper-stage > .postit-paper {
+    width: 100%;
+    min-width: 0;
+    padding: 34px 14px;
+  }
+
+  .postit-paper-title {
+    margin-bottom: 38px;
+    letter-spacing: .2em;
+  }
+
+  .postit-list-row {
+    grid-template-columns: 20px minmax(0, 1fr) 18px;
+    gap: 8px;
+  }
+
+  .postit-weekly-row {
+    grid-template-columns: 36px minmax(0, 1fr);
+    gap: 9px;
+  }
+
+  .postit-time {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .postit-time-summary {
+    min-height: 0;
+    padding: 16px 0 0;
+    gap: 11px;
+  }
+
+  .postit-time-summary-colors {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px 12px;
+  }
+
+  .postit-time-summary-total {
+    margin-top: 4px;
+  }
+
+  .postit-control-panel {
+    width: 100%;
+  }
+
+  .moodboard-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .moodboard-editor-active .moodboard-panel {
+    grid-template-rows: auto minmax(420px, 62dvh);
+  }
+
+  .moodboard-canvas-wrap {
+    min-height: 420px;
+  }
+
+  .calendar-page {
+    height: auto;
+    min-height: 680px;
+    padding:
+      14px
+      max(8px, env(safe-area-inset-right))
+      calc(14px + env(safe-area-inset-bottom))
+      max(8px, env(safe-area-inset-left));
+    overflow: visible;
+  }
+
+  .view--calendar {
+    overflow-y: auto;
+  }
+
+  .calendar-page-head {
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .calendar-page-head h1 {
+    font-size: 24px;
+  }
+
+  .calendar-controls {
+    gap: 4px;
+  }
+
+  .calendar-control-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .apple-calendar-card {
+    min-height: 560px;
+    border-radius: 14px;
+  }
+
+  .calendar-weekdays {
+    height: 34px;
+    flex-basis: 34px;
+  }
+
+  .calendar-day {
+    padding: 32px 3px 4px;
+  }
+
+  .calendar-day-number {
+    top: 5px;
+    left: 5px;
+    width: 24px;
+    height: 24px;
+    font-size: 11px;
+  }
+
+  .calendar-day-note {
+    font-size: 8.5px;
+  }
+
+  .chat-conversation-header {
+    padding-right: 8px;
+    padding-left: 36px;
+    gap: 5px;
+  }
+
+  .chat-peer-copy span {
+    display: none;
+  }
+
+  .chat-header-actions {
+    gap: 4px;
+  }
+
+  .chat-font-control {
+    min-width: 0;
+    padding-inline: 5px;
+  }
+
+  .chat-font-control select {
+    width: 68px;
+  }
+
+  .chat-size-control select {
+    width: 54px;
+  }
+
+  .chat-size-control {
+    min-width: 64px;
+  }
+
+  .chat-leave-btn {
+    padding-inline: 6px;
+  }
+
+  .chat-messages {
+    padding-right: 12px;
+    padding-left: 12px;
+  }
+
+  .chat-composer {
+    margin-right: max(8px, env(safe-area-inset-right));
+    margin-bottom: max(8px, env(safe-area-inset-bottom));
+    margin-left: max(8px, env(safe-area-inset-left));
+  }
+
+  .note-detail-toolbar {
+    align-items: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .note-detail-actions {
+    max-width: 100%;
+    flex-wrap: wrap;
+  }
+
+  .collection-album-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 390px) {
+  .topbar {
+    padding-right: 7px;
+    padding-left: 7px;
+  }
+
+  .topbar-actions {
+    gap: 3px;
+  }
+
+  .topbar .pill-btn,
+  .topbar .primary-btn,
+  .account-btn.logged-in {
+    width: 32px;
+    min-width: 32px;
+    height: 32px;
+  }
+
+  .account-btn:not(.logged-in) {
+    max-width: 52px;
+    padding-inline: 6px;
+    font-size: 11px;
+  }
+
+  .folder-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .postit-paper-stage > .postit-paper {
+    padding-right: 10px;
+    padding-left: 10px;
+  }
+
+  .postit-time-head,
+  .postit-time-row {
+    grid-template-columns: 27px minmax(0, 1fr);
+  }
+
+  .postit-time-summary-colors {
+    grid-template-columns: 1fr;
+  }
+
+  .chat-conversation-header .chat-avatar {
+    display: none;
+  }
+
+  .chat-peer-copy {
+    max-width: 54px;
+  }
+
+  .chat-peer-copy strong {
+    font-size: 11px;
+  }
+}
+
+@media (hover: none) and (pointer: coarse) {
+  .folder-edit,
+  .folder-del,
+  .postit-row-remove,
+  .postit-habit-name button {
+    display: flex;
+    opacity: .58;
+  }
+
+  .memo-editor-block:focus-within::before {
+    opacity: .72;
+  }
+}
